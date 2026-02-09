@@ -1,16 +1,28 @@
+import mongoose from "mongoose";
+
 import Listing, { validateListing } from "../models/Listing.js";
 import { logError } from "../util/logging.js";
 import validationErrorMessage from "../util/validationErrorMessage.js";
 
+// Helper to escape regex special characters
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Helper to validate MongoDB ObjectId
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// Helper to check if value is a plain object (not null, not array)
+const isPlainObject = (val) =>
+  val != null && typeof val === "object" && !Array.isArray(val);
+
 // GET all listings
 export const getListings = async (req, res) => {
   try {
-    const { type, status, location } = req.query;
+    const { status, location } = req.query;
     const filter = {};
 
-    if (type) filter.type = type;
     if (status) filter.status = status;
-    if (location) filter.location = { $regex: location, $options: "i" };
+    if (location)
+      filter.location = { $regex: escapeRegex(location), $options: "i" };
 
     const listings = await Listing.find(filter).populate(
       "ownerId",
@@ -29,6 +41,13 @@ export const getListings = async (req, res) => {
 export const getListingById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
     const listing = await Listing.findById(id).populate(
       "ownerId",
       "name email",
@@ -52,28 +71,23 @@ export const createListing = async (req, res) => {
   try {
     const listing = req.body?.listing;
 
-    if (typeof listing !== "object") {
-      res.status(400).json({
+    if (!isPlainObject(listing)) {
+      return res.status(400).json({
         success: false,
-        msg: `You need to provide a 'listing' object. Received: ${JSON.stringify(
-          listing,
-        )}`,
+        msg: `You need to provide a 'listing' object. Received: ${JSON.stringify(listing)}`,
       });
-
-      return;
     }
 
     const errorList = validateListing(listing);
 
     if (errorList.length > 0) {
-      res
+      return res
         .status(400)
         .json({ success: false, msg: validationErrorMessage(errorList) });
-    } else {
-      const newListing = await Listing.create(listing);
-
-      res.status(201).json({ success: true, listing: newListing });
     }
+
+    const newListing = await Listing.create(listing);
+    res.status(201).json({ success: true, listing: newListing });
   } catch (error) {
     logError(error);
     res.status(500).json({
@@ -89,7 +103,13 @@ export const updateListing = async (req, res) => {
     const { id } = req.params;
     const updates = req.body?.listing;
 
-    if (typeof updates !== "object") {
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    if (!isPlainObject(updates)) {
       return res.status(400).json({
         success: false,
         msg: "You need to provide a 'listing' object with updates.",
@@ -119,6 +139,13 @@ export const updateListing = async (req, res) => {
 export const deleteListing = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
     const listing = await Listing.findByIdAndDelete(id);
 
     if (!listing) {

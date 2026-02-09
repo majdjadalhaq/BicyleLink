@@ -1,4 +1,3 @@
-/* eslint-env jest */
 import supertest from "supertest";
 import mongoose from "mongoose";
 
@@ -37,7 +36,6 @@ const createTestUser = async () => {
 const testListingBase = {
   title: "Mountain Bike",
   description: "Great condition mountain bike",
-  type: "used",
   price: 500,
   location: "Amsterdam",
 };
@@ -49,6 +47,15 @@ describe("POST /api/listings", () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.body.msg.length).not.toBe(0);
+  });
+
+  it("Should return a bad request if listing is null", async () => {
+    const response = await request
+      .post("/api/listings")
+      .send({ listing: null });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
   });
 
   it("Should return a bad request if listing is missing required fields", async () => {
@@ -102,26 +109,37 @@ describe("GET /api/listings", () => {
     expect(response.body.result.length).toBe(2);
   });
 
-  it("Should filter listings by type", async () => {
+  it("Should filter listings by status", async () => {
     const user = await createTestUser();
-    await Listing.create({ ...testListingBase, ownerId: user._id });
     await Listing.create({
       ...testListingBase,
-      title: "E-Bike Lease",
-      type: "lease",
-      leaseDuration: 12,
       ownerId: user._id,
+      status: "active",
+    });
+    await Listing.create({
+      ...testListingBase,
+      title: "Sold Bike",
+      ownerId: user._id,
+      status: "sold",
     });
 
-    const response = await request.get("/api/listings?type=lease");
+    const response = await request.get("/api/listings?status=sold");
 
     expect(response.status).toBe(200);
     expect(response.body.result.length).toBe(1);
-    expect(response.body.result[0].type).toBe("lease");
+    expect(response.body.result[0].status).toBe("sold");
   });
 });
 
 describe("GET /api/listings/:id", () => {
+  it("Should return 400 for invalid ObjectId", async () => {
+    const response = await request.get("/api/listings/not-a-valid-id");
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.msg).toBe("Invalid listing ID");
+  });
+
   it("Should return 404 for non-existent listing", async () => {
     const fakeId = new mongoose.Types.ObjectId();
     const response = await request.get(`/api/listings/${fakeId}`);
@@ -146,6 +164,15 @@ describe("GET /api/listings/:id", () => {
 });
 
 describe("PUT /api/listings/:id", () => {
+  it("Should return 400 for invalid ObjectId", async () => {
+    const response = await request
+      .put("/api/listings/not-a-valid-id")
+      .send({ listing: { price: 450 } });
+
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Invalid listing ID");
+  });
+
   it("Should update a listing", async () => {
     const user = await createTestUser();
     const listing = await Listing.create({
@@ -173,6 +200,13 @@ describe("PUT /api/listings/:id", () => {
 });
 
 describe("DELETE /api/listings/:id", () => {
+  it("Should return 400 for invalid ObjectId", async () => {
+    const response = await request.delete("/api/listings/not-a-valid-id");
+
+    expect(response.status).toBe(400);
+    expect(response.body.msg).toBe("Invalid listing ID");
+  });
+
   it("Should delete a listing", async () => {
     const user = await createTestUser();
     const listing = await Listing.create({
