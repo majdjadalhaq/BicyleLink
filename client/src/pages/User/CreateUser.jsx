@@ -132,7 +132,7 @@ const CreateUser = () => {
       },
       body: JSON.stringify({
         user: {
-          username,
+          name: username,
           email,
           password,
           bio: bio || undefined,
