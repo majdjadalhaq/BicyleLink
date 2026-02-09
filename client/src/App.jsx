@@ -3,6 +3,7 @@ import Nav from "./components/Nav";
 import Home from "./pages/Home/Home";
 import CreateUser from "./pages/User/CreateUser";
 import UserList from "./pages/User/UserList";
+import CreateListing from "./pages/CreateListing/CreateListing";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/user" element={<UserList />} />
         <Route path="/user/create" element={<CreateUser />} />
+        <Route path="/listing/create" element={<CreateListing />} />
       </Routes>
     </>
   );
