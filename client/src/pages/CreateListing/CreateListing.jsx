@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import "../../styles/CreateListing.css";
@@ -22,12 +22,17 @@ const CreateListing = () => {
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { isLoading, error, performFetch } = useFetch("/listings", () => {
+  const { isLoading, error, performFetch, cancelFetch } = useFetch("/listings", () => {
     setSuccessMessage("Listing created successfully!");
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       navigate("/");
     }, 1500);
+    return () => clearTimeout(timer);
   });
+
+  useEffect(() => {
+     return () => cancelFetch();
+  }, [cancelFetch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

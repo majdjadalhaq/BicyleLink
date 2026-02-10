@@ -38,9 +38,9 @@ describe("Routing", () => {
     );
   });
 
-  it("Path '/user/create' should go to User create page ", () => {
+  it("Path '/signup' should go to User create page ", () => {
     render(
-      <MemoryRouter initialEntries={["/user/create"]}>
+      <MemoryRouter initialEntries={["/signup"]}>
         <App />
       </MemoryRouter>,
     );
