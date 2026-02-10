@@ -22,16 +22,19 @@ const CreateListing = () => {
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { isLoading, error, performFetch, cancelFetch } = useFetch("/listings", () => {
-    setSuccessMessage("Listing created successfully!");
-    const timer = setTimeout(() => {
-      navigate("/");
-    }, 1500);
-    return () => clearTimeout(timer);
-  });
+  const { isLoading, error, performFetch, cancelFetch } = useFetch(
+    "/listings",
+    () => {
+      setSuccessMessage("Listing created successfully!");
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 1500);
+      return () => clearTimeout(timer);
+    },
+  );
 
   useEffect(() => {
-     return () => cancelFetch();
+    return () => cancelFetch();
   }, [cancelFetch]);
 
   const handleChange = (e) => {
