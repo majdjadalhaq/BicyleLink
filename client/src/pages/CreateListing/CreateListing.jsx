@@ -73,7 +73,6 @@ const CreateListing = () => {
       type: formData.type,
       price: Number(formData.price),
       location: formData.location,
-      ownerId: "507f1f77bcf86cd799439011", // TODO: Replace with actual user ID from auth
     };
 
     // Add optional fields if provided

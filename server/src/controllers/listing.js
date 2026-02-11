@@ -86,6 +86,9 @@ export const createListing = async (req, res) => {
         .json({ success: false, msg: validationErrorMessage(errorList) });
     }
 
+    // Set ownerId from authenticated user instead of request body
+    listing.ownerId = req.user._id;
+
     const newListing = await Listing.create(listing);
     res.status(201).json({ success: true, listing: newListing });
   } catch (error) {
