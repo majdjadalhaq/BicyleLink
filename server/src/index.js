@@ -8,6 +8,18 @@ import { logInfo, logError } from "./util/logging.js";
 import connectDB from "./db/connectDB.js";
 import testRouter from "./testRouter.js";
 
+// Check for required environment variables
+const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "EMAIL_USER", "EMAIL_PASS"];
+const missing = requiredEnv.filter((key) => !process.env[key]);
+
+if (missing.length > 0) {
+  // eslint-disable-next-line no-console
+  console.error(
+    `❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`,
+  );
+  process.exit(1);
+}
+
 // The environment should set the port
 const port = process.env.PORT;
 

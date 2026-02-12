@@ -1,36 +1,47 @@
-/**
- * Combine all the logging options into one file.
- *
- * For now we log to the console, but if in the future we want to add a logging service
- * we only need to adjust this file.
- */
+import winston from "winston";
 
-/**
- * logInfo should be used to log anything that can be used for debugging but is not a problem
- */
-export const logInfo = (message) => {
-  // eslint-disable-next-line no-console
-  console.log(message);
+const { combine, timestamp, printf, colorize, errors } = winston.format;
+
+const logFormat = printf(({ level, message, timestamp, stack }) => {
+  return `${timestamp} ${level}: ${stack || message}`;
+});
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || "info",
+  format: combine(
+    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    errors({ stack: true }), // Print stack trace for errors
+    process.env.NODE_ENV !== "production"
+      ? colorize()
+      : winston.format.uncolorize(),
+    logFormat,
+  ),
+  transports: [
+    new winston.transports.Console(),
+    // Add file transport for production error logs
+    ...(process.env.NODE_ENV === "production"
+      ? [
+          new winston.transports.File({
+            filename: "logs/error.log",
+            level: "error",
+          }),
+          new winston.transports.File({ filename: "logs/combined.log" }),
+        ]
+      : []),
+  ],
+});
+
+export const logError = (error, context = "") => {
+  const msg = context ? `${context}: ${error.message}` : error.message;
+  logger.error(msg, { stack: error.stack });
 };
 
-/**
- * logWarning should be used to log anything that signals a problem that is not app breaking
- */
-export const logWarning = (message) => {
-  // eslint-disable-next-line no-console
-  console.warn(message);
+export const logInfo = (message, meta = {}) => {
+  logger.info(message, meta);
 };
 
-/**
- * logError should be used to log anything that is app breaking
- */
-export const logError = (errorMessage) => {
-  if (errorMessage instanceof Error) {
-    // You can pass an Error to this function and we will post the stack
-    // eslint-disable-next-line no-console
-    console.error(errorMessage.message, errorMessage.stack);
-  } else {
-    // eslint-disable-next-line no-console
-    console.error("ERROR: ", errorMessage);
-  }
+export const logWarn = (message, meta = {}) => {
+  logger.warn(message, meta);
 };
+
+export default logger;
