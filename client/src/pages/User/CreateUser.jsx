@@ -19,6 +19,7 @@ const CreateUser = () => {
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [selectedCountryCode, setSelectedCountryCode] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const CreateUser = () => {
     setCountry("");
     setCity("");
     setSelectedCountryCode("");
+    setAgreedToTerms(false);
     setValidationError("");
     navigate("/verify-code", { state: { email } });
   };
@@ -114,6 +116,11 @@ const CreateUser = () => {
       return false;
     }
 
+    if (agreedToTerms !== true) {
+      setValidationError("You must accept the Terms of Service");
+      return false;
+    }
+
     setValidationError("");
     return true;
   };
@@ -138,6 +145,7 @@ const CreateUser = () => {
           bio: bio || undefined,
           city: city || undefined,
           country: country || undefined,
+          agreedToTerms,
         },
       }),
     });
@@ -237,6 +245,18 @@ const CreateUser = () => {
           rows={3}
           dataTestId={TEST_ID.bioTextarea}
         />
+        <label className={styles.checkboxContainer}>
+          <input
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            data-testid={TEST_ID.agreedToTermsInput}
+          />
+          <span className={styles.checkboxText}>
+            I agree to the <Link to="/terms">Terms of Service</Link> and{" "}
+            <Link to="/privacy">Privacy Policy</Link>
+          </span>
+        </label>
         <SubmitButton isLoading={isLoading} dataTestId={TEST_ID.submitButton}>
           Sign Up
         </SubmitButton>

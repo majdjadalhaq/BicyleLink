@@ -1,11 +1,7 @@
 import supertest from "supertest";
 import mongoose from "mongoose";
 
-import {
-  connectToMockDB,
-  closeMockDatabase,
-  clearMockDatabase,
-} from "../__testUtils__/dbMock.js";
+import { connectToMockDB, closeMockDatabase } from "../__testUtils__/dbMock.js";
 import app from "../app.js";
 import Listing from "../models/Listing.js";
 import User from "../models/User.js";
@@ -14,10 +10,6 @@ const request = supertest(app);
 
 beforeAll(async () => {
   await connectToMockDB();
-});
-
-afterEach(async () => {
-  await clearMockDatabase();
 });
 
 afterAll(async () => {

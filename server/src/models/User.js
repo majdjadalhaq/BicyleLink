@@ -9,13 +9,37 @@ const userSchema = new mongoose.Schema({
   city: { type: String, required: true },
   country: { type: String, required: true },
   bio: { type: String },
+  isVerified: { type: Boolean, default: false },
+  agreedToTerms: {
+    type: Boolean,
+    required: true,
+    validate: {
+      validator: (v) => v === true,
+      message: "Terms of Service must be accepted",
+    },
+  },
+  avatarUrl: { type: String, trim: true },
+  verificationCode: { type: String, index: true },
+  verificationCodeExpiry: { type: Date },
+  passwordResetCode: { type: String },
+  passwordResetCodeExpiry: { type: Date, index: true },
+  passwordResetCodeUsed: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("users", userSchema);
 
 export const validateUser = (userObject) => {
   const errorList = [];
-  const allowedKeys = ["name", "email", "password", "city", "country", "bio"];
+  const allowedKeys = [
+    "name",
+    "email",
+    "password",
+    "city",
+    "country",
+    "bio",
+    "agreedToTerms",
+    "avatarUrl",
+  ];
 
   const validatedKeysMessage = validateAllowedFields(userObject, allowedKeys);
 
@@ -41,6 +65,10 @@ export const validateUser = (userObject) => {
 
   if (userObject.country == null) {
     errorList.push("country is a required field");
+  }
+
+  if (userObject.agreedToTerms !== true) {
+    errorList.push("Terms of Service must be accepted");
   }
 
   return errorList;
