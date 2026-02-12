@@ -1,0 +1,33 @@
+
+Title: Email Verification System (Feature)
+
+Description:
+Hi team,
+
+I finished the Email Verification feature. This allows users to sign up, receive a code by email, and verify their account to login.
+
+What I implemented:
+
+Backend:
+- `createUser` now generates a random 6-digit code and expiration time (15 mins).
+- Added `verifyEmail` endpoint: it checks the code and activates the user (`isVerified = true`).
+- Added `emailService` to send emails using Nodemailer (connected to Mailtrap).
+- Fixed a bug where verification tokens were not cleaned up.
+- Added `/verify` route.
+
+Frontend:
+- Created `VerifyCode` page.
+- Users are redirected here after signing up.
+- Fixed a bug (`AbortError`) where the request was cancelled too early.
+- Users can now verify and get logged in automatically.
+
+Testing:
+- Verified manually using Mailtrap.
+- Verified using integration script `verify-flow.js` (Backend Logic confirmed).
+
+Note: This PR depends on PR #1 (Core Auth).
+
+Let me know if you have questions!
+
+Best,
+Majd

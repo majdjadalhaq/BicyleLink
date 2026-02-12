@@ -184,3 +184,85 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ success: false, msg: "Verification failed" });
   }
 };
+
+export const resendVerificationCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, msg: "Email is required" });
+    }
+
+    const user = await User.findOne({ email }).select(
+      "+isVerified +verificationCodeLastSentAt +verificationResendCount +verificationResendWindowStart",
+    );
+
+    // Anti-Enumeration: Fake delay & Generic Success
+    if (!user) {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      return res.status(200).json({
+        success: true,
+        msg: "If an account exists, a verification code has been sent.",
+      });
+    }
+
+    // Already Verified: Generic Success
+    if (user.isVerified) {
+      return res.status(200).json({
+        success: true,
+        msg: "If an account exists, a verification code has been sent.",
+      });
+    }
+
+    // Cooldown Check (60 seconds)
+    if (
+      user.verificationCodeLastSentAt &&
+      Date.now() - user.verificationCodeLastSentAt.getTime() < 60000
+    ) {
+      return res.status(429).json({
+        success: false,
+        msg: "Please wait before requesting another code.",
+      });
+    }
+
+    // Rate Limit Reset (1 hour window)
+    if (
+      !user.verificationResendWindowStart ||
+      Date.now() - user.verificationResendWindowStart.getTime() > 3600000
+    ) {
+      user.verificationResendCount = 0;
+      user.verificationResendWindowStart = new Date();
+    }
+
+    // Rate Limit Cap (3 per hour)
+    if (user.verificationResendCount >= 3) {
+      return res.status(429).json({
+        success: false,
+        msg: "Too many requests. Please try again later.",
+      });
+    }
+
+    // Action: Generate new code & Update state
+    user.verificationCode = crypto.randomInt(100000, 999999).toString();
+    user.verificationCodeExpiry = Date.now() + 10 * 60 * 1000; // 10 mins
+    user.verificationCodeLastSentAt = new Date();
+    user.verificationResendCount += 1;
+
+    await user.save();
+
+    // Send Email
+    try {
+      await sendVerificationEmail(user.email, user.verificationCode);
+    } catch (err) {
+      logError(err);
+      // Log error but treat as success to client to avoid enumeration
+    }
+
+    return res.status(200).json({
+      success: true,
+      msg: "If an account exists, a verification code has been sent.",
+    });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to resend code" });
+  }
+};
