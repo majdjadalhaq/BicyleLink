@@ -34,6 +34,7 @@ const Listing = mongoose.model("listings", listingSchema);
 const REQUIRED_FIELDS = ["title", "description", "price", "location"];
 const ALLOWED_KEYS = [
   ...REQUIRED_FIELDS,
+  "ownerId",
   "images",
   "status",
   "brand",
