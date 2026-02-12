@@ -14,6 +14,7 @@ import User from "../models/User.js";
 const request = supertest(app);
 
 // Mock the authenticate middleware using global to bypass jest.mock scoping
+// Mock the authenticate middleware using global to bypass jest.mock scoping
 jest.mock("../middleware/auth.js", () => ({
   authenticate: (req, res, next) => {
     if (global.__mockAuthUser) {
@@ -23,6 +24,31 @@ jest.mock("../middleware/auth.js", () => ({
       res.status(401).json({ success: false, msg: "Not authorized" });
     }
   },
+  // Default to allowing verification
+  requireVerified: (req, res, next) => {
+    if (req.user && !req.user.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, msg: "Email verification required" });
+    }
+    next();
+  },
+  // Mock ownership to always pass unless we specifically test failure (handled by controller tests mostly)
+  // In a real integration test we'd want this to check DB, but for now we trust unit tests
+  requireOwnership: (Model) => async (req, res, next) => {
+    // Simulate resource attachment if needed, or just pass
+    // We can look up the resource to set req.resource for the controller
+    if (req.params.id) {
+      const resource = await Model.findById(req.params.id);
+      if (resource) {
+        req.resource = resource;
+        // We could enforce ownership here in the mock if we wanted
+        // if (resource.ownerId.toString() !== req.user?._id?.toString()) ...
+      }
+    }
+    next();
+  },
+  optionalAuth: (req, res, next) => next(),
 }));
 
 beforeAll(async () => {

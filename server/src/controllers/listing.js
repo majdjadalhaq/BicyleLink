@@ -14,6 +14,21 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 const isPlainObject = (val) =>
   val != null && typeof val === "object" && !Array.isArray(val);
 
+// Allowed fields for updates/creation to prevent pollution
+const ALLOWED_UPDATE_FIELDS = [
+  "title",
+  "description",
+  "price",
+  "images",
+  "location",
+  "brand",
+  "model",
+  "year",
+  "condition",
+  "mileage",
+  "status", // User might be allowed to change status
+];
+
 // GET all listings
 export const getListings = async (req, res) => {
   try {
@@ -69,16 +84,24 @@ export const getListingById = async (req, res) => {
 // POST create new listing
 export const createListing = async (req, res) => {
   try {
-    const listing = req.body?.listing;
+    const listingData = req.body?.listing;
 
-    if (!isPlainObject(listing)) {
+    if (!isPlainObject(listingData)) {
       return res.status(400).json({
         success: false,
-        msg: `You need to provide a 'listing' object. Received: ${JSON.stringify(listing)}`,
+        msg: "You need to provide a 'listing' object.",
       });
     }
 
-    const errorList = validateListing(listing);
+    // Explicitly pick allowed fields
+    const safeListing = {};
+    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+      if (listingData[field] !== undefined) {
+        safeListing[field] = listingData[field];
+      }
+    });
+
+    const errorList = validateListing(safeListing);
 
     if (errorList.length > 0) {
       return res
@@ -86,7 +109,7 @@ export const createListing = async (req, res) => {
         .json({ success: false, msg: validationErrorMessage(errorList) });
     }
 
-    // Ensure request is authenticated before using req.user
+    // Ensure request is authenticated
     if (!req.user || !req.user._id) {
       return res.status(401).json({
         success: false,
@@ -94,10 +117,10 @@ export const createListing = async (req, res) => {
       });
     }
 
-    // Set ownerId from authenticated user instead of request body
-    listing.ownerId = req.user._id;
+    // Set ownerId from authenticated user
+    safeListing.ownerId = req.user._id;
 
-    const newListing = await Listing.create(listing);
+    const newListing = await Listing.create(safeListing);
     res.status(201).json({ success: true, listing: newListing });
   } catch (error) {
     logError(error);
@@ -111,14 +134,7 @@ export const createListing = async (req, res) => {
 // PUT update listing
 export const updateListing = async (req, res) => {
   try {
-    const { id } = req.params;
     const updates = req.body?.listing;
-
-    if (!isValidObjectId(id)) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Invalid listing ID" });
-    }
 
     if (!isPlainObject(updates)) {
       return res.status(400).json({
@@ -127,14 +143,26 @@ export const updateListing = async (req, res) => {
       });
     }
 
-    const listing = await Listing.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
+    // Ownership is already checked by middleware (requireOwnership)
+    // req.resource contains the listing
+
+    // Whitelist updates
+    const safeUpdates = {};
+    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+      if (updates[field] !== undefined) {
+        safeUpdates[field] = updates[field];
+      }
     });
 
-    if (!listing) {
-      return res.status(404).json({ success: false, msg: "Listing not found" });
-    }
+    // Use findByIdAndUpdate on req.resource._id to apply updates and validators
+    const listing = await Listing.findByIdAndUpdate(
+      req.resource._id,
+      safeUpdates,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     res.status(200).json({ success: true, listing });
   } catch (error) {
@@ -149,19 +177,8 @@ export const updateListing = async (req, res) => {
 // DELETE listing
 export const deleteListing = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    if (!isValidObjectId(id)) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Invalid listing ID" });
-    }
-
-    const listing = await Listing.findByIdAndDelete(id);
-
-    if (!listing) {
-      return res.status(404).json({ success: false, msg: "Listing not found" });
-    }
+    // Ownership is already checked by middleware
+    await Listing.findByIdAndDelete(req.resource._id);
 
     res
       .status(200)
