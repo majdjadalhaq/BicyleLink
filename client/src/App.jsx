@@ -6,6 +6,8 @@ import UserList from "./pages/User/UserList";
 import CreateListing from "./pages/CreateListing/CreateListing";
 import Login from "./pages/User/Login";
 import VerifyCode from "./pages/User/VerifyCode";
+import ForgotPassword from "./pages/User/ForgotPassword";
+import ResetPassword from "./pages/User/ResetPassword";
 
 const App = () => {
   return (
@@ -19,6 +21,8 @@ const App = () => {
         <Route path="/signup" element={<CreateUser />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-code" element={<VerifyCode />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </>
   );

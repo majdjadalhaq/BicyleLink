@@ -4,6 +4,9 @@ import {
   getUsers,
   loginUser,
   verifyEmail,
+  resendVerificationCode,
+  requestPasswordReset,
+  resetPassword,
 } from "../controllers/user.js";
 
 const userRouter = express.Router();
@@ -12,5 +15,8 @@ userRouter.get("/", getUsers);
 userRouter.post("/", createUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/verify", verifyEmail);
+userRouter.post("/resend-code", resendVerificationCode);
+userRouter.post("/request-reset", requestPasswordReset);
+userRouter.post("/reset-password", resetPassword);
 
 export default userRouter;

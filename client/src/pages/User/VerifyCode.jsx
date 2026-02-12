@@ -11,6 +11,41 @@ const VerifyCode = () => {
   const navigate = useNavigate();
   const email = location.state?.email;
 
+  const [timer, setTimer] = useState(60);
+
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const onResendSuccess = () => {
+    setTimer(60);
+    // Optional: Add toast here
+  };
+
+  const {
+    isLoading: isResending,
+    error: resendError,
+    performFetch: performResend,
+  } = useFetch("/users/resend-code", onResendSuccess);
+
+  const handleResend = () => {
+    performResend({
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+      }),
+    });
+  };
+
   const onSuccess = () => {
     navigate("/");
   };
@@ -66,6 +101,35 @@ const VerifyCode = () => {
         <SubmitButton isLoading={isLoading}>Verify Email</SubmitButton>
       </form>
       {error && <div className={styles.error}>{error.toString()}</div>}
+
+      <div className={styles.loginLink}>
+        <button
+          onClick={handleResend}
+          disabled={timer > 0 || isResending}
+          type="button"
+          style={{
+            background: "none",
+            border: "none",
+            color: timer > 0 || isResending ? "#9ca3af" : "#4f46e5",
+            cursor: timer > 0 || isResending ? "not-allowed" : "pointer",
+            textDecoration: timer > 0 || isResending ? "none" : "underline",
+            fontSize: "14px",
+            fontWeight: 500,
+            padding: 0,
+          }}
+        >
+          {isResending
+            ? "Sending..."
+            : timer > 0
+              ? `Resend code in ${timer}s`
+              : "Resend Code"}
+        </button>
+        {resendError && (
+          <div style={{ color: "#991b1b", marginTop: "8px", fontSize: "14px" }}>
+            {resendError.toString()}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
