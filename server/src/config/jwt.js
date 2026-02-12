@@ -20,6 +20,19 @@ export const signToken = (user) => {
 };
 
 /**
+ * Verify a JWT token
+ * @param {string} token - JWT token to verify
+ * @returns {Object|null} Decoded token payload or null if invalid
+ */
+export const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, getJwtSecret());
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
  * Configuration for the auth cookie
  */
 export const cookieConfig = {

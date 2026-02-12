@@ -391,7 +391,8 @@ export const getMe = async (req, res) => {
     res.status(200).json({ success: true, user: userResponse });
   } catch (error) {
     logError(error);
-    res.status(401).json({ success: false, msg: "Not authenticated" });
+    // Only return 401 for expected auth failures, 500 for unexpected errors
+    res.status(500).json({ success: false, msg: "Internal server error" });
   }
 };
 

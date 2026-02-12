@@ -1,15 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 import TEST_ID from "./Nav.testid";
 
 const Nav = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogout = async (e) => {
-    e.preventDefault();
+  const handleLogout = async () => {
     await logout();
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   return (
@@ -22,16 +22,29 @@ const Nav = () => {
       </Link>
       {user ? (
         <li>
-          <a href="/logout" onClick={handleLogout}>
+          <button
+            type="button"
+            onClick={handleLogout}
+            data-testid={TEST_ID.linkToLogout}
+            style={{
+              background: "none",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              textDecoration: "underline",
+              font: "inherit",
+              padding: 0,
+            }}
+          >
             Logout
-          </a>
+          </button>
         </li>
       ) : (
         <>
           <Link to="/signup" data-testid={TEST_ID.linkToSignUp}>
             <li>Sign Up</li>
           </Link>
-          <Link to="/login">
+          <Link to="/login" data-testid={TEST_ID.linkToLogin}>
             <li>Login</li>
           </Link>
         </>
