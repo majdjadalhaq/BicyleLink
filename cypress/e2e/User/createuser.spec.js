@@ -1,42 +1,40 @@
 /// <reference types="cypress" />
 
 import TEST_ID_CREATE_USER from "../../../client/src/pages/User/CreateUser.testid";
-import TEST_ID_USER_LIST from "../../../client/src/pages/User/UserList.testid";
-import TEST_ID_NAV from "../../../client/src/components/Nav.testid";
 
 describe("createuser", () => {
   beforeEach(() => {
     cy.task("db:seed");
   });
 
-  it("Should be able to create a user and it shows in the list", () => {
-    cy.visit("/user");
+  it("Should be able to create a user when ToS is accepted", () => {
+    cy.visit("/user/create");
     const testUser = "SOME_UNIQUE_NAME";
-    const testUserEmail = "SOME@UNIQUE.COM";
+    const testUserEmail = `unique_${Date.now()}@example.com`;
 
-    cy.requestFromDatabase("/user").then((data) => {
-      const initialUserCount = data.result.length;
+    // Try to submit without ToS
+    cy.getByTestId(TEST_ID_CREATE_USER.usernameInput).type(testUser);
+    cy.getByTestId(TEST_ID_CREATE_USER.emailInput).type(testUserEmail);
+    cy.getByTestId(TEST_ID_CREATE_USER.passwordInput).type("Password123!");
+    cy.getByTestId(TEST_ID_CREATE_USER.confirmPasswordInput).type("Password123!");
+    cy.getByTestId(TEST_ID_CREATE_USER.countrySelect).select("Netherlands");
+    cy.getByTestId(TEST_ID_CREATE_USER.citySelect).select("Amsterdam");
+    
+    // Intercept and ensure no call is made
+    cy.intercept("POST", "/api/users").as("signupRequest");
+    cy.clickByTestId(TEST_ID_CREATE_USER.submitButton);
+    
+    cy.getByTestId(TEST_ID_CREATE_USER.validationErrorContainer)
+      .should("be.visible")
+      .and("contain", "Terms of Service");
+    
+    cy.get("@signupRequest.all").should("have.length", 0);
 
-      cy.getByTestId(TEST_ID_USER_LIST.userList)
-        .children()
-        .should("have.length", initialUserCount);
+    // Accept ToS and submit
+    cy.getByTestId(TEST_ID_CREATE_USER.agreedToTermsInput).check();
+    cy.clickByTestId(TEST_ID_CREATE_USER.submitButton);
 
-      cy.log(`Initially ${initialUserCount} users detected`);
-
-      cy.clickByTestId(TEST_ID_USER_LIST.createUserButton);
-
-      // Fill in fields
-      cy.getByTestId(TEST_ID_CREATE_USER.nameInput).type(testUser);
-      cy.getByTestId(TEST_ID_CREATE_USER.emailInput).type(testUserEmail);
-
-      cy.clickByTestId(TEST_ID_CREATE_USER.submitButton);
-
-      // Check user is added to the list
-      cy.clickByTestId(TEST_ID_NAV.linkToUsers);
-
-      cy.getByTestId(TEST_ID_USER_LIST.userList)
-        .children()
-        .should("have.length", initialUserCount + 1);
-    });
+    // Should redirect to verify page
+    cy.url().should("include", "/verify-code");
   });
 });

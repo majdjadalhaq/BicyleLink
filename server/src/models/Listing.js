@@ -6,7 +6,7 @@ const listingSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   images: [{ type: String }],
-  price: { type: Number, required: true },
+  price: { type: mongoose.Schema.Types.Decimal128, required: true },
   status: {
     type: String,
     enum: ["active", "sold", "cancelled"],
@@ -47,6 +47,16 @@ const ALLOWED_KEYS = [
 export const validateListing = (listingObject) => {
   const errorList = [];
 
+  // Defensive check: reject null, undefined, arrays, and non-objects
+  if (
+    listingObject == null ||
+    typeof listingObject !== "object" ||
+    Array.isArray(listingObject)
+  ) {
+    errorList.push("listing must be a valid object");
+    return errorList;
+  }
+
   const validatedKeysMessage = validateAllowedFields(
     listingObject,
     ALLOWED_KEYS,
@@ -62,10 +72,10 @@ export const validateListing = (listingObject) => {
     }
   });
 
-  // Validate price is a non-negative number
+  // Validate price is a finite non-negative number
   if (
     listingObject.price != null &&
-    (typeof listingObject.price !== "number" || listingObject.price < 0)
+    (!Number.isFinite(listingObject.price) || listingObject.price < 0)
   ) {
     errorList.push("price must be a non-negative number");
   }

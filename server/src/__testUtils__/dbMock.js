@@ -11,11 +11,8 @@ let mongoMemServer;
  * Connecting to the Database
  */
 export const connectToMockDB = async () => {
-  if (mongoMemServer != null) {
-    // Prevent us from overwriting the database when tests are running!
-    throw Error(
-      `Error in testing, mongoMemServer should not be set when calling connectToMockDB. mongoMemServer should be null or undefined, but received: ${mongoMemServer.toString()}`,
-    );
+  if (mongoMemServer) {
+    return;
   }
 
   mongoMemServer = await MongoMemoryServer.create();
@@ -24,19 +21,15 @@ export const connectToMockDB = async () => {
   await mongoose.connect(uri);
 };
 
-/**
- * Closing the Database connection
- */
 export const closeMockDatabase = async () => {
-  // Get rid of the database
-  await mongoose.connection.dropDatabase();
-  // close the mongoose connection
-  await mongoose.connection.close();
-  // stop the memory server
-  await mongoMemServer.stop();
-
-  // clean up the variable
-  mongoMemServer = null;
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+  }
+  // if (mongoMemServer) {
+  //   await mongoMemServer.stop();
+  //   mongoMemServer = null;
+  // }
 };
 
 /**

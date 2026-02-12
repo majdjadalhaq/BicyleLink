@@ -1,0 +1,33 @@
+Title: Session Management & Logout
+
+Description:
+Hi team,
+
+I implemented session management to complete the authentication system.
+
+What's New:
+- **Session Check**: `GET /users/me` returns current user info if authenticated.
+- **Logout**: `POST /users/logout` clears the authentication cookie.
+- **Global State**: `AuthContext` manages user state across the app.
+- **Dynamic Navigation**: Nav shows "Logout" for authenticated users, "Login/Sign Up" otherwise.
+
+Backend:
+- `GET /users/me`
+- `POST /users/logout`
+- Token verification via `verifyToken`
+
+Frontend:
+- `AuthContext.jsx`: Global auth state management
+- `App.jsx`: Wrapped with `AuthProvider`
+- `Nav.jsx`: Dynamic links based on auth state
+- `Login.jsx`: Integrated with `AuthContext`
+
+Verification:
+- Login -> Nav shows "Logout"
+- Logout -> Cookie cleared -> Nav shows "Login/Sign Up"
+- Session persists across page reloads
+
+This PR completes the Authentication System MVP.
+
+Best,
+Majd
