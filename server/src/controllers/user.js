@@ -375,20 +375,14 @@ export const getMe = async (req, res) => {
       return res.status(401).json({ success: false, msg: "Invalid token" });
     }
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select(
+      "-password -verificationCode -verificationCodeExpiry -passwordResetCode -passwordResetCodeExpiry -passwordResetCodeUsed",
+    );
     if (!user) {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
 
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.verificationCode;
-    delete userResponse.verificationCodeExpiry;
-    delete userResponse.passwordResetCode;
-    delete userResponse.passwordResetCodeExpiry;
-    delete userResponse.passwordResetCodeUsed;
-
-    res.status(200).json({ success: true, user: userResponse });
+    res.status(200).json({ success: true, user });
   } catch (error) {
     logError(error);
     // Only return 401 for expected auth failures, 500 for unexpected errors
