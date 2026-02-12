@@ -3,7 +3,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import userRouter from "./routes/user.js";
-import listingRouter from "./routes/listing.js";
 
 // Create an express server
 const app = express();
@@ -19,6 +18,5 @@ app.use(cors());
  * As we also host our client code on heroku we want to separate the API endpoints.
  */
 app.use("/api/users", userRouter);
-app.use("/api/listings", listingRouter);
 
 export default app;
