@@ -23,9 +23,7 @@ const App = () => {
         <Route path="/signup" element={<CreateUser />} />
         <Route
           path="/listings/:id"
-          element={
-            <div>Listing Detail Page (Coming Soon)</div>
-          }
+          element={<div>Listing Detail Page (Coming Soon)</div>}
         />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-code" element={<VerifyCode />} />
