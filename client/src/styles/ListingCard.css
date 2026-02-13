@@ -1,0 +1,143 @@
+/* Variables from your palette */
+:root {
+  --primary-color: #6a1b9a;
+  --secondary-color: #9575cd;
+  --accent-color: #ffca28;
+  --bg-color: #f5f5f7;
+  --text-dark: #333;
+  --text-light: #666;
+  --white: #ffffff;
+}
+
+.listing-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.listing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(106, 27, 154, 0.15); /* Primary color shadow */
+}
+
+/* Image Section */
+.listing-card__image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 66.67%; /* 3:2 Aspect Ratio */
+  background-color: #f0f0f0;
+  overflow: hidden;
+}
+
+.listing-card__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.listing-card:hover .listing-card__image {
+  transform: scale(1.05);
+}
+
+.listing-card__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.listing-card__badge--lease {
+  background-color: var(--secondary-color);
+}
+
+.listing-card__badge--used,
+.listing-card__badge--new {
+  background-color: var(--primary-color);
+}
+
+/* Content Section */
+.listing-card__content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.listing-card__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+
+  /* Truncate text after 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.listing-card__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 12px;
+}
+
+.listing-card__period {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-light);
+}
+
+.listing-card__details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-bottom: 16px;
+}
+
+.listing-card__condition {
+  text-transform: capitalize;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Button */
+.listing-card__button {
+  margin-top: auto; /* Pushes button to bottom */
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  background-color: var(--accent-color); /* Gold Action Button */
+  color: var(--text-dark);
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.listing-card__button:hover {
+  background-color: #ffd54f; /* Lighter Gold */
+}
