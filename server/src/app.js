@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import morgan from "morgan";
+import favoriteRouter from "./routes/favorite.js";
 
 import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
@@ -36,6 +37,7 @@ app.use(
  */
 app.use("/api/users", userRouter);
 app.use("/api/listings", listingRouter);
+app.use("/api/favorites", favoriteRouter);
 
 // Error Handling
 app.use(errorHandler);
