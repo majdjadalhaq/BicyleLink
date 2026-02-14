@@ -15,7 +15,7 @@ const ListingDetail = () => {
     const fetchListing = async () => {
       try {
         const response = await axios.get(`/api/listings/${id}`);
-        setListing(response.data);
+        setListing(response.data.result);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching listing:", err);
@@ -62,7 +62,10 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
           <div className="listing-price">
-            €{listing.price?.value || listing.price}
+            €
+            {typeof listing.price === "object"
+              ? listing.price.$numberDecimal || listing.price.value
+              : listing.price}
           </div>
 
           <div className="badges">
