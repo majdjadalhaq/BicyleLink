@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import "../../styles/CreateListing.css";
@@ -6,44 +6,175 @@ import TEST_ID from "./CreateListing.testid";
 
 const CreateListing = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    type: "used",
     price: "",
     location: "",
     brand: "",
     model: "",
     year: "",
     condition: "",
-    leaseDuration: "",
+    images: [], // This will now store the Base64 strings to send to the server
   });
 
+  const [previews, setPreviews] = useState([]); // Temporary Blob URLs for fast UI preview
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    "/listings",
-    () => {
-      setSuccessMessage("Listing created successfully!");
-      setFormError(""); // Clear any previous errors
-      const timer = setTimeout(() => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const conditionOptions = [
+    { value: "new", label: "New" },
+    { value: "like-new", label: "Like New" },
+    { value: "good", label: "Good" },
+    { value: "fair", label: "Fair" },
+    { value: "poor", label: "Poor" },
+  ];
+
+  const { isLoading, error, performFetch } = useFetch("/listings", (data) => {
+    setSuccessMessage("Listing created successfully!");
+    setFormError("");
+    const timer = setTimeout(() => {
+      // Fix: Use data.listing._id instead of data.result._id to match API response
+      const listingId = data.listing?._id || data.result?._id;
+      if (listingId) {
+        navigate(`/listings/${listingId}`);
+      } else {
         navigate("/");
-      }, 1500);
-      return () => clearTimeout(timer);
-    },
-  );
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  });
+
+  // Fix: Cleanup Blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
 
   useEffect(() => {
-    return () => cancelFetch();
-  }, [cancelFetch]);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectCondition = (value) => {
+    setFormData((prev) => ({ ...prev, condition: value }));
+    setIsDropdownOpen(false);
+    // Return focus to the trigger after selection for accessibility
+    const trigger = dropdownRef.current?.querySelector(".dropdown-selected");
+    if (trigger) trigger.focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setIsDropdownOpen(!isDropdownOpen);
+    } else if (e.key === "Escape") {
+      setIsDropdownOpen(false);
+    } else if (e.key === "ArrowDown" && isDropdownOpen) {
+      e.preventDefault();
+      const firstOption =
+        dropdownRef.current?.querySelector(".dropdown-option");
+      firstOption?.focus();
+    }
+  };
+
+  const handleOptionKeyDown = (e, value) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleSelectCondition(value);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      e.target.nextElementSibling?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      e.target.previousElementSibling?.focus();
+    } else if (e.key === "Escape") {
+      setIsDropdownOpen(false);
+      const trigger = dropdownRef.current?.querySelector(".dropdown-selected");
+      if (trigger) trigger.focus();
+    }
+  };
+
+  // Helper to convert File to Base64 for the database
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+
+    // Filter out huge files (e.g. > 2MB)
+    const validFiles = files.filter((file) => {
+      const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+      if (!isValidSize) {
+        setFormError(`File ${file.name} is too large. Max 2MB allowed.`);
+      }
+      return isValidSize;
+    });
+
+    if (validFiles.length < files.length) {
+      return; // Stop if any file was invalid
+    }
+
+    if (previews.length + validFiles.length > 5) {
+      setFormError("You can only upload a maximum of 5 images.");
+      return;
+    }
+
+    // 1. Create immediate Blob URL previews for the UI
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...newPreviews]);
+
+    // 2. Convert files to Base64 strings for the actual Data Submission
+    try {
+      const base64Promises = validFiles.map((file) => fileToBase64(file));
+      const base64Images = await Promise.all(base64Promises);
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...base64Images],
+      }));
+      setFormError("");
+    } catch (err) {
+      // Fix: Log error to console
+      console.error("Image processing error:", err);
+      setFormError("Error processing images. Please try smaller files.");
+    }
+  };
+
+  const removeImage = (indexToRemove) => {
+    // Cleanup the Blob URL
+    URL.revokeObjectURL(previews[indexToRemove]);
+
+    setPreviews((prev) => prev.filter((_, index) => index !== indexToRemove));
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      images: prev.images.filter((_, index) => index !== indexToRemove),
     }));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   const handleSubmit = (e) => {
@@ -51,7 +182,6 @@ const CreateListing = () => {
     setFormError("");
     setSuccessMessage("");
 
-    // Basic validation
     if (
       !formData.title ||
       !formData.description ||
@@ -62,28 +192,24 @@ const CreateListing = () => {
       return;
     }
 
-    if (formData.type === "lease" && !formData.leaseDuration) {
-      setFormError("Lease duration is required for lease listings.");
+    if (formData.images.length === 0) {
+      setFormError("Please upload at least one image of your bike.");
       return;
     }
 
-    // Prepare listing data
+    // Prepare exactly what the backend expects
     const listingData = {
       title: formData.title,
       description: formData.description,
-      type: formData.type,
       price: Number(formData.price),
       location: formData.location,
+      images: formData.images, // Now contains real Base64 data from your PC!
     };
 
-    // Add optional fields if provided
     if (formData.brand) listingData.brand = formData.brand;
     if (formData.model) listingData.model = formData.model;
     if (formData.year) listingData.year = Number(formData.year);
     if (formData.condition) listingData.condition = formData.condition;
-    if (formData.type === "lease" && formData.leaseDuration) {
-      listingData.leaseDuration = Number(formData.leaseDuration);
-    }
 
     performFetch({
       method: "POST",
@@ -92,214 +218,213 @@ const CreateListing = () => {
   };
 
   return (
-    <div className="create-listing" data-testid={TEST_ID.container}>
+    <div className="create-listing-page" data-testid={TEST_ID.container}>
       <Link to="/" className="create-listing__back">
-        ← Back to Home
+        ← Back to Marketplace
       </Link>
 
-      <h1>Create New Listing</h1>
+      <div className="create-listing-card">
+        <header className="card-header-purple">
+          <h1>Sell Your Bike</h1>
+          <p>Your photos will now be saved directly to the database.</p>
+        </header>
 
-      <form
-        onSubmit={handleSubmit}
-        className="create-listing__form"
-        noValidate
-        aria-label="Create listing form"
-      >
-        {successMessage && (
-          <div
-            className="create-listing__success"
-            role="alert"
-            aria-live="polite"
-          >
-            {successMessage}
-          </div>
-        )}
+        <div className="card-body-content">
+          <form onSubmit={handleSubmit} className="create-listing__form">
+            {successMessage && (
+              <div className="create-listing__success">{successMessage}</div>
+            )}
+            {(formError || error) && (
+              <div className="create-listing__error">
+                {/* Fix: use error directly or toString method */}
+                {formError ||
+                  (error && error.toString()) ||
+                  "Error creating listing."}
+              </div>
+            )}
 
-        {(formError || error) && (
-          <div
-            className="create-listing__error"
-            role="alert"
-            aria-live="assertive"
-          >
-            {formError ||
-              (error && error.toString()) ||
-              "Error creating listing. Please try again."}
-          </div>
-        )}
+            <div className="create-listing__image-section">
+              <label>Bike Photos *</label>
+              <div className="image-gallery">
+                {previews.map((url, index) => (
+                  <div key={index} className="gallery-item">
+                    <img src={url} alt={`Preview ${index}`} />
+                    <button
+                      type="button"
+                      className="remove-img-btn"
+                      onClick={() => removeImage(index)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
 
-        <div className="create-listing__group">
-          <label htmlFor="title">Title *</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="e.g., Mountain Bike"
-            data-testid={TEST_ID.titleInput}
-            required
-            aria-required="true"
-            autoComplete="off"
-          />
-        </div>
+                {previews.length < 5 && (
+                  <button
+                    type="button"
+                    className="add-image-trigger"
+                    onClick={triggerFileInput}
+                  >
+                    <span className="plus-icon">+</span>
+                    <span>Add Photo</span>
+                  </button>
+                )}
+              </div>
 
-        <div className="create-listing__group">
-          <label htmlFor="description">Description *</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Describe your bike..."
-            rows={4}
-            data-testid={TEST_ID.descriptionInput}
-            required
-            aria-required="true"
-            autoComplete="off"
-          />
-        </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden-file-input"
+                multiple
+                accept="image/*"
+              />
+              <p className="input-hint">
+                Maximum 5 photos. These will be encoded and saved.
+              </p>
+            </div>
 
-        <div className="create-listing__row">
-          <div className="create-listing__group">
-            <label htmlFor="type">Listing Type *</label>
-            <select
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              data-testid={TEST_ID.typeSelect}
-              required
-              aria-required="true"
-              autoComplete="off"
+            <div className="create-listing__group">
+              <label htmlFor="title">Listing Title *</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="e.g., Silver Hybrid City Bike"
+                required
+              />
+            </div>
+
+            <div className="create-listing__group">
+              <label htmlFor="description">Description *</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Give your bike a great story..."
+                rows={4}
+                required
+              />
+            </div>
+
+            <div className="create-listing__grid">
+              <div className="create-listing__group">
+                <label htmlFor="price">Price (€) *</label>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="500"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <div className="create-listing__group">
+                <label htmlFor="location">Location *</label>
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder="e.g., Amsterdam"
+                  required
+                />
+              </div>
+
+              <div className="create-listing__group">
+                <label htmlFor="brand">Brand</label>
+                <input
+                  type="text"
+                  id="brand"
+                  name="brand"
+                  value={formData.brand}
+                  onChange={handleChange}
+                  placeholder="e.g., Giant"
+                />
+              </div>
+
+              <div className="create-listing__group">
+                <label htmlFor="model">Model</label>
+                <input
+                  type="text"
+                  id="model"
+                  name="model"
+                  value={formData.model}
+                  onChange={handleChange}
+                  placeholder="e.g., Escape"
+                />
+              </div>
+
+              <div className="create-listing__group">
+                <label htmlFor="year">Year</label>
+                <input
+                  type="number"
+                  id="year"
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  placeholder="2015"
+                />
+              </div>
+
+              <div className="create-listing__group">
+                <label>Condition</label>
+                <div className="custom-dropdown" ref={dropdownRef}>
+                  <div
+                    tabIndex="0"
+                    role="combobox"
+                    aria-expanded={isDropdownOpen}
+                    aria-label="Select condition"
+                    className={`dropdown-selected ${isDropdownOpen ? "open" : ""}`}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onKeyDown={handleKeyDown}
+                  >
+                    {formData.condition
+                      ? conditionOptions.find(
+                          (o) => o.value === formData.condition,
+                        ).label
+                      : "Select condition"}
+                  </div>
+                  {isDropdownOpen && (
+                    <div className="dropdown-options" role="listbox">
+                      {conditionOptions.map((option) => (
+                        <div
+                          key={option.value}
+                          tabIndex="0"
+                          role="option"
+                          aria-selected={formData.condition === option.value}
+                          className={`dropdown-option ${formData.condition === option.value ? "selected" : ""}`}
+                          onClick={() => handleSelectCondition(option.value)}
+                          onKeyDown={(e) =>
+                            handleOptionKeyDown(e, option.value)
+                          }
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="create-listing__submit"
+              disabled={isLoading}
             >
-              <option value="used">For Sale</option>
-              <option value="lease">For Lease</option>
-            </select>
-          </div>
-
-          <div className="create-listing__group">
-            <label htmlFor="price">
-              Price (€) {formData.type === "lease" ? "/month" : ""} *
-            </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              placeholder="0"
-              min="0"
-              data-testid={TEST_ID.priceInput}
-              required
-              aria-required="true"
-              autoComplete="transaction-amount"
-            />
-          </div>
+              {isLoading ? "Saving Photo Data..." : "Publish Listing"}
+            </button>
+          </form>
         </div>
-
-        {formData.type === "lease" && (
-          <div className="create-listing__group">
-            <label htmlFor="leaseDuration">Lease Duration (months) *</label>
-            <input
-              type="number"
-              id="leaseDuration"
-              name="leaseDuration"
-              value={formData.leaseDuration}
-              onChange={handleChange}
-              placeholder="e.g., 6"
-              min="1"
-              required
-              aria-required="true"
-            />
-          </div>
-        )}
-
-        <div className="create-listing__group">
-          <label htmlFor="location">Location *</label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            placeholder="e.g., Amsterdam"
-            data-testid={TEST_ID.locationInput}
-            required
-            aria-required="true"
-            autoComplete="address-level2"
-          />
-        </div>
-
-        <div className="create-listing__row">
-          <div className="create-listing__group">
-            <label htmlFor="brand">Brand</label>
-            <input
-              type="text"
-              id="brand"
-              name="brand"
-              value={formData.brand}
-              onChange={handleChange}
-              placeholder="e.g., Trek"
-              autoComplete="off"
-            />
-          </div>
-
-          <div className="create-listing__group">
-            <label htmlFor="model">Model</label>
-            <input
-              type="text"
-              id="model"
-              name="model"
-              value={formData.model}
-              onChange={handleChange}
-              placeholder="e.g., Marlin 5"
-              autoComplete="off"
-            />
-          </div>
-        </div>
-
-        <div className="create-listing__row">
-          <div className="create-listing__group">
-            <label htmlFor="year">Year</label>
-            <input
-              type="number"
-              id="year"
-              name="year"
-              value={formData.year}
-              onChange={handleChange}
-              placeholder="e.g., 2022"
-              autoComplete="off"
-            />
-          </div>
-
-          <div className="create-listing__group">
-            <label htmlFor="condition">Condition</label>
-            <select
-              id="condition"
-              name="condition"
-              value={formData.condition}
-              onChange={handleChange}
-              autoComplete="off"
-            >
-              <option value="">Select condition</option>
-              <option value="new">New</option>
-              <option value="like-new">Like New</option>
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-              <option value="poor">Poor</option>
-            </select>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="create-listing__submit"
-          disabled={isLoading}
-          data-testid={TEST_ID.submitButton}
-        >
-          {isLoading ? "Creating..." : "Create Listing"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };
