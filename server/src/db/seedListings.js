@@ -3,6 +3,9 @@ import "dotenv/config";
 import connectDB from "./connectDB.js";
 import Listing from "../models/Listing.js";
 
+// NOTE: These seed listings use random generated ownerIds.
+// They are NOT currently linked to real users in the database.
+// If you need valid user relationships, please create users first or update these IDs.
 const seedListings = [
   {
     title: "VanMoof S3 - Electric City Bike",

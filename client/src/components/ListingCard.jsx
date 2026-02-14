@@ -23,23 +23,28 @@ const ListingCard = ({ listing }) => {
     }
   }
 
-  const currencySymbol = price?.currency === "USD" ? "$" : "€";
+  // Derive currency explicitly: default to EUR if not provided
+  let currency = "EUR";
+  if (
+    price &&
+    typeof price === "object" &&
+    typeof price.currency === "string"
+  ) {
+    currency = price.currency;
+  }
+  const currencySymbol = currency === "USD" ? "$" : "€";
 
   return (
     <div className="listing-card" data-id={_id}>
       <div className="listing-card__image-container">
         <img src={imageUrl} alt={title} className="listing-card__image" />
-        {condition && (
-          <span className="listing-card__badge listing-card__badge--sale">
-            {condition}
-          </span>
-        )}
+        {condition && <span className="listing-card__badge">{condition}</span>}
       </div>
 
       <div className="listing-card__content">
         <div className="listing-card__header">
-          <h3 className="listing-card__title">{title}</h3>
           {brand && <span className="listing-card__brand">{brand}</span>}
+          <h3 className="listing-card__title">{title}</h3>
         </div>
 
         <div className="listing-card__price">
