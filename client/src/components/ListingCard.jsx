@@ -71,6 +71,9 @@ ListingCard.propTypes = {
         value: PropTypes.number,
         currency: PropTypes.string,
       }),
+      PropTypes.shape({
+        $numberDecimal: PropTypes.string,
+      }),
     ]).isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
     location: PropTypes.string.isRequired,
