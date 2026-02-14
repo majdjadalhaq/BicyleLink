@@ -11,7 +11,7 @@ const seedListings = [
     title: "VanMoof S3 - Electric City Bike",
     description:
       "Selling my beloved VanMoof S3 due to moving abroad. It's in perfect condition, comes with the original charger and toolkit. The anti-theft tech works flawlessly.",
-    price: 1450, // Changed to number
+    price: 1450, // Number literal; Listing schema uses Decimal128 and Mongoose will cast this value
     condition: "like-new", // Enum: new, like-new, good, fair, poor
     brand: "VanMoof",
     images: [
