@@ -9,7 +9,12 @@ import connectDB from "./db/connectDB.js";
 import testRouter from "./testRouter.js";
 
 // Check for required environment variables
-const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "EMAIL_USER", "EMAIL_PASS"];
+const requiredEnv = [
+  "JWT_SECRET",
+  "MONGODB_URL",
+  "MAILTRAP_USER",
+  "MAILTRAP_PASS",
+];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {

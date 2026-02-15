@@ -1,7 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-
 import TEST_ID from "./Nav.testid";
+import "../styles/Nav.css";
 
 const Nav = () => {
   const { user, logout } = useAuth();
@@ -13,50 +13,97 @@ const Nav = () => {
   };
 
   return (
-    <ul>
-      <Link to="/" data-testid={TEST_ID.linkToHome}>
-        <li>Home</li>
-      </Link>
-      <Link to="/listing/create" data-testid={TEST_ID.linkToCreateListing}>
-        <li>Create Listing</li>
-      </Link>
-      <Link to="/user" data-testid={TEST_ID.linkToUsers}>
-        <li>Users</li>
-      </Link>
-      <Link to="/favorites">
-        <li>Favorites</li>
-      </Link>
+    <nav className="navbar" data-testid={TEST_ID.container}>
+      {/* LEFT: Brand Logo */}
+      <div className="navbar-brand">
+        <Link to="/" className="navbar-brand" data-testid={TEST_ID.linkToHome}>
+          🚲 BiCycleL
+        </Link>
+      </div>
 
-      {user ? (
+      {/* MIDDLE: Navigation Links */}
+      <ul className="navbar-links">
         <li>
-          <button
-            type="button"
-            onClick={handleLogout}
-            data-testid={TEST_ID.linkToLogout}
-            style={{
-              background: "none",
-              border: "none",
-              color: "inherit",
-              cursor: "pointer",
-              textDecoration: "underline",
-              font: "inherit",
-              padding: 0,
-            }}
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
           >
-            Logout
-          </button>
+            Home
+          </NavLink>
         </li>
-      ) : (
-        <>
-          <Link to="/signup" data-testid={TEST_ID.linkToSignUp}>
-            <li>Sign Up</li>
-          </Link>
-          <Link to="/login" data-testid={TEST_ID.linkToLogin}>
-            <li>Login</li>
-          </Link>
-        </>
-      )}
-    </ul>
+
+        <li>
+          <NavLink
+            to="/listing/create"
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
+            data-testid={TEST_ID.linkToCreateListing}
+          >
+            Sell a Bike
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink
+            to="/user"
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
+            data-testid={TEST_ID.linkToUsers}
+          >
+            Community
+          </NavLink>
+        </li>
+
+        <li>
+          <NavLink
+            to="/favorites"
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
+          >
+            Favorites
+          </NavLink>
+        </li>
+      </ul>
+
+      {/* RIGHT: Auth Actions */}
+      <div className="navbar-actions">
+        {user ? (
+          <>
+            <span className="user-greeting">Hi, {user.name || "User"}</span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn-nav btn-logout"
+              data-testid={TEST_ID.linkToLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="btn-nav btn-secondary"
+              data-testid={TEST_ID.linkToLogin}
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="btn-nav btn-primary"
+              data-testid={TEST_ID.linkToSignUp}
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+      </div>
+    </nav>
   );
 };
 

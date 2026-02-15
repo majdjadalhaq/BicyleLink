@@ -1,0 +1,97 @@
+import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+import "../styles/ListingCard.css";
+import FavoriteButton from "./FavoriteButton";
+
+const ListingCard = ({ listing }) => {
+  const { _id, title, price, images, location, condition, brand } = listing;
+
+  const imageUrl =
+    images && images.length > 0
+      ? images[0]
+      : "https://placehold.co/600x400?text=No+Image";
+
+  // Handle price display:
+  // 1. Check for Mongoose Decimal128 format (e.g. { $numberDecimal: "1450" })
+  // 2. Check for object format (e.g. { value: 1450 })
+  // 3. Fallback to raw value
+  let displayPrice = price;
+  if (price && typeof price === "object") {
+    if (price.$numberDecimal) {
+      displayPrice = price.$numberDecimal;
+    } else if (price.value != null) {
+      displayPrice = price.value;
+    }
+  }
+
+  // Derive currency explicitly: default to EUR if not provided
+  let currency = "EUR";
+  if (
+    price &&
+    typeof price === "object" &&
+    typeof price.currency === "string"
+  ) {
+    currency = price.currency;
+  }
+  const currencySymbol = currency === "USD" ? "$" : "€";
+
+  return (
+    <div className="listing-card" data-id={_id}>
+      <div className="listing-card__image-container">
+        <img src={imageUrl} alt={title} className="listing-card__image" />
+
+        {/* ❤️ Favorite button above*/}
+        <div style={{ position: "absolute", top: 8, right: 8 }}>
+          <FavoriteButton listingId={_id} />
+        </div>
+
+        {condition && <span className="listing-card__badge">{condition}</span>}
+      </div>
+
+      <div className="listing-card__content">
+        <div className="listing-card__header">
+          {brand && <span className="listing-card__brand">{brand}</span>}
+          <h3 className="listing-card__title">{title}</h3>
+        </div>
+
+        <div className="listing-card__price">
+          {currencySymbol}
+          {displayPrice}
+        </div>
+
+        <div className="listing-card__details">
+          <span className="listing-card__location">
+            <span aria-hidden="true">📍</span> {location}
+          </span>
+        </div>
+
+        <Link to={`/listings/${_id}`} className="listing-card__button">
+          View Details
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+ListingCard.propTypes = {
+  listing: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    price: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.shape({
+        value: PropTypes.number,
+        currency: PropTypes.string,
+      }),
+      PropTypes.shape({
+        $numberDecimal: PropTypes.string,
+      }),
+    ]).isRequired,
+    images: PropTypes.arrayOf(PropTypes.string),
+    location: PropTypes.string.isRequired,
+    condition: PropTypes.string,
+    brand: PropTypes.string,
+  }).isRequired,
+};
+
+export default ListingCard;
