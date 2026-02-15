@@ -9,6 +9,7 @@ import VerifyCode from "./pages/User/VerifyCode";
 import ForgotPassword from "./pages/User/ForgotPassword";
 import ResetPassword from "./pages/User/ResetPassword";
 import { AuthProvider } from "./contexts/AuthContext";
+import Favorites from "./pages/Favorites/Favorites";
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/favorites" element={<Favorites />} />
       </Routes>
     </AuthProvider>
   );
