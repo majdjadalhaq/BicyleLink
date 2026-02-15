@@ -1,40 +1,60 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import useFetch from "../../hooks/useFetch";
+import "../../styles/ListingDetail.css";
 import "../../styles/ListingDetail.css";
 
 const ListingDetail = () => {
   /* Step 1: Initialize State */
   const { id } = useParams();
   const [listing, setListing] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  /* Step 2: Fetch Data */
+  const {
+    isLoading: loading,
+    error,
+    performFetch,
+    cancelFetch,
+  } = useFetch(`/listings/${id}`, (response) => {
+    setListing(response.result);
+  });
+
   useEffect(() => {
-    const fetchListing = async () => {
-      try {
-        const response = await axios.get(`/api/listings/${id}`);
-        setListing(response.data.result);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching listing:", err);
-        setError("Failed to load listing details. Please try again later.");
-        setLoading(false);
-      }
-    };
-
-    fetchListing();
+    performFetch();
+    return () => cancelFetch();
   }, [id]);
 
-  /* Step 3: Handle Loading/Error States */
   if (loading)
     return <div className="listing-detail-container">Loading...</div>;
-  if (error) return <div className="listing-detail-container">{error}</div>;
-  if (!listing)
-    return <div className="listing-detail-container">Listing not found</div>;
+  if (error)
+    return <div className="listing-detail-container">Error: {error}</div>;
+  if (!listing) return null; // or a "Not Found" component
 
-  /* Step 4: Render UI */
+  // Handle price display logic locally
+  let displayPrice = listing.price;
+  if (listing.price && typeof listing.price === "object") {
+    if (listing.price.$numberDecimal) {
+      displayPrice = listing.price.$numberDecimal;
+    } else if (listing.price.value != null) {
+      displayPrice = listing.price.value;
+    }
+  }
+
+  // Derive currency explicitly
+  let currency = "EUR";
+  if (
+    listing.price &&
+    typeof listing.price === "object" &&
+    typeof listing.price.currency === "string"
+  ) {
+    currency = listing.price.currency;
+  }
+  const currencySymbol = currency === "USD" ? "$" : "€";
+
+  const imageUrl =
+    listing.images && listing.images.length > 0
+      ? listing.images[0]
+      : "https://placehold.co/600x400?text=No+Image";
+
   return (
     <div className="listing-detail-container">
       {/* Back Link */}
@@ -45,15 +65,7 @@ const ListingDetail = () => {
       <div className="listing-content">
         {/* Left Column: Image */}
         <div className="image-container">
-          <img
-            src={
-              listing.images && listing.images.length > 0
-                ? listing.images[0]
-                : "https://via.placeholder.com/600x400"
-            }
-            alt={listing.title}
-            className="listing-image"
-          />
+          <img src={imageUrl} alt={listing.title} className="listing-image" />
         </div>
 
         {/* Right Column: Details */}
@@ -62,10 +74,8 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
           <div className="listing-price">
-            €
-            {typeof listing.price === "object"
-              ? listing.price.$numberDecimal || listing.price.value
-              : listing.price}
+            {currencySymbol}
+            {displayPrice}
           </div>
 
           <div className="badges">
@@ -74,14 +84,24 @@ const ListingDetail = () => {
             )}
             {listing.location && (
               <span className="badge badge-location">
-                📍 {listing.location}
+                <span aria-hidden="true">📍</span> {listing.location}
               </span>
             )}
           </div>
 
           <div className="action-buttons">
-            <button className="btn-contact">Contact Seller</button>
-            <button className="btn-favorite">Add to Favorites</button>
+            <button
+              className="btn-contact"
+              onClick={() => alert("Contact functionality coming soon!")}
+            >
+              Contact Seller
+            </button>
+            <button
+              className="btn-favorite"
+              onClick={() => alert("Added to favorites!")}
+            >
+              Add to Favorites
+            </button>
           </div>
 
           <div className="specs-section">
@@ -102,10 +122,12 @@ const ListingDetail = () => {
         </div>
 
         {/* Description Section */}
-        <div className="description-section">
-          <h3>Description</h3>
-          <p className="description-text">{listing.description}</p>
-        </div>
+        {listing.description && (
+          <div className="description-section">
+            <h3>Description</h3>
+            <p className="description-text">{listing.description}</p>
+          </div>
+        )}
       </div>
     </div>
   );

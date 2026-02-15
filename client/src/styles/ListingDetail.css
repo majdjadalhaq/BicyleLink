@@ -8,13 +8,13 @@
     system-ui,
     -apple-system,
     sans-serif;
-  color: #2d3436;
+  color: var(--text-dark);
 }
 
 .back-link {
   display: inline-block;
   margin-bottom: 24px;
-  color: #6c5ce7;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
   transition: transform 0.2s ease;
@@ -58,7 +58,7 @@
   text-transform: uppercase;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6c5ce7;
+  color: var(--primary-color);
   margin-bottom: 8px;
   letter-spacing: 0.05em;
 }
@@ -90,13 +90,13 @@
 }
 
 .badge-condition {
-  background-color: #6c5ce7;
+  background-color: var(--primary-color);
   color: white;
 }
 
 .badge-location {
   background-color: #f0f0f5;
-  color: #636e72;
+  color: var(--text-light);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -111,7 +111,7 @@
 }
 
 .btn-contact {
-  background-color: #6c5ce7;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   padding: 14px;
@@ -124,7 +124,7 @@
 }
 
 .btn-contact:hover {
-  background-color: #5b4cc4;
+  background-color: var(--secondary-color);
 }
 
 .btn-favorite {
