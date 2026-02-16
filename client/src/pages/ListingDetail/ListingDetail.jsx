@@ -9,6 +9,12 @@ const ListingDetail = () => {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [prevId, setPrevId] = useState(id);
+
+  if (id !== prevId) {
+    setPrevId(id);
+    setActiveImageIndex(0);
+  }
 
   const {
     isLoading: loading,
@@ -77,6 +83,7 @@ const ListingDetail = () => {
           <div className="main-image-wrapper">
             {images.length > 1 && (
               <button
+                type="button"
                 className="nav-arrow left"
                 onClick={prevImage}
                 aria-label="Previous image"
@@ -91,6 +98,7 @@ const ListingDetail = () => {
             />
             {images.length > 1 && (
               <button
+                type="button"
                 className="nav-arrow right"
                 onClick={nextImage}
                 aria-label="Next image"
@@ -104,6 +112,7 @@ const ListingDetail = () => {
             <div className="thumbnail-strip">
               {images.map((img, index) => (
                 <button
+                  type="button"
                   key={index}
                   className={`thumbnail ${index === activeImageIndex ? "active" : ""}`}
                   onClick={() => setActiveImageIndex(index)}
