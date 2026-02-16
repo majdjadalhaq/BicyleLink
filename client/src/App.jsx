@@ -13,6 +13,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Favorites from "./pages/Favorites/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequireVerified from "./components/RequireVerified";
+import ListingDetail from "./pages/ListingDetail/ListingDetail";
 
 const App = () => {
   return (
@@ -23,10 +24,7 @@ const App = () => {
         <Route path="/user" element={<UserList />} />
         <Route path="/user/create" element={<CreateUser />} />
         <Route path="/signup" element={<CreateUser />} />
-        <Route
-          path="/listings/:id"
-          element={<div>Listing Detail Page (Coming Soon)</div>}
-        />
+        <Route path="/listings/:id" element={<ListingDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
