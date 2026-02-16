@@ -8,6 +8,7 @@ const ListingDetail = () => {
   /* Step 1: Initialize State */
   const { id } = useParams();
   const [listing, setListing] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const {
     isLoading: loading,
@@ -50,10 +51,18 @@ const ListingDetail = () => {
   }
   const currencySymbol = currency === "USD" ? "$" : "€";
 
-  const imageUrl =
+  const images =
     listing.images && listing.images.length > 0
-      ? listing.images[0]
-      : "https://placehold.co/600x400?text=No+Image";
+      ? listing.images
+      : ["https://placehold.co/600x400?text=No+Image"];
+
+  const nextImage = () => {
+    setActiveImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   return (
     <div className="listing-detail-container">
@@ -63,9 +72,48 @@ const ListingDetail = () => {
       </Link>
 
       <div className="listing-content">
-        {/* Left Column: Image */}
-        <div className="image-container">
-          <img src={imageUrl} alt={listing.title} className="listing-image" />
+        {/* Left Column: Image Carousel */}
+        <div className="carousel-container">
+          <div className="main-image-wrapper">
+            {images.length > 1 && (
+              <button
+                className="nav-arrow left"
+                onClick={prevImage}
+                aria-label="Previous image"
+              >
+                ‹
+              </button>
+            )}
+            <img
+              src={images[activeImageIndex]}
+              alt={`${listing.title} - View ${activeImageIndex + 1}`}
+              className="listing-main-image"
+            />
+            {images.length > 1 && (
+              <button
+                className="nav-arrow right"
+                onClick={nextImage}
+                aria-label="Next image"
+              >
+                ›
+              </button>
+            )}
+          </div>
+
+          {images.length > 1 && (
+            <div className="thumbnail-strip">
+              {images.map((img, index) => (
+                <button
+                  key={index}
+                  className={`thumbnail ${index === activeImageIndex ? "active" : ""}`}
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`View image ${index + 1}`}
+                >
+                  <img src={img} alt={`Thumbnail ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Details */}
