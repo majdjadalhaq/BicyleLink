@@ -6,6 +6,7 @@ import morgan from "morgan";
 
 import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
+import messageRouter from "./routes/message.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
 
@@ -47,6 +48,7 @@ app.use(
  */
 app.use("/api/users", userRouter);
 app.use("/api/listings", listingRouter);
+app.use("/api/messages", messageRouter);
 
 // Error Handling
 app.use(errorHandler);

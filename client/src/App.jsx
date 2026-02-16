@@ -12,6 +12,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequireVerified from "./components/RequireVerified";
 import ListingDetail from "./pages/ListingDetail/ListingDetail";
+import Chat from "./pages/Chat/Chat";
+import Inbox from "./pages/Inbox/Inbox";
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
         <Route path="/user/create" element={<CreateUser />} />
         <Route path="/signup" element={<CreateUser />} />
         <Route path="/listings/:id" element={<ListingDetail />} />
+        <Route path="/chat/:id" element={<Chat />} />
+        <Route path="/inbox" element={<Inbox />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
