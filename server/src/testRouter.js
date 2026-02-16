@@ -44,6 +44,15 @@ testRouter.post("/seed", async (req, res) => {
           agreedToTerms: true,
           isVerified: true,
         },
+        {
+          name: "Teammate Tom",
+          email: "teammate@test.com",
+          password: "Password123!",
+          city: "Amsterdam",
+          country: "Netherlands",
+          agreedToTerms: true,
+          isVerified: true,
+        },
       ],
     };
 
