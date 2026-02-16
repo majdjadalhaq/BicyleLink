@@ -22,6 +22,8 @@ const CreateListing = () => {
   });
 
   const [previews, setPreviews] = useState([]); // Temporary Blob URLs for fast UI preview
+  const [filesToUpload, setFilesToUpload] = useState([]); // Raw File objects to upload
+  const [isUploading, setIsUploading] = useState(false);
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -110,24 +112,14 @@ const CreateListing = () => {
     }
   };
 
-  // Helper to convert File to Base64 for the database
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
 
-    // Filter out huge files (e.g. > 2MB)
+    // Filter out huge files (e.g. > 5MB) - Cloudinary supports larger files but good to limit
     const validFiles = files.filter((file) => {
-      const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
       if (!isValidSize) {
-        setFormError(`File ${file.name} is too large. Max 2MB allowed.`);
+        setFormError(`File ${file.name} is too large. Max 5MB allowed.`);
       }
       return isValidSize;
     });
@@ -141,25 +133,14 @@ const CreateListing = () => {
       return;
     }
 
+    setFormError("");
+
     // 1. Create immediate Blob URL previews for the UI
     const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
 
-    // 2. Convert files to Base64 strings for the actual Data Submission
-    try {
-      const base64Promises = validFiles.map((file) => fileToBase64(file));
-      const base64Images = await Promise.all(base64Promises);
-
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, ...base64Images],
-      }));
-      setFormError("");
-    } catch (err) {
-      // Fix: Log error to console
-      console.error("Image processing error:", err);
-      setFormError("Error processing images. Please try smaller files.");
-    }
+    // 2. Store the raw files to upload later
+    setFilesToUpload((prev) => [...prev, ...validFiles]);
   };
 
   const removeImage = (indexToRemove) => {
@@ -167,17 +148,38 @@ const CreateListing = () => {
     URL.revokeObjectURL(previews[indexToRemove]);
 
     setPreviews((prev) => prev.filter((_, index) => index !== indexToRemove));
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, index) => index !== indexToRemove),
-    }));
+    setFilesToUpload((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const triggerFileInput = () => {
     fileInputRef.current.click();
   };
 
-  const handleSubmit = (e) => {
+  const uploadImageToCloudinary = async (file) => {
+    const url = `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+    );
+
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
     setSuccessMessage("");
@@ -192,29 +194,43 @@ const CreateListing = () => {
       return;
     }
 
-    if (formData.images.length === 0) {
+    if (filesToUpload.length === 0) {
       setFormError("Please upload at least one image of your bike.");
       return;
     }
 
-    // Prepare exactly what the backend expects
-    const listingData = {
-      title: formData.title,
-      description: formData.description,
-      price: Number(formData.price),
-      location: formData.location,
-      images: formData.images, // Now contains real Base64 data from your PC!
-    };
+    setIsUploading(true);
 
-    if (formData.brand) listingData.brand = formData.brand;
-    if (formData.model) listingData.model = formData.model;
-    if (formData.year) listingData.year = Number(formData.year);
-    if (formData.condition) listingData.condition = formData.condition;
+    try {
+      // Upload all images to Cloudinary first
+      const uploadPromises = filesToUpload.map((file) =>
+        uploadImageToCloudinary(file),
+      );
+      const imageUrls = await Promise.all(uploadPromises);
 
-    performFetch({
-      method: "POST",
-      body: JSON.stringify({ listing: listingData }),
-    });
+      // Prepare exactly what the backend expects
+      const listingData = {
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        location: formData.location,
+        images: imageUrls, // Now contains real Cloudinary URLs
+      };
+
+      if (formData.brand) listingData.brand = formData.brand;
+      if (formData.model) listingData.model = formData.model;
+      if (formData.year) listingData.year = Number(formData.year);
+      if (formData.condition) listingData.condition = formData.condition;
+
+      performFetch({
+        method: "POST",
+        body: JSON.stringify({ listing: listingData }),
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      setFormError("Failed to upload images. Please check your connection.");
+      setIsUploading(false); // Only stop loading on error, otherwise useFetch takes over
+    }
   };
 
   return (
@@ -418,9 +434,13 @@ const CreateListing = () => {
             <button
               type="submit"
               className="create-listing__submit"
-              disabled={isLoading}
+              disabled={isLoading || isUploading}
             >
-              {isLoading ? "Saving Photo Data..." : "Publish Listing"}
+              {isUploading
+                ? "Uploading Images..."
+                : isLoading
+                  ? "Saving Listing..."
+                  : "Publish Listing"}
             </button>
           </form>
         </div>

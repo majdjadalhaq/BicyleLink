@@ -13,7 +13,18 @@ import { errorHandler } from "./middleware/error.js";
 const app = express();
 
 // Security & Logging Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "img-src": ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+        "connect-src": ["'self'", "https://api.cloudinary.com"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(morgan("dev"));
 app.use(globalLimiter);
 
