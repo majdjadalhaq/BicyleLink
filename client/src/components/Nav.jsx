@@ -14,12 +14,19 @@ const Nav = () => {
       if (!user) return;
       try {
         const res = await fetch("/api/messages/unread-total");
+        if (!res.ok) {
+          if (res.status === 401) return; // Silent for unauthorized
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
         if (data.success) {
           setUnreadCount(data.result);
         }
       } catch (err) {
-        console.error("Failed to fetch unread count:", err);
+        // Only log serious unexpected errors
+        if (err.name !== "AbortError") {
+          console.error("Failed to fetch unread count:", err);
+        }
       }
     };
 

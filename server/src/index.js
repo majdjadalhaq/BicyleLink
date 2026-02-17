@@ -115,14 +115,6 @@ io.on("connection", (socket) => {
   socket.on("check_online_status", async (targetUserId) => {
     if (!currentUserId) return;
     try {
-      const hasConversation = await ConversationStatus.findOne({
-        userId: currentUserId,
-        // We need to check if they share a room.
-        // Actually, the simplest check is if targetUserId is a contact.
-        // But rooms are formatted as listingId_userId1_userId2.
-        // A better way is to see if any room they share exists in ConversationStatus.
-      });
-
       // Improvement: Query if there's any room involving both users
       const sharedRoom = await ConversationStatus.findOne({
         userId: currentUserId,
