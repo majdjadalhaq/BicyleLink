@@ -1,4 +1,5 @@
 import express from "express";
+import { authLimiter, sensitiveOpsLimiter } from "../middleware/rateLimiter.js";
 import {
   createUser,
   getUsers,
@@ -15,9 +16,9 @@ const userRouter = express.Router();
 
 userRouter.get("/", getUsers);
 userRouter.post("/", createUser);
-userRouter.post("/login", loginUser);
-userRouter.post("/verify", verifyEmail);
-userRouter.post("/resend-code", resendVerificationCode);
+userRouter.post("/login", authLimiter, loginUser);
+userRouter.post("/verify", sensitiveOpsLimiter, verifyEmail);
+userRouter.post("/resend-code", sensitiveOpsLimiter, resendVerificationCode);
 userRouter.post("/request-reset", requestPasswordReset);
 userRouter.post("/reset-password", resetPassword);
 userRouter.get("/me", getMe);

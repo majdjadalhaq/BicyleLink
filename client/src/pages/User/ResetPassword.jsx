@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import InputField from "../../components/form/InputField";
 import SubmitButton from "../../components/form/SubmitButton";
-import styles from "./VerifyCode.module.css";
+import PasswordStrengthMeter from "../../components/PasswordStrengthMeter";
+import styles from "./CreateUser.module.css";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -105,6 +106,7 @@ const ResetPassword = () => {
           onChange={setNewPassword}
           placeholder="Min 8 chars"
         />
+        <PasswordStrengthMeter password={newPassword} />
         <InputField
           label="Confirm Password"
           name="confirmPassword"

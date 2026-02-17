@@ -3,6 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import "../../styles/CreateListing.css";
 import TEST_ID from "./CreateListing.testid";
+import {
+  CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_UPLOAD_PRESET,
+} from "../../util/config";
 
 const CreateListing = () => {
   const navigate = useNavigate();
@@ -158,13 +162,10 @@ const CreateListing = () => {
   };
 
   const uploadImageToCloudinary = async (file) => {
-    const url = `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
     const formData = new FormData();
     formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-    );
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
     const response = await fetch(url, {
       method: "POST",

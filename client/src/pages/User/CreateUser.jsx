@@ -6,6 +6,7 @@ import InputField from "../../components/form/InputField";
 import SelectField from "../../components/form/SelectField";
 import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
+import PasswordStrengthMeter from "../../components/PasswordStrengthMeter";
 import useFetch from "../../hooks/useFetch";
 import TEST_ID from "./CreateUser.testid";
 import styles from "./CreateUser.module.css";
@@ -215,6 +216,7 @@ const CreateUser = () => {
           dataTestId={TEST_ID.passwordInput}
           autoComplete="new-password"
         />
+        <PasswordStrengthMeter password={password} />
         <InputField
           name="confirmPassword"
           type="password"

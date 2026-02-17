@@ -1,5 +1,11 @@
 import React from "react";
-import { render, fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+  render,
+  fireEvent,
+  screen,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 /**
@@ -14,23 +20,42 @@ import { getUsersSuccessMock } from "../../__testUtils__/fetchUserMocks";
 
 beforeEach(() => {
   fetch.resetMocks();
+
+  // Robust mock for all possible calls during navigation
+  fetch.mockResponse(async (req) => {
+    if (req.url.includes("/api/users/me")) {
+      return JSON.stringify({ success: true, user: null });
+    }
+    if (req.url.includes("/api/listings")) {
+      return JSON.stringify({ success: true, result: [] });
+    }
+    if (req.url.includes("/api/users")) {
+      return getUsersSuccessMock([]);
+    }
+    return { status: 404, body: "Not Found" };
+  });
 });
 
 describe("Navigation", () => {
   it("Clicking on the Home link should go to Home page ", async () => {
-    fetch.mockResponseOnce(getUsersSuccessMock());
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/user"]}>
+          <App />
+        </MemoryRouter>,
+      );
+    });
 
-    render(
-      <MemoryRouter history={history} initialEntries={["/user"]}>
-        <App />
-      </MemoryRouter>,
+    // Ensure we are on User page first
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(TEST_ID_USER_LIST.container),
+      ).toBeInTheDocument(),
     );
 
-    expect(
-      screen.queryByTestId(TEST_ID_HOME.container),
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId(TEST_ID_NAV.linkToHome));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(TEST_ID_NAV.linkToHome));
+    });
 
     await waitFor(() =>
       expect(screen.getByTestId(TEST_ID_HOME.container)).toBeInTheDocument(),
@@ -38,19 +63,22 @@ describe("Navigation", () => {
   });
 
   it("Clicking on the User link should go to User List page ", async () => {
-    fetch.mockResponseOnce(getUsersSuccessMock());
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/"]}>
+          <App />
+        </MemoryRouter>,
+      );
+    });
 
-    render(
-      <MemoryRouter history={history} initialEntries={["/"]}>
-        <App />
-      </MemoryRouter>,
+    // Ensure we are on Home page first
+    await waitFor(() =>
+      expect(screen.getByTestId(TEST_ID_HOME.container)).toBeInTheDocument(),
     );
 
-    expect(
-      screen.queryByTestId(TEST_ID_USER_LIST.container),
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId(TEST_ID_NAV.linkToUsers));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(TEST_ID_NAV.linkToUsers));
+    });
 
     await waitFor(() =>
       expect(

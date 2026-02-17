@@ -48,7 +48,7 @@ export const createUser = async (req, res) => {
     }
 
     // Hash password before saving
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(user.password, salt);
 
     const userPayload = {
@@ -113,6 +113,12 @@ export const loginUser = async (req, res) => {
         .json({ success: false, msg: "Invalid credentials" });
     }
 
+    const { rememberMe } = req.body;
+    const currentCookieConfig = { ...cookieConfig };
+    if (rememberMe) {
+      currentCookieConfig.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+    }
+
     // 3. Verified Guard (PR #1 requirement)
     if (user.isVerified !== true) {
       return res.status(403).json({
@@ -122,7 +128,7 @@ export const loginUser = async (req, res) => {
     }
 
     const token = signToken(user);
-    res.cookie("token", token, cookieConfig);
+    res.cookie("token", token, currentCookieConfig);
 
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -344,7 +350,7 @@ export const resetPassword = async (req, res) => {
     }
 
     // Hash new password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     user.password = hashedPassword;

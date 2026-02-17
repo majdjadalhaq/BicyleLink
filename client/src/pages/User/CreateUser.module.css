@@ -69,6 +69,64 @@
   text-decoration: underline;
 }
 
+/* Remember Me Styles */
+.rememberMeContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  cursor: pointer;
+}
+
+.forgotPasswordLink {
+  font-size: 14px;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.forgotPasswordLink:hover {
+  text-decoration: underline;
+}
+
+/* Password Strength Meter Styles */
+.strengthMeter {
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.strengthBarContainer {
+  height: 4px;
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.strengthBar {
+  height: 100%;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.strengthText {
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .checkboxContainer {
   display: flex;
   align-items: flex-start;
