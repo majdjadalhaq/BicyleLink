@@ -33,7 +33,9 @@ const ALLOWED_UPDATE_FIELDS = [
 export const getListings = async (req, res) => {
   try {
     const { status, location, search, page = 1, limit = 10 } = req.query;
-    const filter = status ? { status } : { status: { $in: ["active", "sold"] } };
+    const filter = status
+      ? { status }
+      : { status: { $in: ["active", "sold"] } };
 
     if (location)
       filter.location = { $regex: escapeRegex(location), $options: "i" };
