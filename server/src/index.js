@@ -115,7 +115,7 @@ io.on("connection", (socket) => {
   socket.on("check_online_status", async (targetUserId) => {
     if (!currentUserId) return;
     try {
-      // Improvement: Query if there's any room involving both users
+      // Verify if users share a conversation before disclosing status
       const sharedRoom = await ConversationStatus.findOne({
         userId: currentUserId,
         room: { $regex: targetUserId },

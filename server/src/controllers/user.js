@@ -34,7 +34,7 @@ export const createUser = async (req, res) => {
       });
     }
 
-    // 1️⃣ Normalize boolean at controller boundary
+    // Normalize boolean values for consistency
     if (user.agreedToTerms !== undefined) {
       user.agreedToTerms = user.agreedToTerms === true;
     }
@@ -56,7 +56,7 @@ export const createUser = async (req, res) => {
       password: hashedPassword,
       isVerified: false,
       verificationCode: crypto.randomInt(100000, 999999).toString(),
-      verificationCodeExpiry: Date.now() + 15 * 60 * 1000, // 15 mins
+      verificationCodeExpiry: Date.now() + 15 * 60 * 1000, // Code valid for 15 minutes
     };
 
     const newUser = await User.create(userPayload);
@@ -97,7 +97,7 @@ export const loginUser = async (req, res) => {
         .json({ success: false, msg: "Email and password are required" });
     }
 
-    // 1. Lookup
+    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res
@@ -105,7 +105,7 @@ export const loginUser = async (req, res) => {
         .json({ success: false, msg: "Invalid credentials" });
     }
 
-    // 3. Password Match
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (user.lockoutUntil && user.lockoutUntil > Date.now()) {
@@ -119,7 +119,7 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
       if (user.failedLoginAttempts >= 5) {
-        user.lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 mins
+        user.lockoutUntil = Date.now() + 15 * 60 * 1000; // Account locked for 15 minutes
         user.failedLoginAttempts = 0;
       }
       await user.save();
@@ -134,7 +134,7 @@ export const loginUser = async (req, res) => {
       currentCookieConfig.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
     }
 
-    // 4. Verified Guard
+    // Ensure email is verified
     if (user.isVerified !== true) {
       return res.status(403).json({
         success: false,
