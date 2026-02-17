@@ -48,7 +48,10 @@ const Inbox = () => {
     socketRef.current = io(window.location.origin);
 
     // Join personal room to receive status updates from any contact
-    socketRef.current.emit("join_room", { userId: user._id, room: `user_${user._id}` });
+    socketRef.current.emit("join_room", {
+      userId: user._id,
+      room: `user_${user._id}`,
+    });
 
     socketRef.current.on("user_status_change", (data) => {
       setOnlineStatuses((prev) => ({

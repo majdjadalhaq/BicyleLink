@@ -208,7 +208,8 @@
   align-items: center;
 }
 
-.archiveButton, .unreadButton {
+.archiveButton,
+.unreadButton {
   background: none;
   border: none;
   cursor: pointer;
@@ -230,7 +231,8 @@
   opacity: 0.4;
 }
 
-.archiveButton:hover, .unreadButton:hover {
+.archiveButton:hover,
+.unreadButton:hover {
   background-color: rgba(0, 0, 0, 0.05);
   opacity: 1;
 }
