@@ -25,18 +25,12 @@ describe("ListingCard", () => {
   test("renders price correctly when it is a number", () => {
     renderCard({ price: 150 });
     expect(screen.getByText(/150/)).toBeInTheDocument();
-    expect(screen.getByText(/€/)).toBeInTheDocument(); // Default currency
+    expect(screen.getByText(/€/)).toBeInTheDocument();
   });
 
-  test("renders price correctly when it is a numberDecimal object", () => {
-    renderCard({ price: { $numberDecimal: "250.50" } });
+  test("renders price correctly when it is a string", () => {
+    renderCard({ price: "250.50" });
     expect(screen.getByText(/250\.50/)).toBeInTheDocument();
-  });
-
-  test("renders price correctly when it is a value object", () => {
-    renderCard({ price: { value: 300, currency: "USD" } });
-    expect(screen.getByText(/300/)).toBeInTheDocument();
-    expect(screen.getByText(/\$/)).toBeInTheDocument();
   });
 
   test("renders condition badge correctly", () => {

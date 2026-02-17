@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import ListingCard from "../../components/ListingCard.jsx";
 import TEST_ID from "./Home.testid";
@@ -7,33 +7,43 @@ import "../../styles/Home.css";
 const Home = () => {
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    "/listings",
+    `/listings?page=${page}&limit=12&search=${debouncedSearchTerm}`,
     (response) => {
-      setListings(response.result);
+      if (page === 1) {
+        setListings(response.result);
+      } else {
+        setListings((prev) => [...prev, ...response.result]);
+      }
+      setHasMore(response.hasMore);
     },
   );
 
   useEffect(() => {
     performFetch();
     return () => cancelFetch();
-  }, []);
+  }, [page, debouncedSearchTerm]);
 
-  // Filter Logic: Derived state using useMemo instead of useEffect
-  const filteredListings = useMemo(() => {
-    return listings.filter((listing) => {
-      const lowerTerm = searchTerm.toLowerCase();
-      return (
-        listing.title.toLowerCase().includes(lowerTerm) ||
-        listing.location.toLowerCase().includes(lowerTerm) ||
-        (listing.brand && listing.brand.toLowerCase().includes(lowerTerm))
-      );
-    });
-  }, [searchTerm, listings]);
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setPage(1);
   };
 
   return (
@@ -59,23 +69,35 @@ const Home = () => {
         </div>
       )}
 
-      {isLoading && (
+      {isLoading && page === 1 && (
         <div className="home-loading">Loading amazing bikes...</div>
       )}
 
-      {!isLoading && !error && filteredListings.length === 0 && (
+      {!isLoading && !error && listings.length === 0 && (
         <div className="home-empty">
-          {listings.length === 0
-            ? "No bikes listed yet. Be the first to sell yours!"
-            : "No bikes found matching your search."}
+          {debouncedSearchTerm
+            ? "No bikes found matching your search."
+            : "No bikes listed yet. Be the first to sell yours!"}
         </div>
       )}
 
       <div className="listing-grid">
-        {filteredListings.map((listing) => (
+        {listings.map((listing) => (
           <ListingCard key={listing._id} listing={listing} />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="home-pagination">
+          <button
+            className="load-more-btn"
+            onClick={handleLoadMore}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

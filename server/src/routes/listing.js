@@ -5,6 +5,7 @@ import {
   createListing,
   updateListing,
   deleteListing,
+  updateStatus,
 } from "../controllers/listing.js";
 import {
   authenticate,
@@ -41,6 +42,15 @@ listingRouter.delete(
   requireVerified,
   requireOwnership(Listing),
   deleteListing,
+);
+
+// PATCH /api/listings/:id/status - Update listing status (requires ownership)
+listingRouter.patch(
+  "/:id/status",
+  authenticate,
+  requireVerified,
+  requireOwnership(Listing),
+  updateStatus,
 );
 
 export default listingRouter;

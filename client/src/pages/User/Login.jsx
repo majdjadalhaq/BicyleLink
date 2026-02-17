@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import InputField from "../../components/form/InputField";
 import SubmitButton from "../../components/form/SubmitButton";
@@ -13,14 +13,16 @@ const Login = () => {
   const [validationError, setValidationError] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  const from = location.state?.from || "/";
 
   const onSuccess = (data) => {
     login(data.user);
     setEmail("");
     setPassword("");
     setValidationError("");
-    navigate("/");
+    navigate(from, { replace: true });
   };
 
   const { isLoading, error, performFetch, cancelFetch } = useFetch(

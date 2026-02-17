@@ -142,10 +142,10 @@ describe("POST /api/listings", () => {
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
     expect(response.body.listing.title).toEqual(testListingBase.title);
-    expect(response.body.listing.price.$numberDecimal).toEqual(
+    expect(response.body.listing.price).toEqual(
       testListingBase.price.toString(),
     );
-    expect(response.body.listing.ownerId).toEqual(
+    expect(response.body.listing.ownerId.toString()).toEqual(
       global.__mockAuthUser._id.toString(),
     );
   });
@@ -255,7 +255,7 @@ describe("PUT /api/listings/:id", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.listing.price.$numberDecimal).toBe("450");
+    expect(response.body.listing.price).toBe("450");
   });
 
   it("Should return 404 for non-existent listing", async () => {

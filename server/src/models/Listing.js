@@ -1,12 +1,34 @@
 import mongoose from "mongoose";
 
-import validateAllowedFields from "../util/validateAllowedFields.js";
-
 const listingSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  images: [{ type: String }],
-  price: { type: mongoose.Schema.Types.Decimal128, required: true },
+  title: {
+    type: String,
+    required: [true, "title is required"],
+    trim: true,
+  },
+  description: {
+    type: String,
+    required: [true, "description is required"],
+  },
+  images: {
+    type: [String],
+    validate: {
+      validator: function (v) {
+        return v.length <= 5;
+      },
+      message: "You can only upload a maximum of 5 images.",
+    },
+  },
+  price: {
+    type: mongoose.Schema.Types.Decimal128,
+    required: [true, "price is required"],
+    validate: {
+      validator: function (v) {
+        return v != null && parseFloat(v.toString()) >= 0;
+      },
+      message: "price must be a non-negative number",
+    },
+  },
   status: {
     type: String,
     enum: ["active", "sold", "cancelled"],
@@ -17,7 +39,10 @@ const listingSchema = new mongoose.Schema({
     ref: "users",
     required: true,
   },
-  location: { type: String, required: true },
+  location: {
+    type: String,
+    required: [true, "location is required"],
+  },
   brand: { type: String },
   model: { type: String },
   year: { type: Number },
@@ -29,58 +54,16 @@ const listingSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Listing = mongoose.model("listings", listingSchema);
-
-const REQUIRED_FIELDS = ["title", "description", "price", "location"];
-const ALLOWED_KEYS = [
-  ...REQUIRED_FIELDS,
-  "ownerId",
-  "images",
-  "status",
-  "brand",
-  "model",
-  "year",
-  "condition",
-  "mileage",
-];
-
-export const validateListing = (listingObject) => {
-  const errorList = [];
-
-  // Defensive check: reject null, undefined, arrays, and non-objects
-  if (
-    listingObject == null ||
-    typeof listingObject !== "object" ||
-    Array.isArray(listingObject)
-  ) {
-    errorList.push("listing must be a valid object");
-    return errorList;
-  }
-
-  const validatedKeysMessage = validateAllowedFields(
-    listingObject,
-    ALLOWED_KEYS,
-  );
-  if (validatedKeysMessage.length > 0) {
-    errorList.push(validatedKeysMessage);
-  }
-
-  // Validate required fields
-  REQUIRED_FIELDS.forEach((field) => {
-    if (listingObject[field] == null) {
-      errorList.push(`${field} is a required field`);
+// Automatically convert Decimal128 to standard string during JSON conversion
+listingSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    if (ret.price) {
+      ret.price = ret.price.toString();
     }
-  });
+    return ret;
+  },
+});
 
-  // Validate price is a finite non-negative number
-  if (
-    listingObject.price != null &&
-    (!Number.isFinite(listingObject.price) || listingObject.price < 0)
-  ) {
-    errorList.push("price must be a non-negative number");
-  }
-
-  return errorList;
-};
+const Listing = mongoose.model("listings", listingSchema);
 
 export default Listing;

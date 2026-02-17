@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import "../../styles/ListingDetail.css";
-import "../../styles/ListingDetail.css";
 
 const ListingDetail = () => {
   /* Step 1: Initialize State */
@@ -40,25 +39,26 @@ const ListingDetail = () => {
   if (!listing) return null; // or a "Not Found" component
 
   // Handle price display logic locally
-  let displayPrice = listing.price;
-  if (listing.price && typeof listing.price === "object") {
-    if (listing.price.$numberDecimal) {
-      displayPrice = listing.price.$numberDecimal;
-    } else if (listing.price.value != null) {
-      displayPrice = listing.price.value;
-    }
-  }
+  const displayPrice = listing.price;
+  const currencySymbol = "€";
 
-  // Derive currency explicitly
-  let currency = "EUR";
-  if (
-    listing.price &&
-    typeof listing.price === "object" &&
-    typeof listing.price.currency === "string"
-  ) {
-    currency = listing.price.currency;
-  }
-  const currencySymbol = currency === "USD" ? "$" : "€";
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      const res = await fetch(`/api/listings/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setListing(data.listing);
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
+
+  const isOwner = user && listing.ownerId._id === user._id;
 
   const images =
     listing.images && listing.images.length > 0
@@ -109,6 +109,9 @@ const ListingDetail = () => {
                 ›
               </button>
             )}
+            {listing.status === "sold" && (
+              <div className="sold-overlay">SOLD</div>
+            )}
           </div>
 
           {images.length > 1 && (
@@ -130,7 +133,14 @@ const ListingDetail = () => {
 
         {/* Right Column: Details */}
         <div className="details-container">
-          {listing.brand && <span className="brand-name">{listing.brand}</span>}
+          <div className="listing-header-top">
+            {listing.brand && (
+              <span className="brand-name">{listing.brand}</span>
+            )}
+            {listing.status === "sold" && (
+              <span className="status-badge sold">Sold</span>
+            )}
+          </div>
 
           <h1 className="listing-title">{listing.title}</h1>
           <div className="listing-price">
@@ -150,27 +160,51 @@ const ListingDetail = () => {
           </div>
 
           <div className="action-buttons">
-            <button
-              className="btn-contact"
-              onClick={() => {
-                if (!user) {
-                  navigate("/login");
-                } else if (user._id === listing.ownerId) {
-                  alert("You cannot chat with yourself!");
-                } else {
-                  const sellerId = listing.ownerId?._id || listing.ownerId;
-                  navigate(`/chat/${id}?receiverId=${sellerId}`);
-                }
-              }}
-            >
-              Contact Seller
-            </button>
-            <button
-              className="btn-favorite"
-              onClick={() => alert("Added to favorites!")}
-            >
-              Add to Favorites
-            </button>
+            {isOwner ? (
+              <>
+                <button
+                  className={`btn-status ${listing.status === "sold" ? "btn-undo" : "btn-sold"}`}
+                  onClick={() =>
+                    handleStatusUpdate(
+                      listing.status === "sold" ? "active" : "sold",
+                    )
+                  }
+                >
+                  {listing.status === "sold" ? "Re-activate" : "Mark as Sold"}
+                </button>
+                <button
+                  className="btn-edit"
+                  onClick={() => navigate(`/listings/${id}/edit`)}
+                >
+                  Edit Listing
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn-contact"
+                  disabled={listing.status === "sold"}
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/login", {
+                        state: { from: `/listings/${id}` },
+                      });
+                    } else {
+                      const sellerId = listing.ownerId?._id || listing.ownerId;
+                      navigate(`/chat/${id}?receiverId=${sellerId}`);
+                    }
+                  }}
+                >
+                  {listing.status === "sold" ? "Item Sold" : "Contact Seller"}
+                </button>
+                <button
+                  className="btn-favorite"
+                  onClick={() => alert("Added to favorites!")}
+                >
+                  Add to Favorites
+                </button>
+              </>
+            )}
           </div>
 
           <div className="specs-section">

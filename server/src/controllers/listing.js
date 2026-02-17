@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import Listing, { validateListing } from "../models/Listing.js";
+import Listing from "../models/Listing.js";
 import { logError } from "../util/logging.js";
 import validationErrorMessage from "../util/validationErrorMessage.js";
 
@@ -32,18 +32,43 @@ const ALLOWED_UPDATE_FIELDS = [
 // GET all listings
 export const getListings = async (req, res) => {
   try {
-    const { status, location } = req.query;
+    const { status, location, search, page = 1, limit = 10 } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (location)
       filter.location = { $regex: escapeRegex(location), $options: "i" };
 
-    const listings = await Listing.find(filter).populate(
-      "ownerId",
-      "name email",
-    );
-    res.status(200).json({ success: true, result: listings });
+    if (search) {
+      const searchRegex = { $regex: escapeRegex(search), $options: "i" };
+      filter.$or = [
+        { title: searchRegex },
+        { brand: searchRegex },
+        { location: searchRegex },
+        { description: searchRegex },
+      ];
+    }
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [listings, totalCount] = await Promise.all([
+      Listing.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate("ownerId", "name email"),
+      Listing.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      result: listings,
+      totalCount,
+      page: pageNum,
+      hasMore: skip + listings.length < totalCount,
+    });
   } catch (error) {
     logError(error);
     res
@@ -101,27 +126,25 @@ export const createListing = async (req, res) => {
       }
     });
 
-    const errorList = validateListing(safeListing);
-
-    if (errorList.length > 0) {
-      return res
-        .status(400)
-        .json({ success: false, msg: validationErrorMessage(errorList) });
-    }
-
-    // Ensure request is authenticated
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({
-        success: false,
-        msg: "Authentication required",
-      });
-    }
-
     // Set ownerId from authenticated user
     safeListing.ownerId = req.user._id;
 
-    const newListing = await Listing.create(safeListing);
-    res.status(201).json({ success: true, listing: newListing });
+    // Create instance to run Mongoose validators
+    const listing = new Listing(safeListing);
+    const validationError = listing.validateSync();
+
+    if (validationError) {
+      const errors = Object.values(validationError.errors).map(
+        (err) => err.message,
+      );
+      return res.status(400).json({
+        success: false,
+        msg: validationErrorMessage(errors),
+      });
+    }
+
+    await listing.save();
+    res.status(201).json({ success: true, listing });
   } catch (error) {
     logError(error);
     res.status(500).json({
@@ -144,28 +167,29 @@ export const updateListing = async (req, res) => {
     }
 
     // Ownership is already checked by middleware (requireOwnership)
-    // req.resource contains the listing
+    // req.resource contains the existing listing
 
     // Whitelist updates
-    const safeUpdates = {};
     ALLOWED_UPDATE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
-        safeUpdates[field] = updates[field];
+        req.resource[field] = updates[field];
       }
     });
 
-    // Use findByIdAndUpdate on req.resource._id to apply updates and validators
-    const listing = await Listing.findByIdAndUpdate(
-      req.resource._id,
-      safeUpdates,
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
+    // Save will trigger Mongoose validators
+    await req.resource.save();
 
-    res.status(200).json({ success: true, listing });
+    res.status(200).json({ success: true, listing: req.resource });
   } catch (error) {
+    // Check if it's a Mongoose validation error
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        msg: validationErrorMessage(errors),
+      });
+    }
+
     logError(error);
     res.status(500).json({
       success: false,
@@ -188,6 +212,33 @@ export const deleteListing = async (req, res) => {
     res.status(500).json({
       success: false,
       msg: "Unable to delete listing, try again later",
+    });
+  }
+};
+
+// PATCH update listing status (e.g. mark as sold)
+export const updateStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["active", "sold", "cancelled"].includes(status)) {
+      return res.status(400).json({ success: false, msg: "Invalid status" });
+    }
+
+    // Ownership is already checked by middleware
+    req.resource.status = status;
+    await req.resource.save();
+
+    res.status(200).json({
+      success: true,
+      msg: `Listing marked as ${status}`,
+      listing: req.resource,
+    });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({
+      success: false,
+      msg: "Unable to update status, try again later",
     });
   }
 };

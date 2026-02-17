@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
@@ -5,34 +6,23 @@ import "../styles/ListingCard.css";
 const ListingCard = ({ listing }) => {
   const { _id, title, price, images, location, condition, brand } = listing;
 
-  const imageUrl =
+  let imageUrl =
     images && images.length > 0
       ? images[0]
       : "https://placehold.co/600x400?text=No+Image";
 
-  // Handle price display:
-  // 1. Check for Mongoose Decimal128 format (e.g. { $numberDecimal: "1450" })
-  // 2. Check for object format (e.g. { value: 1450 })
-  // 3. Fallback to raw value
-  let displayPrice = price;
-  if (price && typeof price === "object") {
-    if (price.$numberDecimal) {
-      displayPrice = price.$numberDecimal;
-    } else if (price.value != null) {
-      displayPrice = price.value;
-    }
+  // Optimization: Cloudinary transformation for list thumbnails
+  // Add width, height, auto-format, and auto-quality
+  if (imageUrl.includes("cloudinary.com")) {
+    imageUrl = imageUrl.replace(
+      "/upload/",
+      "/upload/w_500,h_400,c_fill,f_auto,q_auto/",
+    );
   }
 
-  // Derive currency explicitly: default to EUR if not provided
-  let currency = "EUR";
-  if (
-    price &&
-    typeof price === "object" &&
-    typeof price.currency === "string"
-  ) {
-    currency = price.currency;
-  }
-  const currencySymbol = currency === "USD" ? "$" : "€";
+  // Handle price display: backend now sends price as a plain string/number
+  const displayPrice = price;
+  const currencySymbol = "€"; // Standardizing to Euro for this marketplace
 
   return (
     <div className="listing-card" data-id={_id}>
@@ -70,16 +60,7 @@ ListingCard.propTypes = {
   listing: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    price: PropTypes.oneOfType([
-      PropTypes.number,
-      PropTypes.shape({
-        value: PropTypes.number,
-        currency: PropTypes.string,
-      }),
-      PropTypes.shape({
-        $numberDecimal: PropTypes.string,
-      }),
-    ]).isRequired,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
     location: PropTypes.string.isRequired,
     condition: PropTypes.string,
@@ -87,4 +68,4 @@ ListingCard.propTypes = {
   }).isRequired,
 };
 
-export default ListingCard;
+export default memo(ListingCard);

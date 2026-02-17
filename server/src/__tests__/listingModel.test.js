@@ -1,116 +1,68 @@
-import { validateListing } from "../models/Listing.js";
-
-// Helper to create listing without specific field
-const omit = (obj, key) => {
-  const { [key]: _, ...rest } = obj;
-  return rest;
-};
+import Listing from "../models/Listing.js";
+import mockMongoose from "mongoose";
 
 describe("Listing Model", () => {
-  describe("validateListing", () => {
-    const validListing = {
+  describe("Listing Model Validation", () => {
+    const testUser = new mockMongoose.Types.ObjectId();
+    const validListingData = {
       title: "Mountain Bike",
       description: "Great condition mountain bike",
       price: 500,
       location: "Amsterdam",
+      ownerId: testUser,
     };
 
-    it("should return an empty array for valid listing", () => {
-      const errors = validateListing(validListing);
-      expect(errors).toHaveLength(0);
+    it("should validate a correct listing", () => {
+      const listing = new Listing(validListingData);
+      const err = listing.validateSync();
+      expect(err).toBeUndefined();
     });
 
-    it("should return error when input is null", () => {
-      const errors = validateListing(null);
-      expect(errors).toContain("listing must be a valid object");
+    it("should fail if required fields are missing", () => {
+      const listing = new Listing({ title: "Bike" });
+      const err = listing.validateSync();
+      expect(err.errors.description).toBeDefined();
+      expect(err.errors.price).toBeDefined();
+      expect(err.errors.location).toBeDefined();
+      expect(err.errors.ownerId).toBeDefined();
     });
 
-    it("should return error when input is an array", () => {
-      const errors = validateListing([]);
-      expect(errors).toContain("listing must be a valid object");
+    it("should fail if price is negative", () => {
+      const listing = new Listing({ ...validListingData, price: -100 });
+      const err = listing.validateSync();
+      expect(err.errors.price).toBeDefined();
+      expect(err.errors.price.message).toContain("non-negative");
     });
 
-    it("should return error when title is missing", () => {
-      const errors = validateListing(omit(validListing, "title"));
-      expect(errors).toContain("title is a required field");
+    it("should fail if more than 5 images are provided", () => {
+      const listing = new Listing({
+        ...validListingData,
+        images: ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"],
+      });
+      const err = listing.validateSync();
+      expect(err.errors.images).toBeDefined();
+      expect(err.errors.images.message).toBe(
+        "You can only upload a maximum of 5 images.",
+      );
     });
 
-    it("should return error when description is missing", () => {
-      const errors = validateListing(omit(validListing, "description"));
-      expect(errors).toContain("description is a required field");
+    it("should accept valid enum values for condition", () => {
+      const listing = new Listing({ ...validListingData, condition: "new" });
+      const err = listing.validateSync();
+      expect(err).toBeUndefined();
     });
 
-    it("should return error when price is missing", () => {
-      const errors = validateListing(omit(validListing, "price"));
-      expect(errors).toContain("price is a required field");
+    it("should fail for invalid enum values for condition", () => {
+      const listing = new Listing({ ...validListingData, condition: "broken" });
+      const err = listing.validateSync();
+      expect(err.errors.condition).toBeDefined();
     });
 
-    it("should return error when price is negative", () => {
-      const listing = { ...validListing, price: -100 };
-      const errors = validateListing(listing);
-      expect(errors).toContain("price must be a non-negative number");
-    });
-
-    it("should return error when price is NaN", () => {
-      const listing = { ...validListing, price: NaN };
-      const errors = validateListing(listing);
-      expect(errors).toContain("price must be a non-negative number");
-    });
-
-    it("should return error when price is Infinity", () => {
-      const listing = { ...validListing, price: Infinity };
-      const errors = validateListing(listing);
-      expect(errors).toContain("price must be a non-negative number");
-    });
-
-    it("should accept price of 0", () => {
-      const listing = { ...validListing, price: 0 };
-      const errors = validateListing(listing);
-      expect(errors).toHaveLength(0);
-    });
-
-    it("should NOT return error when ownerId is missing (set by controller)", () => {
-      const errors = validateListing(omit(validListing, "ownerId"));
-      expect(errors).toHaveLength(0);
-    });
-
-    it("should allow ownerId when provided (for controller usage)", () => {
-      const listingWithOwnerId = {
-        title: "Mountain Bike",
-        description: "Great condition mountain bike",
-        price: 500,
-        location: "Amsterdam",
-        ownerId: "507f1f77bcf86cd799439011",
-      };
-      const errors = validateListing(listingWithOwnerId);
-      expect(errors).toHaveLength(0);
-    });
-
-    it("should return error when location is missing", () => {
-      const errors = validateListing(omit(validListing, "location"));
-      expect(errors).toContain("location is a required field");
-    });
-
-    it("should return error for unknown fields", () => {
-      const listing = { ...validListing, unknownField: "value" };
-      const errors = validateListing(listing);
-      expect(errors.length).toBeGreaterThan(0);
-    });
-
-    it("should accept all optional fields", () => {
-      const listing = {
-        ...validListing,
-        images: ["image1.jpg", "image2.jpg"],
-        status: "active",
-        brand: "Giant",
-        model: "Talon 2",
-        year: 2023,
-        condition: "like-new",
-        mileage: 500,
-      };
-
-      const errors = validateListing(listing);
-      expect(errors).toHaveLength(0);
+    it("should convert Decimal128 to string in toJSON", () => {
+      const listing = new Listing(validListingData);
+      const json = listing.toJSON();
+      expect(typeof json.price).toBe("string");
+      expect(json.price).toBe("500");
     });
   });
 });
