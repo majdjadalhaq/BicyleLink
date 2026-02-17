@@ -46,6 +46,22 @@ const listingSchema = new mongoose.Schema({
   brand: { type: String },
   model: { type: String },
   year: { type: Number },
+  category: {
+    type: String,
+    enum: [
+      "Road",
+      "Mountain",
+      "City",
+      "E-bike",
+      "Gravel",
+      "Hybrid",
+      "Kids",
+      "Fixed Gear",
+      "Cruiser",
+      "Other",
+    ],
+    index: true,
+  },
   condition: {
     type: String,
     enum: ["new", "like-new", "good", "fair", "poor"],

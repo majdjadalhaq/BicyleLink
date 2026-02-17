@@ -6,6 +6,7 @@ import {
   updateListing,
   deleteListing,
   updateStatus,
+  getListingFacets,
 } from "../controllers/listing.js";
 import {
   authenticate,
@@ -19,6 +20,9 @@ const listingRouter = express.Router();
 
 // GET /api/listings - Get all listings (public, but optional auth for user context if needed later)
 listingRouter.get("/", optionalAuth, getListings);
+
+// GET /api/listings/facets - Get filter statistics (Must be before /:id)
+listingRouter.get("/facets", getListingFacets);
 
 // GET /api/listings/:id - Get single listing
 listingRouter.get("/:id", optionalAuth, getListingById);
