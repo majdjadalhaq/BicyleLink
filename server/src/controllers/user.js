@@ -105,7 +105,7 @@ export const loginUser = async (req, res) => {
         .json({ success: false, msg: "Invalid credentials" });
     }
 
-    // 2. Password Match
+    // 3. Password Match
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (user.lockoutUntil && user.lockoutUntil > Date.now()) {
@@ -117,6 +117,12 @@ export const loginUser = async (req, res) => {
     }
 
     if (!isMatch) {
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= 5) {
+        user.lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 mins
+        user.failedLoginAttempts = 0;
+      }
+      await user.save();
       return res
         .status(401)
         .json({ success: false, msg: "Invalid credentials" });
@@ -128,7 +134,7 @@ export const loginUser = async (req, res) => {
       currentCookieConfig.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
     }
 
-    // 3. Verified Guard
+    // 4. Verified Guard
     if (user.isVerified !== true) {
       return res.status(403).json({
         success: false,
@@ -137,6 +143,11 @@ export const loginUser = async (req, res) => {
         email: user.email,
       });
     }
+
+    // Success - Reset counters
+    user.failedLoginAttempts = 0;
+    user.lockoutUntil = undefined;
+    await user.save();
 
     const token = signToken(user);
     res.cookie("token", token, currentCookieConfig);
@@ -229,7 +240,7 @@ export const resendVerificationCode = async (req, res) => {
     }
 
     const user = await User.findOne({ email }).select(
-      "+isVerified +verificationCodeLastSentAt +verificationResendCount +verificationResendWindowStart",
+      "+isVerified +verificationCodeLastSentAt +verificationResendCount +verificationResendWindowStart +lockoutUntil",
     );
 
     // Anti-Enumeration: Fake delay & Generic Success
@@ -246,6 +257,15 @@ export const resendVerificationCode = async (req, res) => {
       return res.status(200).json({
         success: true,
         msg: "If an account exists, a verification code has been sent.",
+      });
+    }
+
+    // Lockout Check
+    if (user.lockoutUntil && user.lockoutUntil > Date.now()) {
+      const remainingTime = Math.ceil((user.lockoutUntil - Date.now()) / 60000);
+      return res.status(429).json({
+        success: false,
+        msg: `Action restricted. Please try again in ${remainingTime} minutes.`,
       });
     }
 
@@ -318,6 +338,15 @@ export const requestPasswordReset = async (req, res) => {
       return res.status(200).json({
         success: true,
         msg: "If an account exists, a reset code has been sent.",
+      });
+    }
+
+    // Lockout Check
+    if (user.lockoutUntil && user.lockoutUntil > Date.now()) {
+      const remainingTime = Math.ceil((user.lockoutUntil - Date.now()) / 60000);
+      return res.status(429).json({
+        success: false,
+        msg: `Action restricted. Please try again in ${remainingTime} minutes.`,
       });
     }
 

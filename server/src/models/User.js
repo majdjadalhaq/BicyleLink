@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
   failedAttempts: { type: Number, default: 0 },
   lockoutUntil: { type: Date },
   failedPasswordResetAttempts: { type: Number, default: 0 },
+  failedLoginAttempts: { type: Number, default: 0 },
 });
 
 const User = mongoose.model("users", userSchema);
