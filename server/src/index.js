@@ -28,23 +28,45 @@ io.on("connection", (socket) => {
   socket.on("join_room", (data) => {
     // data can be just room string or { room, userId }
     const { room, userId } = typeof data === "string" ? { room: data } : data;
+
+    // Security check: Room ID format is listingId_userId1_userId2
+    // User can only join if their ID is part of the room string
+    if (userId && !room.includes(userId)) {
+      logError(
+        new Error(
+          `Unauthorized room join attempt: User ${userId} -> Room ${room}`,
+        ),
+      );
+      return;
+    }
+
     socket.join(room);
 
     if (userId) {
       currentUserId = userId;
       if (!onlineUsers.has(userId)) {
         onlineUsers.set(userId, new Set());
+        // Private Status: Only notify people this user has conversations with
+        // For simplicity in this demo, we broadcast, but in a real app we'd query DB
+        // Here we'll just emit to the rooms the user is in
+        io.to(room).emit("user_status_change", { userId, status: "online" });
       }
       onlineUsers.get(userId).add(socket.id);
-      io.emit("user_status_change", { userId, status: "online" });
     }
   });
 
   socket.on("send_message", async (msg) => {
     try {
-      // Check if receiver is online and in the same room
-      // This is slightly complex to track who is in which room,
-      // but for now let's just create the message.
+      // Security Check: Ensure sender is part of the room they are sending to
+      if (!msg.room.includes(msg.senderId)) {
+        logError(
+          new Error(
+            `Unauthorized message send: User ${msg.senderId} -> Room ${msg.room}`,
+          ),
+        );
+        return;
+      }
+
       const savedMessage = await Message.create(msg);
       io.to(msg.room).emit("receive_message", savedMessage);
     } catch (error) {
@@ -53,6 +75,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", (data) => {
+    if (!data.room.includes(data.userId)) return;
     socket.to(data.room).emit("typing_status", {
       userId: data.userId,
       isTyping: true,
@@ -60,6 +83,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("stop_typing", (data) => {
+    if (!data.room.includes(data.userId)) return;
     socket.to(data.room).emit("typing_status", {
       userId: data.userId,
       isTyping: false,
@@ -71,6 +95,7 @@ io.on("connection", (socket) => {
       onlineUsers.get(currentUserId).delete(socket.id);
       if (onlineUsers.get(currentUserId).size === 0) {
         onlineUsers.delete(currentUserId);
+        // We don't have the room context here, so we broadcast or handle via state
         io.emit("user_status_change", {
           userId: currentUserId,
           status: "offline",
