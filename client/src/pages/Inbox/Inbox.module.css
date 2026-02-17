@@ -95,12 +95,37 @@
   flex: 1;
 }
 
+.imageWrapper {
+  position: relative;
+  display: flex;
+}
+
 .listingImage {
   width: 72px;
   height: 72px;
   object-fit: cover;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.presenceDot {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 2;
+}
+
+.online {
+  background-color: #a855f7; /* Purple */
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+}
+
+.offline {
+  background-color: #cbd5e1; /* Grey */
 }
 
 .userInfo {
@@ -160,9 +185,54 @@
   color: var(--text-light);
 }
 
-.empty h2 {
-  color: var(--primary-color);
-  margin-bottom: 1rem;
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.unreadDot {
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-color, #8e24aa);
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px rgba(142, 36, 170, 0.5);
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.archiveButton, .unreadButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.archiveButton {
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+.unreadButton {
+  font-size: 1rem;
+  opacity: 0.4;
+}
+
+.archiveButton:hover, .unreadButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
 }
 
 /* Responsive adjustments */
@@ -184,40 +254,4 @@
   .messagePreview {
     text-align: left;
   }
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  width: 100%;
-}
-
-.unreadDot {
-  width: 10px;
-  height: 10px;
-  background-color: var(--primary-color, #8e24aa);
-  border-radius: 50%;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 0 5px rgba(142, 36, 170, 0.5);
-}
-
-.archiveButton {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-}
-
-.archiveButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  opacity: 1;
 }

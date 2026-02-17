@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
+import Skeleton from "../../components/Skeleton/Skeleton.jsx";
 import styles from "./Inbox.module.css";
 
 /**
@@ -10,13 +13,26 @@ import styles from "./Inbox.module.css";
 const Inbox = () => {
   const [conversations, setConversations] = useState([]);
   const [view, setView] = useState("active"); // 'active' or 'archived'
+  const [onlineStatuses, setOnlineStatuses] = useState({});
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const socketRef = useRef(null);
 
   // Fetch inbox data from the API
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
     `/messages/inbox?archived=${view === "archived"}`,
     (response) => {
-      setConversations(response.result || []);
+      const convs = response.result || [];
+      setConversations(convs);
+
+      // Request initial online status for all contacts
+      if (socketRef.current) {
+        convs.forEach((c) => {
+          if (c.otherUser?._id) {
+            socketRef.current.emit("check_online_status", c.otherUser._id);
+          }
+        });
+      }
     },
   );
 
@@ -24,6 +40,34 @@ const Inbox = () => {
     performFetch();
     return () => cancelFetch();
   }, [view]);
+
+  // Socket Connection for Real-time Presence
+  useEffect(() => {
+    if (!user) return;
+
+    socketRef.current = io(window.location.origin);
+
+    // Join personal room to receive status updates from any contact
+    socketRef.current.emit("join_room", { userId: user._id, room: `user_${user._id}` });
+
+    socketRef.current.on("user_status_change", (data) => {
+      setOnlineStatuses((prev) => ({
+        ...prev,
+        [data.userId]: data.status === "online",
+      }));
+    });
+
+    socketRef.current.on("online_status_result", (data) => {
+      setOnlineStatuses((prev) => ({
+        ...prev,
+        [data.userId]: data.isOnline,
+      }));
+    });
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+  }, [user]);
 
   const handleArchive = async (e, room, currentStatus) => {
     e.stopPropagation(); // Prevent navigation to chat
@@ -43,9 +87,38 @@ const Inbox = () => {
     }
   };
 
+  const handleMarkUnread = async (e, room) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/messages/unread/${room}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Local update to show the dot immediately
+        setConversations((prev) =>
+          prev.map((c) => (c.room === room ? { ...c, unreadCount: 1 } : c)),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to mark as unread:", err);
+    }
+  };
+
   // Handle loading and error states
-  if (isLoading)
-    return <div className={styles.container}>Loading your chats...</div>;
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>My Conversations</h1>
+        <div className={styles.list}>
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} type="inbox" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (error)
     return <div className={styles.container}>Error loading chats: {error}</div>;
 
@@ -91,11 +164,25 @@ const Inbox = () => {
                   {conv.unreadCount > 0 && (
                     <div className={styles.unreadDot} title="Unread" />
                   )}
-                  <img
-                    src={conv.listing?.images?.[0] || "/placeholder.png"}
-                    alt={conv.listing?.title || "Listing"}
-                    className={styles.listingImage}
-                  />
+                  <div className={styles.imageWrapper}>
+                    <img
+                      src={conv.listing?.images?.[0] || "/placeholder.png"}
+                      alt={conv.listing?.title || "Listing"}
+                      className={styles.listingImage}
+                    />
+                    <div
+                      className={`${styles.presenceDot} ${
+                        onlineStatuses[conv.otherUser?._id]
+                          ? styles.online
+                          : styles.offline
+                      }`}
+                      title={
+                        onlineStatuses[conv.otherUser?._id]
+                          ? "Online"
+                          : "Offline"
+                      }
+                    />
+                  </div>
                   <div className={styles.userInfo}>
                     <h3 className={styles.otherUserName}>
                       {conv.otherUser?.name || "Unknown User"}
@@ -105,19 +192,28 @@ const Inbox = () => {
                     </p>
                   </div>
                 </div>
-                <button
-                  className={styles.archiveButton}
-                  onClick={(e) =>
-                    handleArchive(e, conv.room, view === "archived")
-                  }
-                  title={
-                    view === "active"
-                      ? "Archive Conversation"
-                      : "Unarchive Conversation"
-                  }
-                >
-                  {view === "active" ? "📥" : "📤"}
-                </button>
+                <div className={styles.cardActions}>
+                  <button
+                    className={styles.unreadButton}
+                    onClick={(e) => handleMarkUnread(e, conv.room)}
+                    title="Mark as Unread"
+                  >
+                    🔵
+                  </button>
+                  <button
+                    className={styles.archiveButton}
+                    onClick={(e) =>
+                      handleArchive(e, conv.room, view === "archived")
+                    }
+                    title={
+                      view === "active"
+                        ? "Archive Conversation"
+                        : "Unarchive Conversation"
+                    }
+                  >
+                    {view === "active" ? "📥" : "📤"}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.lastMessage}>

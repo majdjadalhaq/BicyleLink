@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import ListingCard from "../../components/ListingCard.jsx";
+import Skeleton from "../../components/Skeleton/Skeleton.jsx";
 import TEST_ID from "./Home.testid";
 import "../../styles/Home.css";
 
@@ -70,7 +71,11 @@ const Home = () => {
       )}
 
       {isLoading && page === 1 && (
-        <div className="home-loading">Loading amazing bikes...</div>
+        <div className="listing-grid">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} type="card" />
+          ))}
+        </div>
       )}
 
       {!isLoading && !error && listings.length === 0 && (

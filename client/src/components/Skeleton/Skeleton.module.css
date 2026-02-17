@@ -1,0 +1,142 @@
+.skeleton {
+  background: #f1f5f9;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Card Skeleton (for Home grid) */
+.cardSkeleton {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #f1f5f9;
+}
+
+.cardSkeleton .image {
+  width: 100%;
+  height: 200px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cardSkeleton .image::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.cardSkeleton .title {
+  height: 20px;
+  width: 70%;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.cardSkeleton .price {
+  height: 24px;
+  width: 40%;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.cardSkeleton .city {
+  height: 16px;
+  width: 50%;
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+/* Inbox Skeleton */
+.inboxSkeleton {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #f8fafc;
+}
+
+.inboxSkeleton .avatar {
+  width: 56px;
+  height: 56px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.inboxSkeleton .avatar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.inboxSkeleton .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inboxSkeleton .line {
+  height: 16px;
+  width: 40%;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.inboxSkeleton .lineShort {
+  height: 12px;
+  width: 25%;
+  background: #f8fafc;
+  border-radius: 4px;
+}

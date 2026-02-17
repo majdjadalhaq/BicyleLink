@@ -186,3 +186,26 @@ export const getUnreadTotal = async (req, res) => {
       .json({ success: false, msg: "Unable to fetch unread total" });
   }
 };
+
+export const markRoomUnread = async (req, res) => {
+  try {
+    const { room } = req.params;
+    const userId = req.user._id;
+
+    // Set lastReadAt to the beginning of time to make all messages unread
+    // or we could find the latest message and set it just before that.
+    // For simplicity, using a very old date.
+    await ConversationStatus.findOneAndUpdate(
+      { userId, room },
+      { lastReadAt: new Date(0) },
+      { upsert: true },
+    );
+
+    res
+      .status(200)
+      .json({ success: true, msg: "Conversation marked as unread" });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to mark as unread" });
+  }
+};
