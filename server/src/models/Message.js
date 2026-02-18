@@ -29,6 +29,19 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    mediaUrl: {
+      type: String,
+    },
+    mediaType: {
+      type: String,
+      enum: ["text", "image", "location"],
+      default: "text",
+    },
+    location: {
+      lat: Number,
+      lng: Number,
+      address: String,
+    },
   },
   { timestamps: true },
 );

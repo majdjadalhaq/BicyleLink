@@ -5,23 +5,14 @@
  */
 
 const getEnv = (key) => {
-  // 1. Check process.env (Jest/Node environment)
-  // We check for undefined explicitly to satisfy linting
-  if (typeof process !== "undefined" && process.env && process.env[key]) {
-    return process.env[key];
+  // 1. Check import.meta.env (Vite environment - Static replacement friendly)
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    if (import.meta.env[key]) return import.meta.env[key];
   }
 
-  // 2. Check import.meta.env (Vite environment)
-  // We use new Function to hide this from the Jest parser which would otherwise
-  // throw a SyntaxError: Cannot use 'import.meta' outside a module
-  try {
-    // This only runs in environments that support ESM properly (like Vite during build/dev)
-    const meta = new Function("return import.meta")();
-    if (meta && meta.env) {
-      return meta.env[key];
-    }
-  } catch {
-    // Fail silently - we probably are in a non-ESM environment or Jest
+  // 2. Fallback for Jest/Node or if Vite dynamic access fails
+  if (typeof process !== "undefined" && process.env && process.env[key]) {
+    return process.env[key];
   }
 
   return undefined;

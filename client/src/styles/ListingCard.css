@@ -203,3 +203,37 @@
 .btn-delete-card:hover {
   background-color: #fecaca;
 }
+
+.btn-status-card {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+}
+
+.btn-sold {
+  background-color: #2e7d32; /* Green for success action */
+}
+
+.btn-sold:hover {
+  background-color: #1b5e20;
+}
+
+.btn-reactivate {
+  background-color: #0288d1; /* Blue for info action */
+}
+
+.btn-reactivate:hover {
+  background-color: #01579b;
+}
+
+.btn-status-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

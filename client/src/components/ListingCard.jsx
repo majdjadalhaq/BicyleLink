@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
@@ -51,6 +51,37 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
     }
   };
 
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusToggle = async (e) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    const newStatus = listing.status === "active" ? "sold" : "active";
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/listings/${_id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        window.location.reload(); // Simple refresh to see changes
+      } else {
+        alert("Failed to update status");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="listing-card" data-id={_id}>
       <div className="listing-card__image-container">
@@ -99,6 +130,13 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
             <Link to={`/listings/${_id}/edit`} className="btn-edit-card">
               ✏️ Edit
             </Link>
+            <button
+              onClick={handleStatusToggle}
+              className={`btn-status-card ${listing.status === "sold" ? "btn-reactivate" : "btn-sold"}`}
+              disabled={isUpdating}
+            >
+              {listing.status === "sold" ? "🔄 Reactivate" : "🤝 Sold"}
+            </button>
             <button onClick={handleDelete} className="btn-delete-card">
               🗑️ Delete
             </button>

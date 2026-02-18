@@ -21,8 +21,27 @@ const ListingDetail = () => {
   const isOwner = user && listing && user?._id === listing.ownerId?._id;
 
   const handleStatusUpdate = async (newStatus) => {
-    // TODO: Implement status update logic
-    console.log(`Updating status to ${newStatus}`);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/listings/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setListing((prev) => ({ ...prev, status: data.listing.status }));
+      } else {
+        alert("Failed to update status");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating status");
+    }
   };
 
   const {

@@ -265,24 +265,23 @@
   width: 100%;
   transition: all 0.2s;
   border: none;
+  color: white;
 }
 
 .btn-sold {
-  background: #f44336;
-  color: white;
+  background: #2e7d32; /* Green for success action */
 }
 
 .btn-sold:hover {
-  background: #d32f2f;
+  background: #1b5e20;
 }
 
 .btn-undo {
-  background: #4caf50;
-  color: white;
+  background: #0288d1; /* Blue for info action */
 }
 
 .btn-undo:hover {
-  background: #388e3c;
+  background: #01579b;
 }
 
 .btn-edit {

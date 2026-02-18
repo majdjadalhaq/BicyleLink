@@ -47,6 +47,53 @@ const Home = () => {
     setPage(1);
   };
 
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  const handleLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          // Use OpenStreetMap Nominatim for free reverse geocoding
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+          );
+          const data = await response.json();
+
+          const city =
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            data.address.county;
+
+          if (city) {
+            setSearchTerm(city);
+            setPage(1);
+          } else {
+            alert("Could not determine your city");
+          }
+        } catch (error) {
+          console.error("Location error:", error);
+          alert("Error getting location details");
+        } finally {
+          setIsLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setIsLoadingLocation(false);
+        alert("Unable to retrieve your location");
+      },
+    );
+  };
+
   return (
     <div className="home-container" data-testid={TEST_ID.container}>
       <div className="home-hero">
@@ -54,13 +101,27 @@ const Home = () => {
         <p>Browse quality second-hand bikes in your area</p>
 
         <div className="home-search">
-          <input
-            type="text"
-            placeholder="Search by bike name, brand, or city..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="search-input"
-          />
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="Search by bike name, brand, or city..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="search-input"
+            />
+          </div>
+          <button
+            className="btn-location"
+            onClick={handleLocation}
+            title="Use my location"
+            disabled={isLoadingLocation}
+          >
+            {isLoadingLocation ? (
+              <span className="spinner">📍</span>
+            ) : (
+              <span>📍</span>
+            )}
+          </button>
         </div>
       </div>
 

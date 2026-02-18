@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 import "../styles/Nav.css";
 
 const Nav = () => {
   const { user, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -41,123 +48,138 @@ const Nav = () => {
     navigate("/login");
   };
 
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <nav className="navbar" data-testid={TEST_ID.container}>
       {/* LEFT: Brand Logo */}
-      <div className="navbar-brand">
+      <div className="navbar-brand-container">
         <Link to="/" className="navbar-brand" data-testid={TEST_ID.linkToHome}>
           🚲 BiCycleL
         </Link>
+
+        <button
+          className={`hamburger-menu ${isOpen ? "open" : ""}`}
+          onClick={toggleMenu}
+          aria-label="Toggle navigation"
+        >
+          <span className="bar"></span>
+          <span className="bar"></span>
+          <span className="bar"></span>
+        </button>
       </div>
 
-      {/* MIDDLE: Navigation Links */}
-      <ul className="navbar-links">
-        <li>
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            Home
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink
-            to="/listing/create"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-            data-testid={TEST_ID.linkToCreateListing}
-          >
-            Sell a Bike
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink
-            to="/user"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-            data-testid={TEST_ID.linkToUsers}
-          >
-            Community
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink
-            to="/favorites"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            Favorites
-          </NavLink>
-        </li>
-        {user && (
+      {/* MIDDLE & RIGHT: Collapsible Content */}
+      <div className={`navbar-collapse ${isOpen ? "show" : ""}`}>
+        <ul className="navbar-links">
           <li>
             <NavLink
-              to="/my-listings"
+              to="/"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              My Listings
+              Home
             </NavLink>
           </li>
-        )}
-        {user && (
+
           <li>
             <NavLink
-              to="/inbox"
+              to="/listing/create"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+              data-testid={TEST_ID.linkToCreateListing}
+            >
+              Sell a Bike
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/user"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+              data-testid={TEST_ID.linkToUsers}
+            >
+              Community
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/favorites"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              Inbox
-              {unreadCount > 0 && (
-                <span className="unread-badge">{unreadCount}</span>
-              )}
+              Favorites
             </NavLink>
           </li>
-        )}
-      </ul>
+          {user && (
+            <li>
+              <NavLink
+                to="/my-listings"
+                className={({ isActive }) =>
+                  isActive ? "nav-item active" : "nav-item"
+                }
+              >
+                My Listings
+              </NavLink>
+            </li>
+          )}
+          {user && (
+            <li>
+              <NavLink
+                to="/inbox"
+                className={({ isActive }) =>
+                  isActive ? "nav-item active" : "nav-item"
+                }
+              >
+                Inbox
+                {unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+              </NavLink>
+            </li>
+          )}
+        </ul>
 
-      {/* RIGHT: Auth Actions */}
-      <div className="navbar-actions">
-        {user ? (
-          <>
-            <span className="user-greeting">Hi, {user.name || "User"}</span>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="btn-nav btn-logout"
-              data-testid={TEST_ID.linkToLogout}
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link
-              to="/login"
-              className="btn-nav btn-secondary"
-              data-testid={TEST_ID.linkToLogin}
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="btn-nav btn-primary"
-              data-testid={TEST_ID.linkToSignUp}
-            >
-              Sign Up
-            </Link>
-          </>
-        )}
+        <div className="navbar-actions">
+          {user ? (
+            <>
+              <span className="user-greeting">Hi, {user.name || "User"}</span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn-nav btn-logout"
+                data-testid={TEST_ID.linkToLogout}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="btn-nav btn-secondary"
+                data-testid={TEST_ID.linkToLogin}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="btn-nav btn-primary"
+                data-testid={TEST_ID.linkToSignUp}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
