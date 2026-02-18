@@ -100,6 +100,18 @@ const Nav = () => {
         {user && (
           <li>
             <NavLink
+              to="/my-listings"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              My Listings
+            </NavLink>
+          </li>
+        )}
+        {user && (
+          <li>
+            <NavLink
               to="/inbox"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"

@@ -61,10 +61,12 @@ const listingSchema = new mongoose.Schema({
       "Other",
     ],
     index: true,
+    required: [true, "category is required"],
   },
   condition: {
     type: String,
     enum: ["new", "like-new", "good", "fair", "poor"],
+    required: [true, "condition is required"],
   },
   mileage: { type: Number },
   createdAt: { type: Date, default: Date.now },

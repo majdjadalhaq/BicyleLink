@@ -27,6 +27,7 @@ const ALLOWED_UPDATE_FIELDS = [
   "condition",
   "mileage",
   "status", // User might be allowed to change status
+  "category",
 ];
 
 // GET all listings
@@ -44,6 +45,7 @@ export const getListings = async (req, res) => {
       category,
       condition,
       sort,
+      ownerId,
       page = 1,
       limit = 10,
     } = req.query;
@@ -53,6 +55,18 @@ export const getListings = async (req, res) => {
 
     if (location)
       filter.location = { $regex: escapeRegex(location), $options: "i" };
+
+    if (ownerId) {
+      filter.ownerId = ownerId;
+      // If filtering by owner, we might want to see all their listings, not just active ones?
+      // For now, let's keep the status filter logic (defaults to active/sold) unless overridden.
+      // But if standard user wants to see their 'cancelled' ones too, we might need to adjust.
+      // Let's assume for "My Listings" we want to see everything they own.
+      // So if ownerId is present, we might want to relax the default status filter if status wasn't explicitly provided.
+      if (!status) {
+        delete filter.status; // Remove default active/sold filter to show all
+      }
+    }
 
     if (search) {
       const searchRegex = { $regex: escapeRegex(search), $options: "i" };
