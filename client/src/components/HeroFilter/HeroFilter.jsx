@@ -1,15 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import "./HeroFilter.css";
 import { City } from "country-state-city";
 
-const HeroFilter = ({
-  filters,
-  setFilters,
-  onApply,
-  onClear,
-  facets,
-  isOpen,
-}) => {
+const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
 
@@ -20,13 +13,17 @@ const HeroFilter = ({
   const dropdownRef = useRef(null);
 
   // Sync local state when external filters change (e.g. cleared)
+  // Intentional: syncing prop changes to local state
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    // eslint-disable-next-line
     setLocalFilters(filters);
     if (filters.location) {
       setCitySearch(filters.location);
+    } else {
+      setCitySearch("");
     }
   }, [filters]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,6 +35,9 @@ const HeroFilter = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Cache all cities to avoid calling getAllCities() on every keystroke
+  const allCities = useMemo(() => City.getAllCities(), []);
 
   const handleChipToggle = (category, value) => {
     setLocalFilters((prev) => {
@@ -75,7 +75,7 @@ const HeroFilter = ({
 
     if (value.length > 2) {
       // Filter cities - limiting to 10 for performance
-      const cities = City.getAllCities()
+      const cities = allCities
         .filter((c) => c.name.toLowerCase().includes(value.toLowerCase()))
         .slice(0, 10);
       setCityOptions(cities);
@@ -116,7 +116,6 @@ const HeroFilter = ({
     ) {
       filtersToApply.radius = 50;
     }
-    setFilters(filtersToApply);
     onApply(filtersToApply);
   };
 
@@ -245,7 +244,9 @@ const HeroFilter = ({
                   className="styled-input"
                   placeholder="2010"
                   value={localFilters.minYear || ""}
-                  onChange={(e) => handleRangeChange("minYear", e.target.value)}
+                  onChange={(e) =>
+                    handleRangeChange("minYear", Number(e.target.value))
+                  }
                 />
               </div>
               <div className="range-input-wrapper">
@@ -255,7 +256,9 @@ const HeroFilter = ({
                   className="styled-input"
                   placeholder={new Date().getFullYear()}
                   value={localFilters.maxYear || ""}
-                  onChange={(e) => handleRangeChange("maxYear", e.target.value)}
+                  onChange={(e) =>
+                    handleRangeChange("maxYear", Number(e.target.value))
+                  }
                 />
               </div>
             </div>
@@ -301,7 +304,9 @@ const HeroFilter = ({
                   min="0"
                   max="100"
                   value={localFilters.radius || 50}
-                  onChange={(e) => handleRangeChange("radius", e.target.value)}
+                  onChange={(e) =>
+                    handleRangeChange("radius", Number(e.target.value))
+                  }
                   className="styled-range"
                   style={{
                     background: `linear-gradient(to right, #6a1b9a 0%, #6a1b9a ${

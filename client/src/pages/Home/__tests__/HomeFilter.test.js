@@ -76,8 +76,8 @@ describe("Home Filter Integration", () => {
     // 3. Select City from Dropdown
     // The dropdown appears when length > 2
     // We need to wait for the city option to appear
-    // Note: Since we are using real City library, "London" should appear.
-    // If it doesn't, we might need to mock the City library or check if it works in test env.
+    // Note: The City library is mocked above to return "London", so it should appear.
+    // If it doesn't, there may be an issue with how the mocked City data is rendered in the component.
     const cityOption = await screen.findByText(
       "London",
       { selector: ".city-name" },

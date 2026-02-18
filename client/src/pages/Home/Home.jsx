@@ -181,6 +181,7 @@ const Home = () => {
               className={`filter-toggle-btn ${isFilterOpen ? "active" : ""}`}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               title="Advanced Filters"
+              aria-label="Advanced Filters"
             >
               <svg
                 width="24"
@@ -208,7 +209,6 @@ const Home = () => {
           <HeroFilter
             isOpen={isFilterOpen}
             filters={filters}
-            setFilters={setFilters}
             onApply={handleApplyFilters}
             onClear={handleClearFilters}
             facets={facetOptions}
