@@ -164,23 +164,6 @@ const ListingDetail = () => {
           </div>
 
           <div className="action-buttons">
-            <button
-              className="btn-contact"
-              onClick={() => {
-                if (!user) {
-                  navigate("/login");
-                } else if (user._id === listing.ownerId) {
-                  alert("You cannot chat with yourself!");
-                } else {
-                  const sellerId = listing.ownerId?._id || listing.ownerId;
-                  navigate(`/chat/${id}?receiverId=${sellerId}`);
-                }
-              }}
-            >
-              Contact Seller
-            </button>
-
-            <FavoriteButton listingId={listing._id} variant="button" />
             {isOwner ? (
               <>
                 <button
@@ -218,13 +201,12 @@ const ListingDetail = () => {
                 >
                   {listing.status === "sold" ? "Item Sold" : "Contact Seller"}
                 </button>
-                <button
-                  className="btn-favorite"
-                  disabled={listing.status === "sold"}
-                  onClick={() => alert("Added to favorites!")}
-                >
-                  Add to Favorites
-                </button>
+
+                {/* Only show Favorite button if not sold, or let it handle its own disabled state if preferred. 
+                    User asked for "best UI", usually you can still fav a sold item, but if not, wrap in condition.
+                    For now, I'll allow fav on sold items as a "wishlist" feature unless explicitly forbidden.
+                */}
+                <FavoriteButton listingId={listing._id} variant="button" />
               </>
             )}
           </div>

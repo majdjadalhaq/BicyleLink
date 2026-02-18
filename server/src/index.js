@@ -190,15 +190,23 @@ const startServer = async () => {
  * When not in production, don't host the files, but the development version of the app can connect to the backend itself.
  */
 if (process.env.NODE_ENV === "production") {
-  app.use(
-    express.static(new URL("../../client/dist", import.meta.url).pathname),
-  );
-  // Redirect * requests to give the client data
-  app.get("/*file", (req, res) =>
-    res.sendFile(
-      new URL("../../client/dist/index.html", import.meta.url).pathname,
-    ),
-  );
+  const clientDistPath = new URL("../../client/dist", import.meta.url).pathname;
+
+  // Serve static files from the React app
+  app.use(express.static(clientDistPath));
+
+  // Explicitly handle favicon.ico to prevent 503s or index.html fallbacks for it
+  app.get("/favicon.ico", (req, res) => {
+    res.sendFile(`${clientDistPath}/favicon.png`, (err) => {
+      if (err) res.status(204).end(); // No content if missing, but no error
+    });
+  });
+
+  // The "catchall" handler: for any request that doesn't
+  // match one above, send back React's index.html file.
+  app.get(/.*/, (req, res) => {
+    res.sendFile(`${clientDistPath}/index.html`);
+  });
 }
 
 /****** For cypress we want to provide an endpoint to seed our data ******/

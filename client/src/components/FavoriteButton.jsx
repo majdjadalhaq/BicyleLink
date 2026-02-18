@@ -70,15 +70,34 @@ const FavoriteButton = ({ listingId, variant, onToggled }) => {
       type="button"
       onClick={handleToggle}
       disabled={loading}
+      className={isFav ? "btn-heart active" : "btn-heart"}
       aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
       style={{
         position: "absolute",
-        top: 10,
-        right: 10,
+        top: "10px",
+        right: "10px",
         border: "none",
-        background: "transparent",
+        background: "rgba(255, 255, 255, 0.85)",
+        borderRadius: "50%",
+        width: "36px",
+        height: "36px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         cursor: "pointer",
-        fontSize: "22px",
+        fontSize: "20px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        zIndex: 10,
+        transition: "all 0.2s ease",
+        color: isFav ? "#e74c3c" : "#ccc", // Red if fav, gray if not
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "scale(1.1)";
+        e.currentTarget.style.background = "white";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.background = "rgba(255, 255, 255, 0.85)";
       }}
     >
       {isFav ? "❤️" : "🤍"}

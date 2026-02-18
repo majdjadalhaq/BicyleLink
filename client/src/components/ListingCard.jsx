@@ -4,8 +4,11 @@ import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
 import FavoriteButton from "./FavoriteButton";
 
-const ListingCard = ({ listing }) => {
-  const { _id, title, price, images, location, condition, brand } = listing;
+const ListingCard = ({ listing, isOwnerView = false }) => {
+  const { _id, title, images, location, condition, brand } = listing;
+  // Simple delete handling - in a real app, pass this down or use context
+  // But for now, we'll just link to Edit. Delete might need a refresh callback.
+  // Actually, let's keep it simple: specific buttons for My Listings view.
 
   let imageUrl =
     images && images.length > 0
@@ -22,8 +25,31 @@ const ListingCard = ({ listing }) => {
   }
 
   // Handle price display: backend now sends price as a plain string/number
-  const displayPrice = price;
+  const displayPrice = listing.price?.$numberDecimal || listing.price;
   const currencySymbol = "€"; // Standardizing to Euro for this marketplace
+
+  const handleDelete = async (e) => {
+    e.preventDefault(); // Prevent link navigation
+    if (window.confirm("Are you sure you want to delete this listing?")) {
+      try {
+        const token = localStorage.getItem("token"); // Quick fix, ideally useAuth or interceptor
+        const res = await fetch(`/api/listings/${_id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          window.location.reload(); // Simple refresh to update list
+        } else {
+          alert("Failed to delete");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting item");
+      }
+    }
+  };
 
   return (
     <div className="listing-card" data-id={_id}>
@@ -32,12 +58,16 @@ const ListingCard = ({ listing }) => {
 
         <FavoriteButton listingId={_id} />
 
-        {condition && <span className="listing-card__badge">{condition}</span>}
-        {listing.status === "sold" && (
-          <span className="listing-card__badge listing-card__badge--sold">
-            SOLD
-          </span>
-        )}
+        <div className="listing-card__badges">
+          {listing.status === "sold" && (
+            <span className="listing-card__badge listing-card__badge--sold">
+              SOLD
+            </span>
+          )}
+          {condition && (
+            <span className="listing-card__badge">{condition}</span>
+          )}
+        </div>
       </div>
 
       <div className="listing-card__content">
@@ -64,9 +94,20 @@ const ListingCard = ({ listing }) => {
           </span>
         </div>
 
-        <Link to={`/listings/${_id}`} className="listing-card__button">
-          View Details
-        </Link>
+        {isOwnerView ? (
+          <div className="listing-card__actions">
+            <Link to={`/listings/${_id}/edit`} className="btn-edit-card">
+              ✏️ Edit
+            </Link>
+            <button onClick={handleDelete} className="btn-delete-card">
+              🗑️ Delete
+            </button>
+          </div>
+        ) : (
+          <Link to={`/listings/${_id}`} className="listing-card__button">
+            View Details
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -76,12 +117,19 @@ ListingCard.propTypes = {
   listing: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    price: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.object,
+    ]).isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
     location: PropTypes.string.isRequired,
     condition: PropTypes.string,
     brand: PropTypes.string,
+    ownerId: PropTypes.object,
+    status: PropTypes.string,
   }).isRequired,
+  isOwnerView: PropTypes.bool,
 };
 
 export default memo(ListingCard);

@@ -12,6 +12,8 @@ describe("Home page", () => {
   });
 
   it("The Home page is showing", () => {
-    cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should("be.visible");
+    cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should(
+      "be.visible",
+    );
   });
 });

@@ -21,6 +21,8 @@ const ResetPassword = lazy(() => import("./pages/User/ResetPassword"));
 const ListingDetail = lazy(() => import("./pages/ListingDetail/ListingDetail"));
 const Chat = lazy(() => import("./pages/Chat/Chat"));
 const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
+const EditListing = lazy(() => import("./pages/EditListing/EditListing"));
+const MyListings = lazy(() => import("./pages/MyListings/MyListings"));
 
 const App = () => {
   return (
@@ -50,6 +52,8 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route element={<RequireVerified />}>
               <Route path="/listing/create" element={<CreateListing />} />
+              <Route path="/listings/:id/edit" element={<EditListing />} />
+              <Route path="/my-listings" element={<MyListings />} />
             </Route>
           </Route>
         </Routes>
