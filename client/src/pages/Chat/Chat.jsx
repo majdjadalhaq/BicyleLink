@@ -244,7 +244,7 @@ const Chat = () => {
             const data = await res.json();
             address = data.display_name;
             // Extract the most relevant part (e.g., street or suburb)
-            const parts = data.address;
+            const parts = data?.address || {};
             shortAddress =
               parts.road ||
               parts.suburb ||

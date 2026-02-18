@@ -68,10 +68,10 @@ const Home = () => {
           const data = await response.json();
 
           const city =
-            data.address.city ||
-            data.address.town ||
-            data.address.village ||
-            data.address.county;
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.county;
 
           if (city) {
             setSearchTerm(city);
