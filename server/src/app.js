@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import morgan from "morgan";
-import favoriteRouter from "./routes/favorite.js";
+import favoriteRouter from "./routes/Favorite.js";
 
 import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
