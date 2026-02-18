@@ -43,6 +43,15 @@ const listingSchema = new mongoose.Schema({
     type: String,
     required: [true, "location is required"],
   },
+  coordinates: {
+    type: {
+      type: String,
+      enum: ["Point"],
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+    },
+  },
   brand: { type: String },
   model: { type: String },
   year: { type: Number },
@@ -81,6 +90,9 @@ listingSchema.set("toJSON", {
     return ret;
   },
 });
+
+// Create 2dsphere index for geospatial queries
+listingSchema.index({ coordinates: "2dsphere" });
 
 const Listing = mongoose.model("listings", listingSchema);
 

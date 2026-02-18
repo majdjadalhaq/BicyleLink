@@ -7,6 +7,28 @@ import validationErrorMessage from "../util/validationErrorMessage.js";
 // Helper to escape regex special characters
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// Helper to geocode a city name to [lng, lat] using Nominatim (free, no API key)
+const geocodeLocation = async (locationString) => {
+  try {
+    const encoded = encodeURIComponent(locationString);
+    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { "User-Agent": "BiCycleL/1.0" },
+    });
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        type: "Point",
+        coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)],
+      };
+    }
+    return null;
+  } catch (error) {
+    logError(error);
+    return null;
+  }
+};
+
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -28,6 +50,7 @@ const ALLOWED_UPDATE_FIELDS = [
   "mileage",
   "status", // User might be allowed to change status
   "category",
+  "coordinates",
 ];
 
 // GET all listings
@@ -36,6 +59,9 @@ export const getListings = async (req, res) => {
     const {
       status,
       location,
+      lat,
+      lng,
+      radius,
       search,
       minPrice,
       maxPrice,
@@ -53,8 +79,18 @@ export const getListings = async (req, res) => {
       ? { status }
       : { status: { $in: ["active", "sold"] } };
 
-    if (location)
+    // Geospatial filter: if lat, lng, and radius are provided, use $geoWithin
+    if (lat && lng && radius) {
+      const radiusInRadians = parseFloat(radius) / 6371; // Earth radius in km
+      filter.coordinates = {
+        $geoWithin: {
+          $centerSphere: [[parseFloat(lng), parseFloat(lat)], radiusInRadians],
+        },
+      };
+    } else if (location) {
+      // Fallback to string-based location filter
       filter.location = { $regex: escapeRegex(location), $options: "i" };
+    }
 
     if (ownerId) {
       filter.ownerId = ownerId;
@@ -236,6 +272,14 @@ export const createListing = async (req, res) => {
     // Set ownerId from authenticated user
     safeListing.ownerId = req.user._id;
 
+    // Geocode location to coordinates if location is provided and no coordinates given
+    if (safeListing.location && !safeListing.coordinates) {
+      const geoResult = await geocodeLocation(safeListing.location);
+      if (geoResult) {
+        safeListing.coordinates = geoResult;
+      }
+    }
+
     // Create instance to run Mongoose validators
     const listing = new Listing(safeListing);
     const validationError = listing.validateSync();
@@ -282,6 +326,14 @@ export const updateListing = async (req, res) => {
         req.resource[field] = updates[field];
       }
     });
+
+    // Geocode location to coordinates if location changed
+    if (updates.location && !updates.coordinates) {
+      const geoResult = await geocodeLocation(updates.location);
+      if (geoResult) {
+        req.resource.coordinates = geoResult;
+      }
+    }
 
     // Save will trigger Mongoose validators
     await req.resource.save();

@@ -9,6 +9,8 @@ describe("Listing Model", () => {
       description: "Great condition mountain bike",
       price: 500,
       location: "Amsterdam",
+      category: "Mountain",
+      condition: "good",
       ownerId: testUser,
     };
 
