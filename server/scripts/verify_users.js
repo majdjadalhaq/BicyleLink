@@ -63,7 +63,7 @@ const run = async () => {
             verificationCodeExpiry: undefined
           }
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       );
       console.log(`✓ Upserted ${u.email} (ID: ${result._id}, Verified: ${result.isVerified})`);
     }
