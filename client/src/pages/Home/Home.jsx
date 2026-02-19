@@ -17,19 +17,6 @@ const Home = () => {
   // Advanced Filter State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
-  const [facetOptions, setFacetOptions] = useState(null);
-
-  // Fetch Facets for Filter Options
-  const { performFetch: fetchFacets } = useFetch(
-    "/listings/facets",
-    (response) => {
-      setFacetOptions(response);
-    },
-  );
-
-  useEffect(() => {
-    fetchFacets();
-  }, []);
 
   // Debounce search term
   useEffect(() => {
@@ -169,7 +156,6 @@ const Home = () => {
             onApply={handleApplyFilters}
             onClear={handleClearFilters}
             onClearSearch={handleClearSearch}
-            facets={facetOptions}
           />
         </div>
       </div>

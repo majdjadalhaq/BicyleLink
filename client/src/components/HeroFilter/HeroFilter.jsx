@@ -11,14 +11,7 @@ const cleanCityName = (name) => {
     .trim();
 };
 
-const HeroFilter = ({
-  filters,
-  onApply,
-  onClear,
-  onClearSearch,
-  facets,
-  isOpen,
-}) => {
+const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
 
@@ -222,9 +215,6 @@ const HeroFilter = ({
     { label: "Fair", value: "fair" },
     { label: "Poor", value: "poor" },
   ];
-
-  const minPriceLimit = facets?.minPrice || 0;
-  const maxPriceLimit = facets?.maxPrice || 10000;
 
   if (!isOpen) return null;
 
