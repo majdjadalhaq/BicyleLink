@@ -28,6 +28,36 @@ body {
   --white: #ffffff;
 }
 
+body.theme-light {
+  --bg: #ffffff;
+  --text: #111827;
+  --card: #f3f4f6;
+  --border: #e5e7eb;
+  --primary: #6d28d9;
+}
+
+body.theme-dark {
+  --bg: #1e293b;
+  --text: #e2e8f0;
+  --card: #273549;
+  --border: #334155;
+  --primary: #a78bfa;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
 #root {
   display: flex;
   flex-direction: column;

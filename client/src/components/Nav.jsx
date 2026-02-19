@@ -3,11 +3,15 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 import "../styles/Nav.css";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Nav = () => {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,15 +26,12 @@ const Nav = () => {
       try {
         const res = await fetch("/api/messages/unread-total");
         if (!res.ok) {
-          if (res.status === 401) return; // Silent for unauthorized
+          if (res.status === 401) return;
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        if (data.success) {
-          setUnreadCount(data.result);
-        }
+        if (data.success) setUnreadCount(data.result);
       } catch (err) {
-        // Only log serious unexpected errors
         if (err.name !== "AbortError") {
           console.error("Failed to fetch unread count:", err);
         }
@@ -38,7 +39,6 @@ const Nav = () => {
     };
 
     fetchUnreadCount();
-    // Poll every 30 seconds as a fallback
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, [user]);
@@ -49,8 +49,11 @@ const Nav = () => {
   };
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
+
+  const navItemClass = ({ isActive }) =>
+    isActive ? "nav-item active" : "nav-item";
 
   return (
     <nav className="navbar" data-testid={TEST_ID.container}>
@@ -64,23 +67,20 @@ const Nav = () => {
           className={`hamburger-menu ${isOpen ? "open" : ""}`}
           onClick={toggleMenu}
           aria-label="Toggle navigation"
+          type="button"
         >
-          <span className="bar"></span>
-          <span className="bar"></span>
-          <span className="bar"></span>
+          <span className="bar" />
+          <span className="bar" />
+          <span className="bar" />
         </button>
       </div>
 
       {/* MIDDLE & RIGHT: Collapsible Content */}
       <div className={`navbar-collapse ${isOpen ? "show" : ""}`}>
+        {/* MIDDLE: Navigation Links */}
         <ul className="navbar-links">
           <li>
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                isActive ? "nav-item active" : "nav-item"
-              }
-            >
+            <NavLink to="/" className={navItemClass}>
               Home
             </NavLink>
           </li>
@@ -88,9 +88,7 @@ const Nav = () => {
           <li>
             <NavLink
               to="/listing/create"
-              className={({ isActive }) =>
-                isActive ? "nav-item active" : "nav-item"
-              }
+              className={navItemClass}
               data-testid={TEST_ID.linkToCreateListing}
             >
               Sell a Bike
@@ -100,9 +98,7 @@ const Nav = () => {
           <li>
             <NavLink
               to="/user"
-              className={({ isActive }) =>
-                isActive ? "nav-item active" : "nav-item"
-              }
+              className={navItemClass}
               data-testid={TEST_ID.linkToUsers}
             >
               Community
@@ -110,35 +106,22 @@ const Nav = () => {
           </li>
 
           <li>
-            <NavLink
-              to="/favorites"
-              className={({ isActive }) =>
-                isActive ? "nav-item active" : "nav-item"
-              }
-            >
+            <NavLink to="/favorites" className={navItemClass}>
               Favorites
             </NavLink>
           </li>
+
           {user && (
             <li>
-              <NavLink
-                to="/my-listings"
-                className={({ isActive }) =>
-                  isActive ? "nav-item active" : "nav-item"
-                }
-              >
+              <NavLink to="/my-listings" className={navItemClass}>
                 My Listings
               </NavLink>
             </li>
           )}
+
           {user && (
             <li>
-              <NavLink
-                to="/inbox"
-                className={({ isActive }) =>
-                  isActive ? "nav-item active" : "nav-item"
-                }
-              >
+              <NavLink to="/inbox" className={navItemClass}>
                 Inbox
                 {unreadCount > 0 && (
                   <span className="unread-badge">{unreadCount}</span>
@@ -148,7 +131,17 @@ const Nav = () => {
           )}
         </ul>
 
+        {/* RIGHT: Theme + Auth Actions */}
         <div className="navbar-actions">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="theme-toggle"
+            aria-label="Toggle theme"
+          >
+            {isDark ? "☀️ Light" : "🌙 Dark"}
+          </button>
+
           {user ? (
             <>
               <span className="user-greeting">Hi, {user.name || "User"}</span>
