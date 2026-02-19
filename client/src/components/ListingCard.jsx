@@ -3,82 +3,59 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
 import FavoriteButton from "./FavoriteButton";
+import { optimiseCloudinaryUrl } from "../utils/cloudinary";
+import useApi from "../hooks/useApi";
 
 const ListingCard = ({ listing, isOwnerView = false }) => {
   const { _id, title, images, location, condition, brand } = listing;
-  // Simple delete handling - in a real app, pass this down or use context
-  // But for now, we'll just link to Edit. Delete might need a refresh callback.
-  // Actually, let's keep it simple: specific buttons for My Listings view.
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { execute: executeApi } = useApi();
 
-  let imageUrl =
+  const rawImageUrl =
     images && images.length > 0
       ? images[0]
       : "https://placehold.co/600x400?text=No+Image";
 
-  // Optimization: Cloudinary transformation for list thumbnails
-  // Add width, height, auto-format, and auto-quality
-  if (imageUrl.includes("cloudinary.com")) {
-    imageUrl = imageUrl.replace(
-      "/upload/",
-      "/upload/w_500,h_400,c_fill,f_auto,q_auto/",
-    );
-  }
+  const imageUrl = optimiseCloudinaryUrl(rawImageUrl, {
+    width: 500,
+    height: 400,
+    crop: "fill",
+  });
 
-  // Handle price display: backend now sends price as a plain string/number
   const displayPrice = listing.price?.$numberDecimal || listing.price;
-  const currencySymbol = "€"; // Standardizing to Euro for this marketplace
 
   const handleDelete = async (e) => {
-    e.preventDefault(); // Prevent link navigation
-    if (window.confirm("Are you sure you want to delete this listing?")) {
-      try {
-        const token = localStorage.getItem("token"); // Quick fix, ideally useAuth or interceptor
-        const res = await fetch(`/api/listings/${_id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (res.ok) {
-          window.location.reload(); // Simple refresh to update list
-        } else {
-          alert("Failed to delete");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error deleting item");
-      }
+    e.preventDefault();
+    if (!window.confirm("Are you sure you want to delete this listing?"))
+      return;
+
+    const data = await executeApi(`/api/listings/${_id}`, {
+      method: "DELETE",
+    });
+
+    if (data?.success !== false) {
+      window.location.reload();
+    } else {
+      alert("Failed to delete");
     }
   };
-
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusToggle = async (e) => {
     e.preventDefault();
     setIsUpdating(true);
     const newStatus = listing.status === "active" ? "sold" : "active";
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/listings/${_id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+    const data = await executeApi(`/api/listings/${_id}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
 
-      if (res.ok) {
-        window.location.reload(); // Simple refresh to see changes
-      } else {
-        alert("Failed to update status");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error updating status");
-    } finally {
-      setIsUpdating(false);
+    setIsUpdating(false);
+
+    if (data?.success) {
+      window.location.reload();
+    } else {
+      alert("Failed to update status");
     }
   };
 
@@ -105,7 +82,7 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
         <div className="listing-card__header">
           <div className="listing-card__meta">
             {brand && <span className="listing-card__brand">{brand}</span>}
-            {listing.ownerId && listing.ownerId.name && (
+            {listing.ownerId?.name && (
               <span className="listing-card__seller">
                 by {listing.ownerId.name}
               </span>
@@ -114,10 +91,7 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
           <h3 className="listing-card__title">{title}</h3>
         </div>
 
-        <div className="listing-card__price">
-          {currencySymbol}
-          {displayPrice}
-        </div>
+        <div className="listing-card__price">€{displayPrice}</div>
 
         <div className="listing-card__details">
           <span className="listing-card__location">
