@@ -17,16 +17,39 @@ describe("Seller Rating and Review Flow", () => {
     cy.url().should("not.include", "/login");
   };
 
-  it("should clean up distinct review if exists, then rate, edit, and delete", () => {
-    // 0. Login as Buyer
+  it("should create listing, sell it, and verify review flow", () => {
+    // 0. Login as Seller and Create Listing
+    login(sellerEmail, sellerPassword);
+    cy.wait(1000); // Wait for auth to settle
+    cy.visit("/listing/create");
+    cy.location("pathname").should("equal", "/listing/create");
+    
+    // Create Listing
+    cy.get('input[name="title"]').type(listingTitle);
+    cy.get('input[name="brand"]').type("Cypress Brand");
+    cy.get('select[name="condition"]').select("Good");
+    cy.get('select[name="category"]').select("Other");
+    cy.get('#description').type("This is a test listing for review flow"); // Fixed selector
+    cy.get('input[type="file"]').selectFile("cypress/fixtures/test_image.png", { force: true });
+    cy.get('input[name="price"]').type("150");
+    cy.get('input[name="location"]').type("Berlin"); 
+    cy.get('button[type="submit"]').click();
+    
+    // Wait for redirect to detail
+    cy.location("pathname", { timeout: 10000 }).should("include", "/listings/");
+    cy.contains(listingTitle).should("be.visible");
+    
+    // Logout Seller
+    cy.get(".btn-logout").click();
+
+    // 1. Login as Buyer
     login(buyerEmail, buyerPassword);
     
-    // 1. Find the target listing "test"
-    // We assume "test" listing exists as a baseline.
+    // 2. Find the target listing
     cy.visit("/");
-    cy.get('input[placeholder*="Search"]').type(`test{enter}`);
+    cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
     cy.wait(1000);
-    cy.contains(".listing-card__title", "test").first().parents(".listing-card").within(() => {
+    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
         cy.contains("View Details").click();
     });
 
