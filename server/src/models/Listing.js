@@ -39,9 +39,39 @@ const listingSchema = new mongoose.Schema({
     ref: "users",
     required: true,
   },
+  buyerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    default: null,
+  },
   location: {
     type: String,
     required: [true, "location is required"],
+  },
+  coordinates: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: function () {
+        return this.coordinates != null && this.coordinates.coordinates != null;
+      },
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      validate: {
+        validator: function (val) {
+          if (!val || val.length === 0) return true; // optional
+          return (
+            val.length === 2 &&
+            val[0] >= -180 &&
+            val[0] <= 180 &&
+            val[1] >= -90 &&
+            val[1] <= 90
+          );
+        },
+        message: "Coordinates must be [longitude, latitude] with valid ranges",
+      },
+    },
   },
   brand: { type: String },
   model: { type: String },
@@ -61,10 +91,12 @@ const listingSchema = new mongoose.Schema({
       "Other",
     ],
     index: true,
+    required: [true, "category is required"],
   },
   condition: {
     type: String,
     enum: ["new", "like-new", "good", "fair", "poor"],
+    required: [true, "condition is required"],
   },
   mileage: { type: Number },
   createdAt: { type: Date, default: Date.now },
@@ -79,6 +111,9 @@ listingSchema.set("toJSON", {
     return ret;
   },
 });
+
+// Create 2dsphere index for geospatial queries
+listingSchema.index({ coordinates: "2dsphere" });
 
 const Listing = mongoose.model("listings", listingSchema);
 

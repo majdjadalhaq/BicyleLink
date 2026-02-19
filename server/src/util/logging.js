@@ -17,20 +17,14 @@ const logger = winston.createLogger({
     logFormat,
   ),
   transports: [
-    new winston.transports.Console(),
-    // Add file transport for production error logs
-    ...(process.env.NODE_ENV === "production"
-      ? [
-          new winston.transports.File({
-            filename: "logs/error.log",
-            level: "error",
-          }),
-          new winston.transports.File({ filename: "logs/combined.log" }),
-        ]
-      : []),
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.simple(),
+        // Add colorize for better readability in logs if desired, but simple is safer
+      ),
+    }),
   ],
 });
-
 export const logError = (error, context = "") => {
   const msg = context ? `${context}: ${error.message}` : error.message;
   logger.error(msg, { stack: error.stack });

@@ -5,6 +5,9 @@ dotenv.config();
 
 import app from "./app.js";
 import { logInfo, logError } from "./util/logging.js";
+
+logInfo(" [DEBUG] Index.js loaded. Starting startup sequence...");
+
 import connectDB from "./db/connectDB.js";
 import testRouter from "./testRouter.js";
 import http from "http";
@@ -101,18 +104,44 @@ io.on("connection", (socket) => {
 
   socket.on("typing", (data) => {
     if (!data.room.includes(data.userId)) return;
+
+    // Broadcast to the chat room
     socket.to(data.room).emit("typing_status", {
       userId: data.userId,
       isTyping: true,
+      room: data.room, // Include room so Inbox knows which chat is typing
     });
+
+    // Also broadcast to the other user's personal room for Inbox indicators
+    const parts = data.room.split("_");
+    const otherUserId = parts[1] === data.userId ? parts[2] : parts[1];
+    if (otherUserId) {
+      socket.to(`user_${otherUserId}`).emit("typing_status", {
+        userId: data.userId,
+        isTyping: true,
+        room: data.room,
+      });
+    }
   });
 
   socket.on("stop_typing", (data) => {
     if (!data.room.includes(data.userId)) return;
+
     socket.to(data.room).emit("typing_status", {
       userId: data.userId,
       isTyping: false,
+      room: data.room,
     });
+
+    const parts = data.room.split("_");
+    const otherUserId = parts[1] === data.userId ? parts[2] : parts[1];
+    if (otherUserId) {
+      socket.to(`user_${otherUserId}`).emit("typing_status", {
+        userId: data.userId,
+        isTyping: false,
+        room: data.room,
+      });
+    }
   });
 
   socket.on("disconnect", () => {
@@ -190,15 +219,23 @@ const startServer = async () => {
  * When not in production, don't host the files, but the development version of the app can connect to the backend itself.
  */
 if (process.env.NODE_ENV === "production") {
-  app.use(
-    express.static(new URL("../../client/dist", import.meta.url).pathname),
-  );
-  // Redirect * requests to give the client data
-  app.get("/*file", (req, res) =>
-    res.sendFile(
-      new URL("../../client/dist/index.html", import.meta.url).pathname,
-    ),
-  );
+  const clientDistPath = new URL("../../client/dist", import.meta.url).pathname;
+
+  // Serve static files from the React app
+  app.use(express.static(clientDistPath));
+
+  // Explicitly handle favicon.ico to prevent 503s or index.html fallbacks for it
+  app.get("/favicon.ico", (req, res) => {
+    res.sendFile(`${clientDistPath}/favicon.png`, (err) => {
+      if (err) res.status(204).end(); // No content if missing, but no error
+    });
+  });
+
+  // The "catchall" handler: for any request that doesn't
+  // match one above, send back React's index.html file.
+  app.get(/.*/, (req, res) => {
+    res.sendFile(`${clientDistPath}/index.html`);
+  });
 }
 
 /****** For cypress we want to provide an endpoint to seed our data ******/

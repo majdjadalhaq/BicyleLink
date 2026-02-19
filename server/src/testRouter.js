@@ -74,8 +74,13 @@ testRouter.post("/seed", async (req, res) => {
       description: "A beautiful vintage Gazelle bike in excellent condition.",
       price: 250,
       location: "Amsterdam",
+      coordinates: {
+        type: "Point",
+        coordinates: [4.8952, 52.3702], // Amsterdam [lng, lat]
+      },
       brand: "Gazelle",
       condition: "good",
+      category: "City",
       ownerId: createdUsers[0]._id, // Sam
     });
 

@@ -28,6 +28,9 @@ module.exports = {
     // turned off the rule that you should not have file extensions. For modules in node this is actually required
     "import/extensions": "off",
     "no-console": "warn",
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-unused-vars": [
+      "error",
+      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+    ],
   },
 };

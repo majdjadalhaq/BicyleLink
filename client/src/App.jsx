@@ -8,6 +8,8 @@ import Favorites from "./pages/Favorites/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequireVerified from "./components/RequireVerified";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import Footer from "./components/Footer";
+import Breadcrumbs from "./components/Breadcrumbs";
 
 // Lazy loaded components
 const Home = lazy(() => import("./pages/Home/Home"));
@@ -21,40 +23,58 @@ const ResetPassword = lazy(() => import("./pages/User/ResetPassword"));
 const ListingDetail = lazy(() => import("./pages/ListingDetail/ListingDetail"));
 const Chat = lazy(() => import("./pages/Chat/Chat"));
 const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
+const EditListing = lazy(() => import("./pages/EditListing/EditListing"));
+const MyListings = lazy(() => import("./pages/MyListings/MyListings"));
 
 const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
         <Nav />
-        <Suspense fallback={<div className="loading-fallback">Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/user" element={<UserList />} />
-            <Route path="/listings/:id" element={<ListingDetail />} />
-            <Route path="/chat/:id" element={<Chat />} />
-            <Route path="/inbox" element={<Inbox />} />
-            <Route path="/verify-code" element={<VerifyCode />} />
 
-            {/* Public Only Routes */}
-            <Route element={<PublicOnlyRoute />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<CreateUser />} />
-              <Route path="/user/create" element={<CreateUser />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-            </Route>
+        <div className="app-container">
+          <Breadcrumbs />
 
-            <Route path="/favorites" element={<Favorites />} />
+          <main className="main-content">
+            <Suspense
+              fallback={<div className="loading-fallback">Loading...</div>}
+            >
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/user" element={<UserList />} />
+                <Route path="/listings/:id" element={<ListingDetail />} />
+                <Route path="/chat/:id" element={<Chat />} />
+                <Route path="/inbox" element={<Inbox />} />
+                <Route path="/verify-code" element={<VerifyCode />} />
+                <Route path="/favorites" element={<Favorites />} />
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<RequireVerified />}>
-                <Route path="/listing/create" element={<CreateListing />} />
-              </Route>
-            </Route>
-          </Routes>
-        </Suspense>
+                {/* Public Only Routes */}
+                <Route element={<PublicOnlyRoute />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<CreateUser />} />
+                  <Route path="/user/create" element={<CreateUser />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                </Route>
+
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<RequireVerified />}>
+                    <Route path="/listing/create" element={<CreateListing />} />
+                    <Route
+                      path="/listings/:id/edit"
+                      element={<EditListing />}
+                    />
+                    <Route path="/my-listings" element={<MyListings />} />
+                  </Route>
+                </Route>
+              </Routes>
+            </Suspense>
+          </main>
+
+          <Footer />
+        </div>
       </AuthProvider>
     </ThemeProvider>
   );

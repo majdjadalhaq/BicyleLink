@@ -88,6 +88,8 @@ const testListingBase = {
   description: "Great condition mountain bike",
   price: 500,
   location: "Amsterdam",
+  category: "Mountain",
+  condition: "good",
 };
 
 describe("POST /api/listings", () => {

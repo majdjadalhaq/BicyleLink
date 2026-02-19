@@ -14,7 +14,7 @@ const migrate = async () => {
 
     const result = await User.updateMany(
       { agreedToTerms: { $exists: false } },
-      { $set: { agreedToTerms: true, isVerified: true } }
+      { $set: { agreedToTerms: true, isVerified: true } },
     );
 
     console.log(`Migration complete! Updated ${result.modifiedCount} users.`);

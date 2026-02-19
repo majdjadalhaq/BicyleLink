@@ -257,3 +257,21 @@
     text-align: left;
   }
 }
+
+.typingText {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-style: italic;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.unreadCard {
+  background-color: #fdf2ff !important; /* Extremely subtle purple tint */
+  border-color: rgba(142, 36, 170, 0.2);
+}
+
+.unreadCard .messagePreview {
+  font-weight: 700;
+  color: #333;
+}

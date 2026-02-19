@@ -7,6 +7,38 @@ import validationErrorMessage from "../util/validationErrorMessage.js";
 // Helper to escape regex special characters
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+import Message from "../models/Message.js"; // Import Message model
+
+// Helper to geocode a city name to [lng, lat] using Nominatim (free, no API key)
+const geocodeLocation = async (locationString) => {
+  try {
+    const encoded = encodeURIComponent(locationString);
+    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=nl`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, {
+      headers: { "User-Agent": "BiCycleL/1.0" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      logError(`Geocoding failed with status ${response.status}`);
+      return null;
+    }
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        type: "Point",
+        coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)],
+      };
+    }
+    return null;
+  } catch (error) {
+    logError(error);
+    return null;
+  }
+};
+
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -27,6 +59,8 @@ const ALLOWED_UPDATE_FIELDS = [
   "condition",
   "mileage",
   "status", // User might be allowed to change status
+  "category",
+  "coordinates",
 ];
 
 // GET all listings
@@ -35,6 +69,9 @@ export const getListings = async (req, res) => {
     const {
       status,
       location,
+      lat,
+      lng,
+      radius,
       search,
       minPrice,
       maxPrice,
@@ -44,6 +81,7 @@ export const getListings = async (req, res) => {
       category,
       condition,
       sort,
+      ownerId,
       page = 1,
       limit = 10,
     } = req.query;
@@ -51,17 +89,79 @@ export const getListings = async (req, res) => {
       ? { status }
       : { status: { $in: ["active", "sold"] } };
 
-    if (location)
+    // Geospatial filter: validate lat, lng, and radius before using $geoWithin
+    if (lat !== undefined && lng !== undefined && radius !== undefined) {
+      const parsedLat = parseFloat(lat);
+      const parsedLng = parseFloat(lng);
+      const parsedRadius = parseFloat(radius);
+
+      if (
+        !isFinite(parsedLat) ||
+        !isFinite(parsedLng) ||
+        !isFinite(parsedRadius) ||
+        parsedLat < -90 ||
+        parsedLat > 90 ||
+        parsedLng < -180 ||
+        parsedLng > 180 ||
+        parsedRadius <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          msg: "Invalid geospatial params: lat must be [-90,90], lng must be [-180,180], radius must be > 0",
+        });
+      }
+
+      const radiusInRadians = parsedRadius / 6371; // Earth radius in km
+      // Combine geo search with string fallback so listings without coordinates
+      // are still found by matching the location name
+      const geoFilter = {
+        coordinates: {
+          $geoWithin: {
+            $centerSphere: [[parsedLng, parsedLat], radiusInRadians],
+          },
+        },
+      };
+      const locationFilters = [geoFilter];
+      if (location) {
+        // Only fall back to string match for listings WITHOUT coordinates
+        // so the radius filter stays binding for geo-indexed listings
+        locationFilters.push({
+          location: { $regex: escapeRegex(location), $options: "i" },
+          coordinates: { $exists: false },
+        });
+      }
+      // Use $and to avoid overwriting $or if search is also used
+      if (!filter.$and) filter.$and = [];
+      filter.$and.push({ $or: locationFilters });
+    } else if (location) {
+      // Fallback to string-based location filter
       filter.location = { $regex: escapeRegex(location), $options: "i" };
+    }
+
+    if (ownerId) {
+      filter.ownerId = ownerId;
+      // If filtering by owner, we might want to see all their listings, not just active ones?
+      // For now, let's keep the status filter logic (defaults to active/sold) unless overridden.
+      // But if standard user wants to see their 'cancelled' ones too, we might need to adjust.
+      // Let's assume for "My Listings" we want to see everything they own.
+      // So if ownerId is present, we might want to relax the default status filter if status wasn't explicitly provided.
+      if (!status) {
+        delete filter.status; // Remove default active/sold filter to show all
+      }
+    }
 
     if (search) {
       const searchRegex = { $regex: escapeRegex(search), $options: "i" };
-      filter.$or = [
-        { title: searchRegex },
-        { brand: searchRegex },
-        { location: searchRegex },
-        { description: searchRegex },
-      ];
+      // Use $and to avoid overwriting location $or
+      if (!filter.$and) filter.$and = [];
+      filter.$and.push({
+        $or: [
+          { title: searchRegex },
+          { brand: searchRegex },
+          { location: searchRegex },
+          { description: searchRegex },
+        ],
+      });
     }
 
     // --- NEW: Advanced Filters ---
@@ -151,7 +251,7 @@ export const getListings = async (req, res) => {
         .sort({ [sortBy]: sortOrder })
         .skip(skip)
         .limit(limitNum)
-        .populate("ownerId", "name email"),
+        .populate("ownerId", "name email avatarUrl ratingSum reviewCount"),
       Listing.countDocuments(filter),
     ]);
 
@@ -183,7 +283,7 @@ export const getListingById = async (req, res) => {
 
     const listing = await Listing.findById(id).populate(
       "ownerId",
-      "name email",
+      "name email avatarUrl ratingSum reviewCount",
     );
 
     if (!listing) {
@@ -221,6 +321,14 @@ export const createListing = async (req, res) => {
 
     // Set ownerId from authenticated user
     safeListing.ownerId = req.user._id;
+
+    // Geocode location to coordinates if location is provided and no coordinates given
+    if (safeListing.location && !safeListing.coordinates) {
+      const geoResult = await geocodeLocation(safeListing.location);
+      if (geoResult) {
+        safeListing.coordinates = geoResult;
+      }
+    }
 
     // Create instance to run Mongoose validators
     const listing = new Listing(safeListing);
@@ -269,6 +377,14 @@ export const updateListing = async (req, res) => {
       }
     });
 
+    // Geocode location to coordinates if location changed
+    if (updates.location && !updates.coordinates) {
+      const geoResult = await geocodeLocation(updates.location);
+      if (geoResult) {
+        req.resource.coordinates = geoResult;
+      }
+    }
+
     // Save will trigger Mongoose validators
     await req.resource.save();
 
@@ -312,7 +428,7 @@ export const deleteListing = async (req, res) => {
 // PATCH update listing status (e.g. mark as sold)
 export const updateStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, buyerId } = req.body;
 
     if (!["active", "sold", "cancelled"].includes(status)) {
       return res.status(400).json({ success: false, msg: "Invalid status" });
@@ -320,6 +436,20 @@ export const updateStatus = async (req, res) => {
 
     // Ownership is already checked by middleware
     req.resource.status = status;
+
+    // If marking as sold, record the buyer
+    if (status === "sold" && buyerId) {
+      if (!isValidObjectId(buyerId)) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Invalid buyer ID" });
+      }
+      req.resource.buyerId = buyerId;
+    } else if (status !== "sold") {
+      // Reset buyer if status is changed back to active/cancelled
+      req.resource.buyerId = null;
+    }
+
     await req.resource.save();
 
     res.status(200).json({
@@ -396,6 +526,68 @@ export const getListingFacets = async (req, res) => {
     res.status(500).json({
       success: false,
       msg: "Unable to get filter facets",
+    });
+  }
+};
+
+// GET candidates (potential buyers) for a listing
+export const getCandidates = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    // Ensure the requester is the owner
+    // Note: This relies on the caller ensuring authentication.
+    if (listing.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        msg: "Not authorized to view candidates for this listing",
+      });
+    }
+
+    // Find users who have chatted about this listing (excluding owner)
+    const distinctUserIds = await Message.distinct("senderId", {
+      listingId: id,
+      senderId: { $ne: req.user._id },
+    });
+
+    const distinctReceiverIds = await Message.distinct("receiverId", {
+      listingId: id,
+      receiverId: { $ne: req.user._id },
+    });
+
+    const allCandidateIds = [
+      ...new Set([
+        ...distinctUserIds.map((id) => id.toString()),
+        ...distinctReceiverIds.map((id) => id.toString()),
+      ]),
+    ];
+
+    if (allCandidateIds.length === 0) {
+      return res.status(200).json({ success: true, result: [] });
+    }
+
+    const candidates = await mongoose
+      .model("users")
+      .find({ _id: { $in: allCandidateIds } })
+      .select("name email avatarUrl");
+
+    res.status(200).json({ success: true, result: candidates });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({
+      success: false,
+      msg: "Unable to get candidates",
     });
   }
 };

@@ -4,7 +4,7 @@ describe("PR #1: Core Identity Infrastructure Verification", () => {
 
   it("Signup: Should enforce Terms of Service", () => {
     cy.visit("/signup");
-    
+
     // Fill all fields except ToS
     cy.get('input[name="username"]').type("TestUser");
     cy.get('input[name="email"]').type(uniqueEmail);
@@ -15,7 +15,7 @@ describe("PR #1: Core Identity Infrastructure Verification", () => {
 
     // Intercept signup
     cy.intercept("POST", "/api/users").as("signupRequest");
-    
+
     // Click submit
     cy.get('button[type="submit"]').click();
 
@@ -33,13 +33,13 @@ describe("PR #1: Core Identity Infrastructure Verification", () => {
 
   it("Login: Should enforce Verification Guard", () => {
     cy.visit("/login");
-    
+
     cy.get('input[name="email"]').type(uniqueEmail);
     cy.get('input[name="password"]').type(password);
 
     // Intercept login
     cy.intercept("POST", "/api/users/login").as("loginRequest");
-    
+
     cy.get('button[type="submit"]').click();
 
     // Wait for response and check for 403

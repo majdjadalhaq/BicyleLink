@@ -12,21 +12,27 @@ describe("Navigation", () => {
   });
 
   it("From home page", () => {
-    cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should("be.visible");
+    cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should(
+      "be.visible",
+    );
 
     checkNavigation();
   });
 
   it("From user list page", () => {
     cy.visit("/user");
-    cy.getByTestId(TEST_ID_USER_LIST.container, { timeout: 10000 }).should("be.visible");
+    cy.getByTestId(TEST_ID_USER_LIST.container, { timeout: 10000 }).should(
+      "be.visible",
+    );
 
     checkNavigation();
   });
 
   it("From create user page", () => {
-    cy.visit("/signup"); 
-    cy.getByTestId(TEST_ID_CREATE_USER.container, { timeout: 10000 }).should("be.visible");
+    cy.visit("/signup");
+    cy.getByTestId(TEST_ID_CREATE_USER.container, { timeout: 10000 }).should(
+      "be.visible",
+    );
 
     checkNavigation();
   });
@@ -35,14 +41,20 @@ describe("Navigation", () => {
 const checkNavigation = () => {
   // go to users page
   cy.clickByTestId(TEST_ID_NAV.linkToUsers);
-  cy.getByTestId(TEST_ID_USER_LIST.container, { timeout: 10000 }).should("be.visible");
+  cy.getByTestId(TEST_ID_USER_LIST.container, { timeout: 10000 }).should(
+    "be.visible",
+  );
 
   // go to create user page
   // The link in UserList.jsx currently points to /signup
   cy.clickByTestId(TEST_ID_USER_LIST.createUserButton);
-  cy.getByTestId(TEST_ID_CREATE_USER.container, { timeout: 10000 }).should("be.visible");
+  cy.getByTestId(TEST_ID_CREATE_USER.container, { timeout: 10000 }).should(
+    "be.visible",
+  );
 
   // go to home
   cy.clickByTestId(TEST_ID_NAV.linkToHome);
-  cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should("be.visible");
+  cy.getByTestId(TEST_ID_HOME.container, { timeout: 10000 }).should(
+    "be.visible",
+  );
 };

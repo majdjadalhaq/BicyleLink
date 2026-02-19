@@ -14,6 +14,7 @@ const Inbox = () => {
   const [conversations, setConversations] = useState([]);
   const [view, setView] = useState("active"); // 'active' or 'archived'
   const [onlineStatuses, setOnlineStatuses] = useState({});
+  const [typingRooms, setTypingRooms] = useState({}); // room -> bool
   const navigate = useNavigate();
   const { user } = useAuth();
   const socketRef = useRef(null);
@@ -41,13 +42,13 @@ const Inbox = () => {
     return () => cancelFetch();
   }, [view]);
 
-  // Socket Connection for Real-time Presence
+  // Socket Connection for Real-time Presence and Typing
   useEffect(() => {
     if (!user) return;
 
     socketRef.current = io(window.location.origin);
 
-    // Join personal room to receive status updates from any contact
+    // Join personal room to receive status updates and typing events from any contact
     socketRef.current.emit("join_room", {
       userId: user._id,
       room: `user_${user._id}`,
@@ -67,13 +68,23 @@ const Inbox = () => {
       }));
     });
 
+    // Listen for typing events across all conversations
+    socketRef.current.on("typing_status", (data) => {
+      if (data.userId !== user._id) {
+        setTypingRooms((prev) => ({
+          ...prev,
+          [data.room]: data.isTyping,
+        }));
+      }
+    });
+
     return () => {
       if (socketRef.current) socketRef.current.disconnect();
     };
   }, [user]);
 
   const handleArchive = async (e, room, currentStatus) => {
-    e.stopPropagation(); // Prevent navigation to chat
+    e.stopPropagation();
     const newStatus = !currentStatus;
     try {
       const res = await fetch(`/api/messages/archive/${room}`, {
@@ -99,7 +110,6 @@ const Inbox = () => {
       });
       const data = await res.json();
       if (data.success) {
-        // Local update to show the dot immediately
         setConversations((prev) =>
           prev.map((c) => (c.room === room ? { ...c, unreadCount: 1 } : c)),
         );
@@ -109,7 +119,6 @@ const Inbox = () => {
     }
   };
 
-  // Handle loading and error states
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -152,85 +161,100 @@ const Inbox = () => {
               : "No archived conversations"}
           </div>
         ) : (
-          conversations.map((conv) => (
-            <div
-              key={conv.room}
-              className={styles.card}
-              onClick={() =>
-                navigate(
-                  `/chat/${conv.listing?._id}?receiverId=${conv.otherUser?._id}`,
-                )
-              }
-            >
-              <div className={styles.cardHeader}>
-                <div className={styles.listingInfo}>
-                  {conv.unreadCount > 0 && (
-                    <div className={styles.unreadDot} title="Unread" />
-                  )}
-                  <div className={styles.imageWrapper}>
-                    <img
-                      src={conv.listing?.images?.[0] || "/placeholder.png"}
-                      alt={conv.listing?.title || "Listing"}
-                      className={styles.listingImage}
-                    />
-                    <div
-                      className={`${styles.presenceDot} ${
-                        onlineStatuses[conv.otherUser?._id]
-                          ? styles.online
-                          : styles.offline
-                      }`}
-                      title={
-                        onlineStatuses[conv.otherUser?._id]
-                          ? "Online"
-                          : "Offline"
+          conversations.map((conv) => {
+            const isTyping = typingRooms[conv.room];
+            return (
+              <div
+                key={conv.room}
+                className={`${styles.card} ${conv.unreadCount > 0 ? styles.unreadCard : ""}`}
+                onClick={() =>
+                  navigate(
+                    `/chat/${conv.listing?._id}?receiverId=${conv.otherUser?._id}`,
+                  )
+                }
+              >
+                <div className={styles.cardHeader}>
+                  <div className={styles.listingInfo}>
+                    {conv.unreadCount > 0 && (
+                      <div className={styles.unreadDot} title="Unread" />
+                    )}
+                    <div className={styles.imageWrapper}>
+                      <img
+                        src={conv.listing?.images?.[0] || "/placeholder.png"}
+                        alt={conv.listing?.title || "Listing"}
+                        className={styles.listingImage}
+                      />
+                      <div
+                        className={`${styles.presenceDot} ${
+                          onlineStatuses[conv.otherUser?._id]
+                            ? styles.online
+                            : styles.offline
+                        }`}
+                        title={
+                          onlineStatuses[conv.otherUser?._id]
+                            ? "Online"
+                            : "Offline"
+                        }
+                      />
+                    </div>
+                    <div className={styles.userInfo}>
+                      <h3 className={styles.otherUserName}>
+                        {conv.otherUser?.name || "Unknown User"}
+                      </h3>
+                      <p className={styles.listingTitle}>
+                        {conv.listing?.title || "Untitled Listing"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.cardActions}>
+                    <button
+                      className={styles.unreadButton}
+                      onClick={(e) => handleMarkUnread(e, conv.room)}
+                      title="Mark as Unread"
+                    >
+                      🔵
+                    </button>
+                    <button
+                      className={styles.archiveButton}
+                      onClick={(e) =>
+                        handleArchive(e, conv.room, view === "archived")
                       }
-                    />
-                  </div>
-                  <div className={styles.userInfo}>
-                    <h3 className={styles.otherUserName}>
-                      {conv.otherUser?.name || "Unknown User"}
-                    </h3>
-                    <p className={styles.listingTitle}>
-                      {conv.listing?.title || "Untitled Listing"}
-                    </p>
+                      title={
+                        view === "active"
+                          ? "Archive Conversation"
+                          : "Unarchive Conversation"
+                      }
+                    >
+                      {view === "active" ? "📥" : "📤"}
+                    </button>
                   </div>
                 </div>
-                <div className={styles.cardActions}>
-                  <button
-                    className={styles.unreadButton}
-                    onClick={(e) => handleMarkUnread(e, conv.room)}
-                    title="Mark as Unread"
-                  >
-                    🔵
-                  </button>
-                  <button
-                    className={styles.archiveButton}
-                    onClick={(e) =>
-                      handleArchive(e, conv.room, view === "archived")
-                    }
-                    title={
-                      view === "active"
-                        ? "Archive Conversation"
-                        : "Unarchive Conversation"
-                    }
-                  >
-                    {view === "active" ? "📥" : "📤"}
-                  </button>
-                </div>
-              </div>
 
-              <div className={styles.lastMessage}>
-                <p className={styles.messagePreview}>
-                  {conv.lastMessage?.content || "No message content"}
-                </p>
-                <span className={styles.timeStamp}>
-                  {conv.lastMessage?.createdAt
-                    ? new Date(conv.lastMessage.createdAt).toLocaleDateString()
-                    : ""}
-                </span>
+                <div className={styles.lastMessage}>
+                  {isTyping ? (
+                    <p className={styles.typingText}>Typing...</p>
+                  ) : (
+                    <>
+                      <p className={styles.messagePreview}>
+                        {conv.lastMessage?.mediaType === "image"
+                          ? "🖼️ Image"
+                          : conv.lastMessage?.mediaType === "location"
+                            ? "📍 Location"
+                            : conv.lastMessage?.content || "No message content"}
+                      </p>
+                      <span className={styles.timeStamp}>
+                        {conv.lastMessage?.createdAt
+                          ? new Date(
+                              conv.lastMessage.createdAt,
+                            ).toLocaleDateString()
+                          : ""}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
