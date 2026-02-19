@@ -107,7 +107,7 @@ const Home = () => {
           const { latitude, longitude } = position.coords;
           // Use OpenStreetMap Nominatim for free reverse geocoding
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&countrycodes=nl`,
           );
           const data = await response.json();
 

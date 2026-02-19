@@ -2,6 +2,15 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import "./HeroFilter.css";
 import { City } from "country-state-city";
 
+// Strip common Dutch prefixes/suffixes to get clean city names
+const cleanCityName = (name) => {
+  return name
+    .replace(/^Gemeente\s+/i, "")
+    .replace(/\s+Stad$/i, "")
+    .replace(/\s+Dorp$/i, "")
+    .trim();
+};
+
 const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
@@ -36,8 +45,11 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cache all cities to avoid calling getAllCities() on every keystroke
-  const allCities = useMemo(() => City.getAllCities(), []);
+  // Cache Dutch cities only to avoid calling getAllCities() on every keystroke
+  const allCities = useMemo(
+    () => City.getAllCities().filter((c) => c.countryCode === "NL"),
+    [],
+  );
 
   const handleChipToggle = (category, value) => {
     setLocalFilters((prev) => {
@@ -75,8 +87,16 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
 
     if (value.length > 2) {
       // Filter cities - limiting to 10 for performance
+      // Clean names, deduplicate, and filter
+      const seen = new Set();
       const cities = allCities
-        .filter((c) => c.name.toLowerCase().includes(value.toLowerCase()))
+        .map((c) => ({ ...c, cleanName: cleanCityName(c.name) }))
+        .filter((c) => c.cleanName.toLowerCase().includes(value.toLowerCase()))
+        .filter((c) => {
+          if (seen.has(c.cleanName.toLowerCase())) return false;
+          seen.add(c.cleanName.toLowerCase());
+          return true;
+        })
         .slice(0, 10);
       setCityOptions(cities);
       setShowCityDropdown(true);
@@ -97,10 +117,11 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
   };
 
   const handleCitySelect = (city) => {
-    setCitySearch(city.name);
+    const name = city.cleanName || cleanCityName(city.name);
+    setCitySearch(name);
     setLocalFilters((prev) => ({
       ...prev,
-      location: city.name,
+      location: name,
       lat: city.latitude,
       lng: city.longitude,
     }));
@@ -288,7 +309,9 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
                       className="city-option"
                       onClick={() => handleCitySelect(city)}
                     >
-                      <span className="city-name">{city.name}</span>
+                      <span className="city-name">
+                        {city.cleanName || city.name}
+                      </span>
                       <span className="city-country">{city.countryCode}</span>
                     </div>
                   ))}

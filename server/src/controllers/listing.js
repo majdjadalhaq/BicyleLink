@@ -13,7 +13,7 @@ import Message from "../models/Message.js"; // Import Message model
 const geocodeLocation = async (locationString) => {
   try {
     const encoded = encodeURIComponent(locationString);
-    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=nl`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
     const response = await fetch(url, {
@@ -112,11 +112,27 @@ export const getListings = async (req, res) => {
       }
 
       const radiusInRadians = parsedRadius / 6371; // Earth radius in km
-      filter.coordinates = {
-        $geoWithin: {
-          $centerSphere: [[parsedLng, parsedLat], radiusInRadians],
+      // Combine geo search with string fallback so listings without coordinates
+      // are still found by matching the location name
+      const geoFilter = {
+        coordinates: {
+          $geoWithin: {
+            $centerSphere: [[parsedLng, parsedLat], radiusInRadians],
+          },
         },
       };
+      const locationFilters = [geoFilter];
+      if (location) {
+        // Only fall back to string match for listings WITHOUT coordinates
+        // so the radius filter stays binding for geo-indexed listings
+        locationFilters.push({
+          location: { $regex: escapeRegex(location), $options: "i" },
+          coordinates: { $exists: false },
+        });
+      }
+      // Use $and to avoid overwriting $or if search is also used
+      if (!filter.$and) filter.$and = [];
+      filter.$and.push({ $or: locationFilters });
     } else if (location) {
       // Fallback to string-based location filter
       filter.location = { $regex: escapeRegex(location), $options: "i" };
@@ -136,12 +152,16 @@ export const getListings = async (req, res) => {
 
     if (search) {
       const searchRegex = { $regex: escapeRegex(search), $options: "i" };
-      filter.$or = [
-        { title: searchRegex },
-        { brand: searchRegex },
-        { location: searchRegex },
-        { description: searchRegex },
-      ];
+      // Use $and to avoid overwriting location $or
+      if (!filter.$and) filter.$and = [];
+      filter.$and.push({
+        $or: [
+          { title: searchRegex },
+          { brand: searchRegex },
+          { location: searchRegex },
+          { description: searchRegex },
+        ],
+      });
     }
 
     // --- NEW: Advanced Filters ---
