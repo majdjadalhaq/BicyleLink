@@ -29,6 +29,7 @@ export const ThemeProvider = ({ children }) => {
 };
 
 ThemeProvider.propTypes = { children: PropTypes.node.isRequired };
+/* eslint-disable react-refresh/only-export-components */
 
 export const useTheme = () => {
   const ctx = useContext(ThemeContext);
