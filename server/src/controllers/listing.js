@@ -1,52 +1,23 @@
 import mongoose from "mongoose";
 
 import Listing from "../models/Listing.js";
+import Message from "../models/Message.js";
 import { logError } from "../util/logging.js";
 import validationErrorMessage from "../util/validationErrorMessage.js";
-
-// Helper to escape regex special characters
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-import Message from "../models/Message.js"; // Import Message model
-
-// Helper to geocode a city name to [lng, lat] using Nominatim (free, no API key)
-const geocodeLocation = async (locationString) => {
-  try {
-    const encoded = encodeURIComponent(locationString);
-    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=nl`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const response = await fetch(url, {
-      headers: { "User-Agent": "BiCycleL/1.0" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!response.ok) {
-      logError(`Geocoding failed with status ${response.status}`);
-      return null;
-    }
-    const data = await response.json();
-    if (data && data.length > 0) {
-      return {
-        type: "Point",
-        coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)],
-      };
-    }
-    return null;
-  } catch (error) {
-    logError(error);
-    return null;
-  }
-};
+import { geocodeLocation } from "../utils/geocoder.js";
+import {
+  buildListingFilter,
+  buildListingSort,
+} from "../utils/listingHelpers.js";
 
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Helper to check if value is a plain object (not null, not array)
+// Helper to check if value is a non-null, non-array object
 const isPlainObject = (val) =>
   val != null && typeof val === "object" && !Array.isArray(val);
 
-// Allowed fields for updates/creation to prevent pollution
+// Allowed fields for listing creation/update to prevent prototype pollution
 const ALLOWED_UPDATE_FIELDS = [
   "title",
   "description",
@@ -58,174 +29,29 @@ const ALLOWED_UPDATE_FIELDS = [
   "year",
   "condition",
   "mileage",
-  "status", // User might be allowed to change status
+  "status",
   "category",
   "coordinates",
 ];
 
-// GET all listings
+// GET /api/listings — paginated list with filtering, searching, and sorting
 export const getListings = async (req, res) => {
   try {
-    const {
-      status,
-      location,
-      lat,
-      lng,
-      radius,
-      search,
-      minPrice,
-      maxPrice,
-      minYear,
-      maxYear,
-      brand,
-      category,
-      condition,
-      sort,
-      ownerId,
-      page = 1,
-      limit = 10,
-    } = req.query;
-    const filter = status
-      ? { status }
-      : { status: { $in: ["active", "sold"] } };
+    const filter = buildListingFilter(req.query);
 
-    // Geospatial filter: validate lat, lng, and radius before using $geoWithin
-    if (lat !== undefined && lng !== undefined && radius !== undefined) {
-      const parsedLat = parseFloat(lat);
-      const parsedLng = parseFloat(lng);
-      const parsedRadius = parseFloat(radius);
-
-      if (
-        !isFinite(parsedLat) ||
-        !isFinite(parsedLng) ||
-        !isFinite(parsedRadius) ||
-        parsedLat < -90 ||
-        parsedLat > 90 ||
-        parsedLng < -180 ||
-        parsedLng > 180 ||
-        parsedRadius <= 0
-      ) {
-        return res.status(400).json({
-          success: false,
-          msg: "Invalid geospatial params: lat must be [-90,90], lng must be [-180,180], radius must be > 0",
-        });
-      }
-
-      const radiusInRadians = parsedRadius / 6371; // Earth radius in km
-      // Combine geo search with string fallback so listings without coordinates
-      // are still found by matching the location name
-      const geoFilter = {
-        coordinates: {
-          $geoWithin: {
-            $centerSphere: [[parsedLng, parsedLat], radiusInRadians],
-          },
-        },
-      };
-      const locationFilters = [geoFilter];
-      if (location) {
-        // Only fall back to string match for listings WITHOUT coordinates
-        // so the radius filter stays binding for geo-indexed listings
-        locationFilters.push({
-          location: { $regex: escapeRegex(location), $options: "i" },
-          coordinates: { $exists: false },
-        });
-      }
-      // Use $and to avoid overwriting $or if search is also used
-      if (!filter.$and) filter.$and = [];
-      filter.$and.push({ $or: locationFilters });
-    } else if (location) {
-      // Fallback to string-based location filter
-      filter.location = { $regex: escapeRegex(location), $options: "i" };
-    }
-
-    if (ownerId) {
-      filter.ownerId = ownerId;
-      // If filtering by owner, we might want to see all their listings, not just active ones?
-      // For now, let's keep the status filter logic (defaults to active/sold) unless overridden.
-      // But if standard user wants to see their 'cancelled' ones too, we might need to adjust.
-      // Let's assume for "My Listings" we want to see everything they own.
-      // So if ownerId is present, we might want to relax the default status filter if status wasn't explicitly provided.
-      if (!status) {
-        delete filter.status; // Remove default active/sold filter to show all
-      }
-    }
-
-    if (search) {
-      const searchRegex = { $regex: escapeRegex(search), $options: "i" };
-      // Use $and to avoid overwriting location $or
-      if (!filter.$and) filter.$and = [];
-      filter.$and.push({
-        $or: [
-          { title: searchRegex },
-          { brand: searchRegex },
-          { location: searchRegex },
-          { description: searchRegex },
-        ],
+    if (filter.__invalidGeo) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid geospatial params: lat must be [-90,90], lng must be [-180,180], radius must be > 0",
       });
     }
 
-    // --- NEW: Advanced Filters ---
-    // 1. Price Range
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = parseFloat(minPrice);
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
-    }
-
-    // 2. Year Range
-    if (minYear || maxYear) {
-      filter.year = {};
-      if (minYear) filter.year.$gte = parseInt(minYear, 10);
-      if (maxYear) filter.year.$lte = parseInt(maxYear, 10);
-    }
-
-    // 3. Multi-Select Filters (Brand, Category, Condition)
-    if (brand) {
-      const brands = Array.isArray(brand) ? brand : brand.split(",");
-      if (brands.length > 0) {
-        // Sanitize regex input to prevent ReDoS
-        filter.brand = {
-          $in: brands.map((b) => new RegExp(escapeRegex(b), "i")),
-        };
-      }
-    }
-
-    if (category) {
-      const categories = Array.isArray(category)
-        ? category
-        : category.split(",");
-      if (categories.length > 0) filter.category = { $in: categories };
-    }
-
-    if (condition) {
-      const conditions = Array.isArray(condition)
-        ? condition
-        : condition.split(",");
-      if (conditions.length > 0) filter.condition = { $in: conditions };
-    }
-
-    // Sort options
-    let sortBy = "createdAt";
-    let sortOrder = -1; // Descending by default
-
-    if (sort === "price_asc") {
-      sortBy = "price";
-      sortOrder = 1;
-    } else if (sort === "price_desc") {
-      sortBy = "price";
-      sortOrder = -1;
-    } else if (sort === "year_desc") {
-      sortBy = "year";
-      sortOrder = -1;
-    } else if (sort === "year_asc") {
-      sortBy = "year";
-      sortOrder = 1;
-    }
+    const { sort, page = 1, limit = 10 } = req.query;
+    const { sortBy, sortOrder } = buildListingSort(sort);
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
 
-    // Validate pagination
     if (
       !Number.isInteger(pageNum) ||
       !Number.isInteger(limitNum) ||
@@ -241,7 +67,7 @@ export const getListings = async (req, res) => {
 
     const skip = (pageNum - 1) * limitNum;
 
-    // Handle nulls in sorting
+    // Exclude null values from price/year fields when sorting by them
     if (sortBy === "price" || sortBy === "year") {
       filter[sortBy] = { ...filter[sortBy], $ne: null };
     }
@@ -270,7 +96,7 @@ export const getListings = async (req, res) => {
   }
 };
 
-// GET single listing by ID
+// GET /api/listings/:id — single listing by ID
 export const getListingById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -299,7 +125,7 @@ export const getListingById = async (req, res) => {
   }
 };
 
-// POST create new listing
+// POST /api/listings — create a new listing
 export const createListing = async (req, res) => {
   try {
     const listingData = req.body?.listing;
@@ -311,7 +137,7 @@ export const createListing = async (req, res) => {
       });
     }
 
-    // Explicitly pick allowed fields
+    // Whitelist allowed fields to prevent prototype pollution
     const safeListing = {};
     ALLOWED_UPDATE_FIELDS.forEach((field) => {
       if (listingData[field] !== undefined) {
@@ -319,10 +145,9 @@ export const createListing = async (req, res) => {
       }
     });
 
-    // Set ownerId from authenticated user
     safeListing.ownerId = req.user._id;
 
-    // Geocode location to coordinates if location is provided and no coordinates given
+    // Geocode location if no coordinates are explicitly provided
     if (safeListing.location && !safeListing.coordinates) {
       const geoResult = await geocodeLocation(safeListing.location);
       if (geoResult) {
@@ -330,7 +155,6 @@ export const createListing = async (req, res) => {
       }
     }
 
-    // Create instance to run Mongoose validators
     const listing = new Listing(safeListing);
     const validationError = listing.validateSync();
 
@@ -355,7 +179,7 @@ export const createListing = async (req, res) => {
   }
 };
 
-// PUT update listing
+// PUT /api/listings/:id — update a listing (ownership checked by middleware)
 export const updateListing = async (req, res) => {
   try {
     const updates = req.body?.listing;
@@ -367,17 +191,13 @@ export const updateListing = async (req, res) => {
       });
     }
 
-    // Ownership is already checked by middleware (requireOwnership)
-    // req.resource contains the existing listing
-
-    // Whitelist updates
     ALLOWED_UPDATE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
         req.resource[field] = updates[field];
       }
     });
 
-    // Geocode location to coordinates if location changed
+    // Re-geocode if location changed without explicit coordinates
     if (updates.location && !updates.coordinates) {
       const geoResult = await geocodeLocation(updates.location);
       if (geoResult) {
@@ -385,12 +205,9 @@ export const updateListing = async (req, res) => {
       }
     }
 
-    // Save will trigger Mongoose validators
     await req.resource.save();
-
     res.status(200).json({ success: true, listing: req.resource });
   } catch (error) {
-    // Check if it's a Mongoose validation error
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
@@ -407,12 +224,10 @@ export const updateListing = async (req, res) => {
   }
 };
 
-// DELETE listing
+// DELETE /api/listings/:id — delete a listing (ownership checked by middleware)
 export const deleteListing = async (req, res) => {
   try {
-    // Ownership is already checked by middleware
     await Listing.findByIdAndDelete(req.resource._id);
-
     res
       .status(200)
       .json({ success: true, msg: "Listing deleted successfully" });
@@ -425,7 +240,7 @@ export const deleteListing = async (req, res) => {
   }
 };
 
-// PATCH update listing status (e.g. mark as sold)
+// PATCH /api/listings/:id/status — update listing status (e.g. mark as sold)
 export const updateStatus = async (req, res) => {
   try {
     const { status, buyerId } = req.body;
@@ -434,10 +249,8 @@ export const updateStatus = async (req, res) => {
       return res.status(400).json({ success: false, msg: "Invalid status" });
     }
 
-    // Ownership is already checked by middleware
     req.resource.status = status;
 
-    // If marking as sold, record the buyer
     if (status === "sold" && buyerId) {
       if (!isValidObjectId(buyerId)) {
         return res
@@ -446,12 +259,10 @@ export const updateStatus = async (req, res) => {
       }
       req.resource.buyerId = buyerId;
     } else if (status !== "sold") {
-      // Reset buyer if status is changed back to active/cancelled
       req.resource.buyerId = null;
     }
 
     await req.resource.save();
-
     res.status(200).json({
       success: true,
       msg: `Listing marked as ${status}`,
@@ -466,13 +277,11 @@ export const updateStatus = async (req, res) => {
   }
 };
 
-// GET listing facets (min/max price, brands, categories) for UI initialization
+// GET /api/listings/facets — price range, brands, and categories for filter UI
 export const getListingFacets = async (req, res) => {
   try {
     const stats = await Listing.aggregate([
-      {
-        $match: { status: "active" }, // Only aggregate active listings
-      },
+      { $match: { status: "active" } },
       {
         $facet: {
           priceRange: [
@@ -491,21 +300,21 @@ export const getListingFacets = async (req, res) => {
     ]);
 
     const result = stats[0];
-    // Handle empty results gracefully
     const hasPriceRange =
-      stats[0] &&
-      stats[0].priceRange &&
-      Array.isArray(stats[0].priceRange) &&
-      stats[0].priceRange.length > 0;
+      result?.priceRange &&
+      Array.isArray(result.priceRange) &&
+      result.priceRange.length > 0;
 
     const priceRange = hasPriceRange
-      ? stats[0].priceRange[0]
+      ? result.priceRange[0]
       : { minPrice: 0, maxPrice: 0 };
 
-    if (priceRange.minPrice && priceRange.minPrice.toString)
+    if (priceRange.minPrice?.toString) {
       priceRange.minPrice = parseFloat(priceRange.minPrice.toString());
-    if (priceRange.maxPrice && priceRange.maxPrice.toString)
+    }
+    if (priceRange.maxPrice?.toString) {
       priceRange.maxPrice = parseFloat(priceRange.maxPrice.toString());
+    }
 
     res.status(200).json({
       success: true,
@@ -516,21 +325,17 @@ export const getListingFacets = async (req, res) => {
         .map((b) => ({ name: b._id, count: b.count })),
       categories: result.categories
         .filter((c) => c._id != null)
-        .map((c) => ({
-          name: c._id,
-          count: c.count,
-        })),
+        .map((c) => ({ name: c._id, count: c.count })),
     });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to get filter facets",
-    });
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to get filter facets" });
   }
 };
 
-// GET candidates (potential buyers) for a listing
+// GET /api/listings/:id/candidates — users who chatted about a listing (owner only)
 export const getCandidates = async (req, res) => {
   try {
     const { id } = req.params;
@@ -546,8 +351,6 @@ export const getCandidates = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Listing not found" });
     }
 
-    // Ensure the requester is the owner
-    // Note: This relies on the caller ensuring authentication.
     if (listing.ownerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -555,7 +358,6 @@ export const getCandidates = async (req, res) => {
       });
     }
 
-    // Find users who have chatted about this listing (excluding owner)
     const distinctUserIds = await Message.distinct("senderId", {
       listingId: id,
       senderId: { $ne: req.user._id },
@@ -585,9 +387,6 @@ export const getCandidates = async (req, res) => {
     res.status(200).json({ success: true, result: candidates });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to get candidates",
-    });
+    res.status(500).json({ success: false, msg: "Unable to get candidates" });
   }
 };

@@ -7,48 +7,25 @@ import { logError } from "../util/logging.js";
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// POST create a review
+// POST /api/reviews — create a review for a completed transaction
 export const createReview = async (req, res) => {
   try {
     const { targetId, listingId, rating, comment } = req.body;
     const reviewerId = req.user._id;
 
-    // 1. Basic Validation
-    if (!targetId) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Missing required field: targetId" });
-    }
-    if (!listingId) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Missing required field: listingId" });
-    }
-    if (!rating) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Missing required field: rating" });
-    }
-
-    if (rating < 1 || rating > 5) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Rating must be between 1 and 5" });
-    }
-
+    // Prevent self-review
     if (reviewerId.toString() === targetId) {
       return res
         .status(400)
         .json({ success: false, msg: "You cannot review yourself" });
     }
 
-    // 2. Verify the Transaction
+    // Verify the listing exists and is sold
     const listing = await Listing.findById(listingId);
     if (!listing) {
       return res.status(404).json({ success: false, msg: "Listing not found" });
     }
 
-    // Ensure listing is sold
     if (listing.status !== "sold") {
       return res.status(400).json({
         success: false,
@@ -56,7 +33,7 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // Ensure the reviewer is the recorded buyer
+    // Reviewer must be the recorded buyer
     if (
       !listing.buyerId ||
       listing.buyerId.toString() !== reviewerId.toString()
@@ -67,7 +44,7 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // Ensure the target is the seller (owner)
+    // Target must be the seller (listing owner)
     if (listing.ownerId.toString() !== targetId) {
       return res.status(400).json({
         success: false,
@@ -75,7 +52,7 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // 3. Check for existing review
+    // Prevent duplicate reviews for the same transaction
     const existingReview = await Review.findOne({ reviewerId, listingId });
     if (existingReview) {
       return res.status(400).json({
@@ -84,7 +61,6 @@ export const createReview = async (req, res) => {
       });
     }
 
-    // 4. Create Review
     const review = new Review({
       reviewerId,
       targetId,
@@ -92,16 +68,14 @@ export const createReview = async (req, res) => {
       rating,
       comment,
     });
-
     await review.save();
 
-    // Populate the newly created review before sending it
     const populatedReview = await Review.findById(review._id).populate(
       "reviewerId",
       "name avatarUrl",
     );
 
-    // 5. Update User Stats (Atomic increment)
+    // Atomically update seller's aggregate rating stats
     await User.findByIdAndUpdate(targetId, {
       $inc: { ratingSum: rating, reviewCount: 1 },
     });
@@ -109,14 +83,11 @@ export const createReview = async (req, res) => {
     res.status(201).json({ success: true, review: populatedReview });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to create review",
-    });
+    res.status(500).json({ success: false, msg: "Unable to create review" });
   }
 };
 
-// GET reviews for a user
+// GET /api/reviews/user/:userId — paginated reviews for a user
 export const getReviewsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -130,14 +101,13 @@ export const getReviewsByUser = async (req, res) => {
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    // Get reviews where user is the target
     const [reviews, totalCount] = await Promise.all([
       Review.find({ targetId: userId })
-        .sort({ createdAt: -1 }) // Newest first
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
         .populate("reviewerId", "name avatarUrl")
-        .populate("listingId", "title"), // Context
+        .populate("listingId", "title"),
       Review.countDocuments({ targetId: userId }),
     ]);
 
@@ -150,14 +120,11 @@ export const getReviewsByUser = async (req, res) => {
     });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to get reviews",
-    });
+    res.status(500).json({ success: false, msg: "Unable to get reviews" });
   }
 };
 
-// PUT update a review
+// PUT /api/reviews/:id — update a review (validated by middleware)
 export const updateReview = async (req, res) => {
   try {
     const { id } = req.params;
@@ -173,7 +140,6 @@ export const updateReview = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Review not found" });
     }
 
-    // Check ownership
     if (review.reviewerId.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -181,15 +147,9 @@ export const updateReview = async (req, res) => {
       });
     }
 
-    // Validate new rating if provided
     let ratingDiff = 0;
     if (rating !== undefined) {
       const newRating = parseInt(rating, 10);
-      if (isNaN(newRating) || newRating < 1 || newRating > 5) {
-        return res
-          .status(400)
-          .json({ success: false, msg: "Rating must be between 1 and 5" });
-      }
       ratingDiff = newRating - review.rating;
       review.rating = newRating;
     }
@@ -200,7 +160,7 @@ export const updateReview = async (req, res) => {
 
     await review.save();
 
-    // Update User Stats if rating changed
+    // Adjust seller's aggregate rating sum if rating changed
     if (ratingDiff !== 0) {
       await User.findByIdAndUpdate(review.targetId, {
         $inc: { ratingSum: ratingDiff },
@@ -211,14 +171,11 @@ export const updateReview = async (req, res) => {
     res.status(200).json({ success: true, review });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to update review",
-    });
+    res.status(500).json({ success: false, msg: "Unable to update review" });
   }
 };
 
-// DELETE a review
+// DELETE /api/reviews/:id — delete a review and update seller stats
 export const deleteReview = async (req, res) => {
   try {
     const { id } = req.params;
@@ -233,8 +190,6 @@ export const deleteReview = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Review not found" });
     }
 
-    // Check ownership
-    // Allow admins to delete? For now, only owner.
     if (review.reviewerId.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -242,12 +197,10 @@ export const deleteReview = async (req, res) => {
       });
     }
 
-    const targetId = review.targetId;
-    const ratingToRemove = review.rating;
-
+    const { targetId, rating: ratingToRemove } = review;
     await review.deleteOne();
 
-    // Update User Stats (Atomic decrement)
+    // Atomically decrement seller's aggregate rating stats
     await User.findByIdAndUpdate(targetId, {
       $inc: { ratingSum: -ratingToRemove, reviewCount: -1 },
     });
@@ -255,14 +208,11 @@ export const deleteReview = async (req, res) => {
     res.status(200).json({ success: true, msg: "Review deleted successfully" });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to delete review",
-    });
+    res.status(500).json({ success: false, msg: "Unable to delete review" });
   }
 };
 
-// GET check if user has reviewed a listing
+// GET /api/reviews/check — check if the authenticated user has reviewed a listing
 export const checkReviewStatus = async (req, res) => {
   try {
     const { listingId } = req.query;
@@ -274,24 +224,15 @@ export const checkReviewStatus = async (req, res) => {
 
     const review = await Review.findOne({ reviewerId, listingId });
 
-    if (review) {
-      return res.status(200).json({
-        success: true,
-        hasReviewed: true,
-        reviewId: review._id,
-      });
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      hasReviewed: false,
-      reviewId: null,
+      hasReviewed: !!review,
+      reviewId: review ? review._id : null,
     });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to check review status",
-    });
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to check review status" });
   }
 };
