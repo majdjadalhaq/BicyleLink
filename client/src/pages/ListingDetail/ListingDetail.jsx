@@ -2,20 +2,24 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
+import useApi from "../../hooks/useApi";
 import "../../styles/ListingDetail.css";
 import FavoriteButton from "../../components/FavoriteButton";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
+import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
+import SellerCard from "../../components/SellerCard/SellerCard";
+import MarkAsSoldModal from "./components/MarkAsSoldModal";
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [listing, setListing] = useState(null);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [prevId, setPrevId] = useState(id);
 
-  // Rating System States
+  // Modal and selection state
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [candidates, setCandidates] = useState([]);
   const [selectedBuyerId, setSelectedBuyerId] = useState("");
@@ -23,18 +27,20 @@ const ListingDetail = () => {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewsListOpen, setReviewsListOpen] = useState(false);
-
-  // Trigger to refresh reviews list
   const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
 
+  // Reset when navigating between listings
   if (id !== prevId) {
     setPrevId(id);
-    setActiveImageIndex(0);
   }
 
   const isOwner = user && listing && user?._id === listing.ownerId?._id;
   const isBuyer = user && listing && user?._id === listing.buyerId;
+  const canRate = isBuyer && listing?.status === "sold" && !hasReviewed;
+  const canViewReviews = (listing?.ownerId?.reviewCount ?? 0) > 0;
+
+  const { execute: executeApi } = useApi();
 
   // Fetch listing details
   const {
@@ -51,121 +57,87 @@ const ListingDetail = () => {
     return () => cancelFetch();
   }, [id, reviewsRefreshTrigger]);
 
-  // Fetch candidates when status modal opens
+  // Fetch candidate buyers when the status modal opens
   useEffect(() => {
-    if (statusModalOpen) {
+    if (!statusModalOpen) return;
+
+    const fetchCandidates = async () => {
       setIsLoadingCandidates(true);
-      const token = localStorage.getItem("token");
-      fetch(`/api/listings/${id}/candidates`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setCandidates(data.result);
-          }
-          setIsLoadingCandidates(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setIsLoadingCandidates(false);
-        });
-    }
+      const data = await executeApi(`/api/listings/${id}/candidates`);
+      if (data?.success) {
+        setCandidates(data.result);
+      }
+      setIsLoadingCandidates(false);
+    };
+
+    fetchCandidates();
   }, [statusModalOpen, id]);
 
-  // Check if current user has already reviewed this listing
+  // Check if the current user has already reviewed this listing
   useEffect(() => {
-    if (user && id) {
-      const token = localStorage.getItem("token");
-      fetch(`/api/reviews/check?listingId=${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setHasReviewed(data.hasReviewed);
-          }
-        })
-        .catch((err) => console.error("Failed to check review status", err));
-    }
-  }, [id, user, reviewsRefreshTrigger]); // Re-check when reviews change
+    if (!user || !id) return;
+
+    const checkReview = async () => {
+      const data = await executeApi(`/api/reviews/check?listingId=${id}`);
+      if (data?.success) {
+        setHasReviewed(data.hasReviewed);
+      }
+    };
+
+    checkReview();
+  }, [id, user, reviewsRefreshTrigger]);
 
   const handleStatusClick = () => {
     if (listing.status === "active") {
       setStatusModalOpen(true);
     } else {
-      // If sold, reactivate (simple toggle)
       handleStatusUpdate("active");
     }
   };
 
-  const handleStatusUpdate = async (newStatus, buyerId = null) => {
-    try {
-      const token = localStorage.getItem("token");
-      const body = { status: newStatus };
-      if (buyerId) body.buyerId = buyerId;
+  const handleStatusUpdate = async (newStatus) => {
+    const buyerId =
+      newStatus === "sold" && selectedBuyerId !== "other"
+        ? selectedBuyerId
+        : null;
 
-      const res = await fetch(`/api/listings/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
+    const data = await executeApi(`/api/listings/${id}/status`, {
+      method: "PATCH",
+      body: { status: newStatus, ...(buyerId ? { buyerId } : {}) },
+    });
 
-      if (res.ok) {
-        const data = await res.json();
-        setListing((prev) => ({
-          ...prev,
-          status: data.listing.status,
-          buyerId: data.listing.buyerId,
-        }));
-        setStatusModalOpen(false);
-      } else {
-        alert("Failed to update status");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error updating status");
+    if (data?.success) {
+      setListing((prev) => ({
+        ...prev,
+        status: data.listing.status,
+        buyerId: data.listing.buyerId,
+      }));
+      setStatusModalOpen(false);
+    } else {
+      alert("Failed to update status");
     }
   };
 
   const handleReviewSubmit = async ({ rating, comment }) => {
     setIsSubmittingReview(true);
-    try {
-      const token = localStorage.getItem("token");
-      const targetId = listing.ownerId?._id || listing.ownerId;
 
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          targetId,
-          listingId: listing._id,
-          rating,
-          comment,
-        }),
-      });
+    const targetId = listing.ownerId?._id || listing.ownerId;
+    const data = await executeApi("/api/reviews", {
+      method: "POST",
+      body: { targetId, listingId: listing._id, rating, comment },
+    });
 
-      const data = await res.json();
-      if (data.success) {
-        alert("Review submitted successfully!");
-        setReviewModalOpen(false);
-        setReviewsRefreshTrigger((prev) => prev + 1); // Trigger refresh
-        setHasReviewed(true);
-        setReviewsListOpen(true); // Open the list
-      } else {
-        alert(data.msg || "Failed to submit review");
-      }
-    } catch (err) {
-      console.error(err);
-      alert(`Error submitting review: ${err.message}`);
-    } finally {
-      setIsSubmittingReview(false);
+    setIsSubmittingReview(false);
+
+    if (data?.success) {
+      setReviewModalOpen(false);
+      setReviewsRefreshTrigger((prev) => prev + 1);
+      setHasReviewed(true);
+      setReviewsListOpen(true);
+    } else {
+      alert(
+        data?.msg || data?.errors?.[0]?.message || "Failed to submit review",
+      );
     }
   };
 
@@ -175,7 +147,6 @@ const ListingDetail = () => {
     return <div className="listing-detail-container">Error: {error}</div>;
   if (!listing) return null;
 
-  // Handle price display logic
   let displayPrice = listing.price;
   if (listing.price && typeof listing.price === "object") {
     if (listing.price.$numberDecimal) {
@@ -185,16 +156,11 @@ const ListingDetail = () => {
     }
   }
 
-  const currencySymbol = "€";
-  const images =
-    listing.images && listing.images.length > 0
-      ? listing.images
-      : ["https://placehold.co/600x400?text=No+Image"];
-
-  const nextImage = () =>
-    setActiveImageIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
-    setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  const sellerData = {
+    name: listing.ownerId?.name,
+    averageRating: listing.ownerId?.averageRating ?? 0,
+    reviewCount: listing.ownerId?.reviewCount ?? 0,
+  };
 
   return (
     <div className="listing-detail-container">
@@ -203,51 +169,12 @@ const ListingDetail = () => {
       </Link>
 
       <div className="listing-content">
-        {/* Left Column: Image Carousel */}
-        <div className="carousel-container">
-          <div className="main-image-wrapper">
-            {images.length > 1 && (
-              <button
-                type="button"
-                className="nav-arrow left"
-                onClick={prevImage}
-              >
-                ‹
-              </button>
-            )}
-            <img
-              src={images[activeImageIndex]}
-              alt={`${listing.title} - View ${activeImageIndex + 1}`}
-              className="listing-main-image"
-            />
-            {images.length > 1 && (
-              <button
-                type="button"
-                className="nav-arrow right"
-                onClick={nextImage}
-              >
-                ›
-              </button>
-            )}
-            {listing.status === "sold" && (
-              <div className="sold-overlay">SOLD</div>
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="thumbnail-strip">
-              {images.map((img, index) => (
-                <button
-                  type="button"
-                  key={index}
-                  className={`thumbnail ${index === activeImageIndex ? "active" : ""}`}
-                  onClick={() => setActiveImageIndex(index)}
-                >
-                  <img src={img} alt={`Thumbnail ${index + 1}`} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Image Carousel */}
+        <ListingImageCarousel
+          images={listing.images}
+          title={listing.title}
+          status={listing.status}
+        />
 
         {/* Details */}
         <div className="details-container">
@@ -262,10 +189,7 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
 
-          <div className="listing-price">
-            {currencySymbol}
-            {displayPrice}
-          </div>
+          <div className="listing-price">€{displayPrice}</div>
 
           <div className="badges">
             {listing.condition && (
@@ -313,50 +237,17 @@ const ListingDetail = () => {
                 <FavoriteButton listingId={listing._id} variant="button" />
               </>
             )}
-
-            {/* Buyer Action: Rate Seller */}
-            {isBuyer && listing.status === "sold" && !hasReviewed && (
-              <button
-                className="btn-rate-seller"
-                onClick={() => setReviewModalOpen(true)}
-              >
-                ⭐ Rate Seller
-              </button>
-            )}
           </div>
 
-          {/* Seller Info Section */}
-          <div className="seller-info-section">
-            <h3 className="seller-info-title">Seller Information</h3>
-            <div className="seller-card">
-              <div className="seller-avatar">
-                {listing.ownerId?.name?.charAt(0).toUpperCase() || "U"}
-              </div>
-              <div className="seller-details">
-                <span className="seller-name">
-                  {listing.ownerId?.name || "Unknown Seller"}
-                </span>
-                {listing.ownerId?.averageRating > 0 && (
-                  <div
-                    className="seller-rating-display"
-                    onClick={() => setReviewsListOpen(true)}
-                    role="button"
-                    tabIndex={0}
-                    title="Click to view all reviews"
-                  >
-                    <span className="star-icon">★</span>
-                    <span className="rating-score">
-                      {listing.ownerId.averageRating}
-                    </span>
-                    <span className="review-count">
-                      See {listing.ownerId.reviewCount} reviews
-                    </span>
-                  </div>
-                )}
-                <span className="seller-email">Verified User</span>
-              </div>
-            </div>
-          </div>
+          {/* Seller Card */}
+          <SellerCard
+            seller={sellerData}
+            canRate={canRate}
+            canViewReviews={canViewReviews}
+            isSold={listing.status === "sold"}
+            onRate={() => setReviewModalOpen(true)}
+            onViewReviews={() => setReviewsListOpen(true)}
+          />
 
           <div className="specs-section">
             <h3>Specifications</h3>
@@ -384,55 +275,22 @@ const ListingDetail = () => {
       </div>
 
       {/* Mark as Sold Modal */}
-      {statusModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Mark as Sold</h3>
-            <p>Who bought this item? select from your chats:</p>
-            {isLoadingCandidates ? (
-              <div>Loading buyers...</div>
-            ) : (
-              <div className="buyer-selection">
-                <select
-                  value={selectedBuyerId}
-                  onChange={(e) => setSelectedBuyerId(e.target.value)}
-                  className="buyer-select"
-                >
-                  <option value="">-- Select Buyer --</option>
-                  {candidates.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} ({c.email})
-                    </option>
-                  ))}
-                  <option value="other">Other / Sold Outside App</option>
-                </select>
-              </div>
-            )}
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setStatusModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-confirm"
-                disabled={!selectedBuyerId && selectedBuyerId !== "other"}
-                onClick={() =>
-                  handleStatusUpdate(
-                    "sold",
-                    selectedBuyerId === "other" ? null : selectedBuyerId,
-                  )
-                }
-              >
-                Confirm Sold
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <MarkAsSoldModal
+        isOpen={statusModalOpen}
+        candidates={candidates}
+        isLoading={isLoadingCandidates}
+        selectedBuyerId={selectedBuyerId}
+        onBuyerChange={setSelectedBuyerId}
+        onConfirm={() =>
+          handleStatusUpdate(
+            "sold",
+            selectedBuyerId === "other" ? null : selectedBuyerId,
+          )
+        }
+        onClose={() => setStatusModalOpen(false)}
+      />
 
-      {/* Reviews Modal for Buyer */}
+      {/* Review Modal for Buyer */}
       <ReviewModal
         isOpen={reviewModalOpen}
         onClose={() => setReviewModalOpen(false)}
@@ -440,7 +298,7 @@ const ListingDetail = () => {
         isSubmitting={isSubmittingReview}
       />
 
-      {/* Reviews List for Viewing Seller Reviews */}
+      {/* Reviews List for Seller */}
       <ReviewsList
         isOpen={reviewsListOpen}
         onClose={() => setReviewsListOpen(false)}

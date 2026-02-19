@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
+import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import "./ReviewsList.css";
 
@@ -17,6 +18,8 @@ const ReviewsList = ({
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
+
+  const { execute: executeApi } = useApi();
 
   const {
     isLoading,
@@ -51,54 +54,33 @@ const ReviewsList = ({
   };
 
   const handleSaveEdit = async (reviewId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/reviews/${reviewId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ rating: editRating, comment: editComment }),
-      });
+    const data = await executeApi(`/api/reviews/${reviewId}`, {
+      method: "PUT",
+      body: { rating: editRating, comment: editComment },
+    });
 
-      const data = await res.json();
-      if (data.success) {
-        setReviews((prev) =>
-          prev.map((r) => (r._id === reviewId ? data.review : r)),
-        );
-        handleCancelEdit();
-      } else {
-        alert(data.msg || "Failed to update review");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error updating review");
+    if (data?.success) {
+      setReviews((prev) =>
+        prev.map((r) => (r._id === reviewId ? data.review : r)),
+      );
+      handleCancelEdit();
+    } else {
+      alert(data?.msg || "Failed to update review");
     }
   };
 
   const handleDeleteClick = async (reviewId) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/reviews/${reviewId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const data = await executeApi(`/api/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
 
-      const data = await res.json();
-      if (data.success) {
-        setReviews((prev) => prev.filter((r) => r._id !== reviewId));
-        if (onReviewDeleted) onReviewDeleted();
-      } else {
-        alert(data.msg || "Failed to delete review");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting review");
+    if (data?.success) {
+      setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+      if (onReviewDeleted) onReviewDeleted();
+    } else {
+      alert(data?.msg || "Failed to delete review");
     }
   };
 

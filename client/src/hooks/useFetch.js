@@ -50,6 +50,7 @@ const useFetch = (route, onReceived, onError) => {
       headers: {
         "content-type": "application/json",
       },
+      credentials: "include",
     };
 
     const fetchData = async () => {
