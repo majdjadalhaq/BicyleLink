@@ -32,7 +32,20 @@ const userSchema = new mongoose.Schema({
   lockoutUntil: { type: Date },
   failedPasswordResetAttempts: { type: Number, default: 0 },
   failedLoginAttempts: { type: Number, default: 0 },
+  // Rating System Fields
+  ratingSum: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
 });
+
+// Virtual field for average rating
+userSchema.virtual("averageRating").get(function () {
+  if (this.reviewCount === 0) return 0;
+  return (this.ratingSum / this.reviewCount).toFixed(1);
+});
+
+// Ensure virtuals are included in JSON output
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
 
 const User = mongoose.model("users", userSchema);
 

@@ -8,6 +8,7 @@ import favoriteRouter from "./routes/Favorite.js";
 import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
 import messageRouter from "./routes/message.js";
+import reviewRouter from "./routes/review.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
 
@@ -28,8 +29,13 @@ app.use(
           "https://placehold.co",
           "https://images.unsplash.com",
           "https://via.placeholder.com",
+          "https://static-maps.yandex.ru",
         ],
-        "connect-src": ["'self'", "https://api.cloudinary.com"],
+        "connect-src": [
+          "'self'",
+          "https://api.cloudinary.com",
+          "https://nominatim.openstreetmap.org",
+        ],
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -59,6 +65,7 @@ app.use("/api/users", userRouter);
 app.use("/api/listings", listingRouter);
 app.use("/api/favorites", favoriteRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/reviews", reviewRouter);
 
 // Error Handling
 app.use(errorHandler);

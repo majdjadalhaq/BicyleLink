@@ -3,6 +3,7 @@ import useFetch from "../../hooks/useFetch";
 import ListingCard from "../../components/ListingCard.jsx";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
 import HeroFilter from "../../components/HeroFilter/HeroFilter.jsx";
+
 import TEST_ID from "./Home.testid";
 import "../../styles/Home.css";
 
@@ -111,10 +112,10 @@ const Home = () => {
           const data = await response.json();
 
           const city =
-            data.address.city ||
-            data.address.town ||
-            data.address.village ||
-            data.address.county;
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.county;
 
           if (city) {
             setSearchTerm(city);

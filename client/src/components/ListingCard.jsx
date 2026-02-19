@@ -123,6 +123,15 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
           <span className="listing-card__location">
             <span aria-hidden="true">📍</span> {location}
           </span>
+          {listing.ownerId?.averageRating > 0 && (
+            <span
+              className="listing-card__rating"
+              title={`${listing.ownerId.reviewCount} reviews`}
+            >
+              <span className="star-icon">★</span>
+              {listing.ownerId.averageRating}
+            </span>
+          )}
         </div>
 
         {isOwnerView ? (

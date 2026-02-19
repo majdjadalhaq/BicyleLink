@@ -237,3 +237,17 @@
   opacity: 0.7;
   cursor: wait;
 }
+
+.listing-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-left: auto;
+}
+
+.star-icon {
+  color: #ffc107;
+}

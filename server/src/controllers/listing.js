@@ -7,6 +7,8 @@ import validationErrorMessage from "../util/validationErrorMessage.js";
 // Helper to escape regex special characters
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+import Message from "../models/Message.js"; // Import Message model
+
 // Helper to geocode a city name to [lng, lat] using Nominatim (free, no API key)
 const geocodeLocation = async (locationString) => {
   try {
@@ -229,7 +231,7 @@ export const getListings = async (req, res) => {
         .sort({ [sortBy]: sortOrder })
         .skip(skip)
         .limit(limitNum)
-        .populate("ownerId", "name email"),
+        .populate("ownerId", "name email avatarUrl ratingSum reviewCount"),
       Listing.countDocuments(filter),
     ]);
 
@@ -261,7 +263,7 @@ export const getListingById = async (req, res) => {
 
     const listing = await Listing.findById(id).populate(
       "ownerId",
-      "name email",
+      "name email avatarUrl ratingSum reviewCount",
     );
 
     if (!listing) {
@@ -406,7 +408,7 @@ export const deleteListing = async (req, res) => {
 // PATCH update listing status (e.g. mark as sold)
 export const updateStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, buyerId } = req.body;
 
     if (!["active", "sold", "cancelled"].includes(status)) {
       return res.status(400).json({ success: false, msg: "Invalid status" });
@@ -414,6 +416,20 @@ export const updateStatus = async (req, res) => {
 
     // Ownership is already checked by middleware
     req.resource.status = status;
+
+    // If marking as sold, record the buyer
+    if (status === "sold" && buyerId) {
+      if (!isValidObjectId(buyerId)) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Invalid buyer ID" });
+      }
+      req.resource.buyerId = buyerId;
+    } else if (status !== "sold") {
+      // Reset buyer if status is changed back to active/cancelled
+      req.resource.buyerId = null;
+    }
+
     await req.resource.save();
 
     res.status(200).json({
@@ -490,6 +506,68 @@ export const getListingFacets = async (req, res) => {
     res.status(500).json({
       success: false,
       msg: "Unable to get filter facets",
+    });
+  }
+};
+
+// GET candidates (potential buyers) for a listing
+export const getCandidates = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    // Ensure the requester is the owner
+    // Note: This relies on the caller ensuring authentication.
+    if (listing.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        msg: "Not authorized to view candidates for this listing",
+      });
+    }
+
+    // Find users who have chatted about this listing (excluding owner)
+    const distinctUserIds = await Message.distinct("senderId", {
+      listingId: id,
+      senderId: { $ne: req.user._id },
+    });
+
+    const distinctReceiverIds = await Message.distinct("receiverId", {
+      listingId: id,
+      receiverId: { $ne: req.user._id },
+    });
+
+    const allCandidateIds = [
+      ...new Set([
+        ...distinctUserIds.map((id) => id.toString()),
+        ...distinctReceiverIds.map((id) => id.toString()),
+      ]),
+    ];
+
+    if (allCandidateIds.length === 0) {
+      return res.status(200).json({ success: true, result: [] });
+    }
+
+    const candidates = await mongoose
+      .model("users")
+      .find({ _id: { $in: allCandidateIds } })
+      .select("name email avatarUrl");
+
+    res.status(200).json({ success: true, result: candidates });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({
+      success: false,
+      msg: "Unable to get candidates",
     });
   }
 };
