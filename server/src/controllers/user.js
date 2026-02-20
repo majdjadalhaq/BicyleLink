@@ -84,10 +84,14 @@ export const createUser = async (req, res) => {
     if (error.name === "ValidationError" || error.code === 11000) {
       if (error.code === 11000) {
         if (error.keyPattern && error.keyPattern.name) {
-          return res.status(400).json({ success: false, msg: "Username is already taken" });
+          return res
+            .status(400)
+            .json({ success: false, msg: "Username is already taken" });
         }
         if (error.keyPattern && error.keyPattern.email) {
-          return res.status(400).json({ success: false, msg: "Email is already taken" });
+          return res
+            .status(400)
+            .json({ success: false, msg: "Email is already taken" });
         }
       }
       return res.status(400).json({ success: false, msg: error.message });
@@ -499,17 +503,20 @@ export const updateProfile = async (req, res) => {
     if (name && name !== req.user.name) {
       const existingUser = await User.findOne({ name });
       if (existingUser) {
-        return res.status(400).json({ success: false, msg: "Username is already taken" });
+        return res
+          .status(400)
+          .json({ success: false, msg: "Username is already taken" });
       }
     }
 
     const user = await User.findByIdAndUpdate(
       userId,
       { name, country, city, bio, avatarUrl },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
-    if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+    if (!user)
+      return res.status(404).json({ success: false, msg: "User not found" });
 
     res.status(200).json({ success: true, user });
   } catch (error) {
@@ -635,7 +642,9 @@ export const deleteAccount = async (req, res) => {
     await User.findByIdAndDelete(userId);
 
     res.clearCookie("token", cookieConfig);
-    res.status(200).json({ success: true, msg: "Account deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, msg: "Account deleted successfully" });
   } catch (err) {
     logError(err);
     res.status(500).json({ success: false, msg: "Unable to delete account" });
@@ -647,11 +656,17 @@ export const requestEmailChange = async (req, res) => {
     const userId = req.user.id;
     const { newEmail } = req.body;
 
-    if (!newEmail) return res.status(400).json({ success: false, msg: "New email is required" });
+    if (!newEmail)
+      return res
+        .status(400)
+        .json({ success: false, msg: "New email is required" });
 
     // Check if email is already taken
     const existingUser = await User.findOne({ email: newEmail });
-    if (existingUser) return res.status(400).json({ success: false, msg: "Email is already in use" });
+    if (existingUser)
+      return res
+        .status(400)
+        .json({ success: false, msg: "Email is already in use" });
 
     const user = await User.findById(userId);
     user.pendingEmail = newEmail;
@@ -661,10 +676,15 @@ export const requestEmailChange = async (req, res) => {
 
     await sendSecurityCodeEmail(newEmail, user.securityCode);
 
-    res.status(200).json({ success: true, msg: "Security code sent to your new email address" });
+    res.status(200).json({
+      success: true,
+      msg: "Security code sent to your new email address",
+    });
   } catch (error) {
     logError(error);
-    res.status(500).json({ success: false, msg: "Unable to request email change" });
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to request email change" });
   }
 };
 
@@ -673,14 +693,28 @@ export const verifyEmailChange = async (req, res) => {
     const userId = req.user.id;
     const { code } = req.body;
 
-    if (!code) return res.status(400).json({ success: false, msg: "Verification code is required" });
+    if (!code)
+      return res
+        .status(400)
+        .json({ success: false, msg: "Verification code is required" });
 
-    const user = await User.findById(userId).select("+securityCode +securityCodeExpiry +pendingEmail");
-    
-    if (!user.pendingEmail) return res.status(400).json({ success: false, msg: "No pending email change request found" });
+    const user = await User.findById(userId).select(
+      "+securityCode +securityCodeExpiry +pendingEmail",
+    );
 
-    if (!user.securityCode || user.securityCode !== code || Date.now() > user.securityCodeExpiry) {
-      return res.status(401).json({ success: false, msg: "Invalid or expired verification code" });
+    if (!user.pendingEmail)
+      return res
+        .status(400)
+        .json({ success: false, msg: "No pending email change request found" });
+
+    if (
+      !user.securityCode ||
+      user.securityCode !== code ||
+      Date.now() > user.securityCodeExpiry
+    ) {
+      return res
+        .status(401)
+        .json({ success: false, msg: "Invalid or expired verification code" });
     }
 
     user.email = user.pendingEmail;
@@ -689,10 +723,16 @@ export const verifyEmailChange = async (req, res) => {
     user.securityCodeExpiry = undefined;
     await user.save();
 
-    res.status(200).json({ success: true, msg: "Email updated successfully", email: user.email });
+    res.status(200).json({
+      success: true,
+      msg: "Email updated successfully",
+      email: user.email,
+    });
   } catch (error) {
     logError(error);
-    res.status(500).json({ success: false, msg: "Unable to verify email change" });
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to verify email change" });
   }
 };
 
@@ -700,27 +740,36 @@ export const getPublicProfile = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findById(id).select("-password -verificationCode -verificationCodeExpiry -securityCode -securityCodeExpiry -pendingEmail");
-    if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+    const user = await User.findById(id).select(
+      "-password -verificationCode -verificationCodeExpiry -securityCode -securityCodeExpiry -pendingEmail",
+    );
+    if (!user)
+      return res.status(404).json({ success: false, msg: "User not found" });
 
     // Fetch listings
     const listings = await Listing.find({ ownerId: id }).sort("-createdAt");
 
     // Fetch reviews received
-    const reviewsReceived = await Review.find({ targetId: id }).populate("reviewerId", "name avatarUrl").sort("-createdAt");
+    const reviewsReceived = await Review.find({ targetId: id })
+      .populate("reviewerId", "name avatarUrl")
+      .sort("-createdAt");
 
     // Fetch reviews given
-    const reviewsGiven = await Review.find({ reviewerId: id }).populate("targetId", "name avatarUrl").sort("-createdAt");
+    const reviewsGiven = await Review.find({ reviewerId: id })
+      .populate("targetId", "name avatarUrl")
+      .sort("-createdAt");
 
     res.status(200).json({
       success: true,
       user,
       listings,
       reviewsReceived,
-      reviewsGiven
+      reviewsGiven,
     });
   } catch (error) {
     logError(error);
-    res.status(500).json({ success: false, msg: "Unable to fetch profile details" });
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to fetch profile details" });
   }
 };

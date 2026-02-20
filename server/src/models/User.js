@@ -2,43 +2,46 @@ import mongoose from "mongoose";
 
 import validateAllowedFields from "../util/validateAllowedFields.js";
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  pendingEmail: { type: String, unique: true, sparse: true },
-  password: { type: String, required: true },
-  city: { type: String },
-  country: { type: String },
-  bio: { type: String },
-  isVerified: { type: Boolean, default: false },
-  agreedToTerms: {
-    type: Boolean,
-    required: true,
-    validate: {
-      validator: (v) => v === true,
-      message: "Terms of Service must be accepted",
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    pendingEmail: { type: String, unique: true, sparse: true },
+    password: { type: String, required: true },
+    city: { type: String },
+    country: { type: String },
+    bio: { type: String },
+    isVerified: { type: Boolean, default: false },
+    agreedToTerms: {
+      type: Boolean,
+      required: true,
+      validate: {
+        validator: (v) => v === true,
+        message: "Terms of Service must be accepted",
+      },
     },
+    avatarUrl: { type: String, trim: true },
+    verificationCode: { type: String, index: true },
+    verificationCodeExpiry: { type: Date },
+    verificationCodeLastSentAt: { type: Date, default: null },
+    verificationResendCount: { type: Number, default: 0 },
+    verificationResendWindowStart: { type: Date, default: null },
+    passwordResetCode: { type: String },
+    passwordResetCodeExpiry: { type: Date, index: true },
+    passwordResetCodeUsed: { type: Boolean, default: false },
+    // Security Hardening Fields
+    failedAttempts: { type: Number, default: 0 },
+    lockoutUntil: { type: Date },
+    failedPasswordResetAttempts: { type: Number, default: 0 },
+    failedLoginAttempts: { type: Number, default: 0 },
+    securityCode: { type: String },
+    securityCodeExpiry: { type: Date },
+    // Rating System Fields
+    ratingSum: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
   },
-  avatarUrl: { type: String, trim: true },
-  verificationCode: { type: String, index: true },
-  verificationCodeExpiry: { type: Date },
-  verificationCodeLastSentAt: { type: Date, default: null },
-  verificationResendCount: { type: Number, default: 0 },
-  verificationResendWindowStart: { type: Date, default: null },
-  passwordResetCode: { type: String },
-  passwordResetCodeExpiry: { type: Date, index: true },
-  passwordResetCodeUsed: { type: Boolean, default: false },
-  // Security Hardening Fields
-  failedAttempts: { type: Number, default: 0 },
-  lockoutUntil: { type: Date },
-  failedPasswordResetAttempts: { type: Number, default: 0 },
-  failedLoginAttempts: { type: Number, default: 0 },
-  securityCode: { type: String },
-  securityCodeExpiry: { type: Date },
-  // Rating System Fields
-  ratingSum: { type: Number, default: 0 },
-  reviewCount: { type: Number, default: 0 },
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 // Virtual field for average rating
 userSchema.virtual("averageRating").get(function () {
