@@ -30,6 +30,7 @@ app.use(
           "https://images.unsplash.com",
           "https://via.placeholder.com",
           "https://static-maps.yandex.ru",
+          "https://*.tile.openstreetmap.org",
         ],
         "connect-src": [
           "'self'",
