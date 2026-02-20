@@ -21,8 +21,6 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        "img-src": ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
-        "connect-src": ["'self'", "https://api.cloudinary.com"],
         "img-src": [
           "'self'",
           "data:",

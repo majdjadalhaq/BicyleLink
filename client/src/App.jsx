@@ -59,14 +59,6 @@ const App = () => {
                   <Route path="/reset-password" element={<ResetPassword />} />
                 </Route>
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<RequireVerified />}>
-                  <Route path="/listing/create" element={<CreateListing />} />
-                  <Route path="/listings/:id/edit" element={<EditListing />} />
-                  <Route path="/my-listings" element={<MyListings />} />
-
-                  <Route path="/profile" element={<Profile />} />
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
                   <Route element={<RequireVerified />}>
@@ -76,6 +68,7 @@ const App = () => {
                       element={<EditListing />}
                     />
                     <Route path="/my-listings" element={<MyListings />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Route>
                 </Route>
               </Routes>
