@@ -1,4 +1,4 @@
-import createTestIdFilePath from "../util/createTestIdFilePath";
+import createTestIdFilePath from "../utils/createTestIdFilePath";
 
 const TEST_ID = {
   linkToHome: `${createTestIdFilePath("components", "Nav")}-linkToHome`,

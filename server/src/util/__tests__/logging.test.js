@@ -1,3 +1,4 @@
+import { jest } from "@jest/globals";
 import logger, { logInfo, logWarn, logError } from "../logging.js";
 
 describe("logging", () => {

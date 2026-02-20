@@ -251,3 +251,33 @@
 .star-icon {
   color: #ffc107;
 }
+
+/* ---- Favorite Heart Button ---- */
+.btn-heart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #ccc;
+}
+
+.btn-heart.active {
+  color: #e74c3c;
+}
+
+.btn-heart:hover {
+  transform: scale(1.1);
+  background: white;
+}

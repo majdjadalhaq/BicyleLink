@@ -51,6 +51,7 @@ const MyListings = () => {
               key={listing._id}
               listing={listing}
               isOwnerView={true}
+              onUpdated={performFetch}
             />
           ))}
         </div>

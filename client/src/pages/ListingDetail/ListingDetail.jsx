@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
+import useToast from "../../hooks/useToast";
 import "../../styles/ListingDetail.css";
 import FavoriteButton from "../../components/FavoriteButton";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
@@ -15,6 +16,7 @@ const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast, ToastContainer } = useToast();
 
   const [listing, setListing] = useState(null);
   const [prevId, setPrevId] = useState(id);
@@ -32,6 +34,7 @@ const ListingDetail = () => {
 
   // Reset when navigating between listings
   if (id !== prevId) {
+    setListing(null);
     setPrevId(id);
   }
 
@@ -113,8 +116,9 @@ const ListingDetail = () => {
         buyerId: data.listing.buyerId,
       }));
       setStatusModalOpen(false);
+      showToast(`Listing marked as ${newStatus}`, "success");
     } else {
-      alert("Failed to update status");
+      showToast("Failed to update status", "error");
     }
   };
 
@@ -134,9 +138,11 @@ const ListingDetail = () => {
       setReviewsRefreshTrigger((prev) => prev + 1);
       setHasReviewed(true);
       setReviewsListOpen(true);
+      showToast("Review submitted successfully", "success");
     } else {
-      alert(
+      showToast(
         data?.msg || data?.errors?.[0]?.message || "Failed to submit review",
+        "error",
       );
     }
   };
@@ -164,6 +170,7 @@ const ListingDetail = () => {
 
   return (
     <div className="listing-detail-container">
+      <ToastContainer />
       <Link to="/" className="back-link">
         ← Back to Marketplace
       </Link>
@@ -171,7 +178,7 @@ const ListingDetail = () => {
       <div className="listing-content">
         {/* Image Carousel */}
         <ListingImageCarousel
-          images={listing.images}
+          images={listing.images || []}
           title={listing.title}
           status={listing.status}
         />

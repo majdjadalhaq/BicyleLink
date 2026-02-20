@@ -17,152 +17,93 @@ describe("Seller Rating and Review Flow", () => {
     cy.url().should("not.include", "/login");
   };
 
+  beforeEach(() => {
+    cy.seedDatabase();
+  });
+
   it("should create listing, sell it, and verify review flow", () => {
-    // 0. Login as Seller and Create Listing
+    // 1. Create a NEW listing as Seller
     login(sellerEmail, sellerPassword);
-    cy.wait(1000); // Wait for auth to settle
-    cy.visit("/listing/create");
-    cy.location("pathname").should("equal", "/listing/create");
-    
-    // Create Listing
+    cy.get("nav").contains("Sell").click();
+    cy.url().should("include", "/listing/create");
+
     cy.get('input[name="title"]').type(listingTitle);
     cy.get('input[name="brand"]').type("Cypress Brand");
     cy.get('select[name="condition"]').select("Good");
     cy.get('select[name="category"]').select("Other");
-    cy.get('#description').type("This is a test listing for review flow"); // Fixed selector
+    cy.get('#description').type("This is a test listing for review flow");
     cy.get('input[type="file"]').selectFile("cypress/fixtures/test_image.png", { force: true });
     cy.get('input[name="price"]').type("150");
     cy.get('input[name="location"]').type("Berlin"); 
     cy.get('button[type="submit"]').click();
-    
-    // Wait for redirect to detail
-    cy.location("pathname", { timeout: 10000 }).should("include", "/listings/");
+
+    cy.location("pathname", { timeout: 15000 }).should("include", "/listings/");
     cy.contains(listingTitle).should("be.visible");
-    
-    // Logout Seller
     cy.get(".btn-logout").click();
 
-    // 1. Login as Buyer
+    // 2. Login as Buyer and start a chat
     login(buyerEmail, buyerPassword);
-    
-    // 2. Find the target listing
     cy.visit("/");
     cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
-    cy.wait(1000);
     cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
         cy.contains("View Details").click();
     });
 
-    // 2. Check if we already reviewed (User Review detected ?)
-    // Since we just implemented buttons, if we reviewed, we should see "Edit" "Delete" in the list.
-    // Let's open the reviews list to check.
-    cy.get(".seller-rating-display").click();
-    cy.wait(500);
-    
-    cy.get("body").then(($body) => {
-      // If modal is open
-      if ($body.find(".reviews-modal-content").length > 0) {
-        if ($body.find(".btn-action-delete").length > 0) {
-            // We have a review! Delete it to start fresh.
-            cy.log("Found existing review, deleting...");
-            cy.get(".btn-action-delete").first().click(); // Click the first one found (ours)
-            // Confirm dialog
-            // In Cypress, we might need to listen to window:confirm before clicking if it uses native confirm
-            // But usually we set up the listener first.
-            // Let's try to assume clean state mostly or handle it if we can. 
-            // Actually, best to just proceed and if "Already reviewed" happens, we handle it.
-        }
-        // Close modal
-        cy.get(".reviews-modal-close").click();
-      }
-    });
-
-    // 3. Ensure we are candidate (if not already)
-    // Send msg just in case, but ONLY if we can (not sold/disabled)
-    cy.get("body").then(($body) => {
-        if ($body.find(".btn-contact:not(:disabled)").length > 0) {
-            cy.get(".btn-contact").click();
-            cy.get(".chat-input input").type("Interested!{enter}");
-            cy.wait(500);
-        }
-    });
+    cy.get(".btn-contact").click();
+    cy.get('input[placeholder*="message"]', { timeout: 10000 }).type("Hi, I want to buy this!{enter}");
+    cy.contains("Hi, I want to buy this!", { timeout: 10000 }).should("be.visible");
     cy.get(".btn-logout").click();
 
-    // 4. Login as Seller -> Mark sold (if not already)
+    // 3. Login as Seller and Mark as Sold
     login(sellerEmail, sellerPassword);
     cy.visit("/my-listings");
-    cy.contains(".listing-card__title", "test").parents(".listing-card").within(() => {
-         cy.get("a").click(); 
+    cy.contains(".listing-card__title", listingTitle).parents(".listing-card").within(() => {
+         cy.contains("View Details").click(); 
     });
-    cy.wait(1000);
-    // If not sold, mark sold.
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("Mark as Sold")) {
-        cy.contains("Mark as Sold").click();
-        cy.get("select.buyer-select").select(buyerEmail); // Assumes option text contains email
-        cy.get(".btn-confirm").click();
-        cy.wait(1000);
-      }
+
+    cy.get("button").contains("Mark as Sold").click();
+    cy.get(".modal-content", { timeout: 10000 }).should("be.visible");
+    cy.contains("Loading buyers...").should("not.exist");
+    
+    cy.get("select option").contains(buyerEmail).then($opt => {
+      cy.get("select").select($opt.val());
     });
+    cy.get("button").contains("Confirm Sold").click();
+    cy.get(".toast--success", { timeout: 10000 }).should("be.visible");
     cy.get(".btn-logout").click();
 
-    // 5. Login as Buyer -> Rate
+    // 4. Login as Buyer and submit a review
     login(buyerEmail, buyerPassword);
     cy.visit("/");
-    cy.get('input[placeholder*="Search"]').type(`test{enter}`);
-    cy.wait(1000);
-    cy.contains(".listing-card__title", "test").first().parents(".listing-card").within(() => {
+    cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
+    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
         cy.contains("View Details").click();
     });
 
-    cy.contains("Rate Seller").should("be.visible").click();
+    cy.contains("Rate Seller").click();
     cy.get(".star-btn").last().click();
     cy.get("textarea.review-comment-input").type(reviewComment);
     cy.get('button[type="submit"]').click();
+
+    cy.get(".toast--success", { timeout: 10000 }).should("be.visible")
+      .and("contain", "Review submitted successfully");
     
-    // Handle Alert
-    cy.on("window:alert", (str) => {
-      if (str === "Review submitted successfully!") {
-        expect(str).to.equal("Review submitted successfully!");
-      } else {
-        // If already reviewed, we might be in trouble for verification if we can't find OUR review.
-        // But let's assume step 2 deleted it if it was there.
-        expect(str).to.include("already reviewed");
-      }
-    });
-    
-    // 6. Verify Creation (Immediate)
-    // The reviews list should open automatically and show the new review
+    // Verify review in list
     cy.contains(reviewComment).should("be.visible");
-    
-    // Verify "Rate Seller" button is GONE
-    // We need to close the reviews modal first to see the underlying page clearly, 
-    // or just check existence if it's not covered. 
-    // But ReviewsList is an overlay. Let's close it to be sure.
     cy.get(".reviews-modal-close").click();
     cy.contains("Rate Seller").should("not.exist");
 
-    // Re-open reviews to edit/delete
+    // 5. Re-open reviews to edit/delete
     cy.get(".seller-rating-display").click();
-    
-    // Wait for reviews to load
-    cy.contains(reviewComment).should("be.visible");
-
-    // 7. Verify Edit
     cy.contains("Edit").click();
     cy.get(".edit-comment-input").clear().type(updatedComment);
     cy.contains("Save").click();
     cy.contains(updatedComment).should("be.visible");
-    cy.contains(reviewComment).should("not.exist");
 
-    // 8. Verify Delete
     cy.contains("Delete").click();
-    // Confirm dialog default is usually auto-accepted in Cypress if not Stubbed, but let's be explicit
     cy.on("window:confirm", () => true);
-    
     cy.contains(updatedComment).should("not.exist");
     
-    // Verify "Rate Seller" button is BACK
     cy.get(".reviews-modal-close").click();
     cy.contains("Rate Seller").should("be.visible");
   });

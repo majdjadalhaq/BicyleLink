@@ -15,7 +15,7 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const displayImages =
-    images.length > 0
+    images && images.length > 0
       ? images.map((url) =>
           optimiseCloudinaryUrl(url, { width: 800, height: 600 }),
         )
@@ -28,7 +28,7 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   const next = () => setActiveIndex((i) => (i + 1) % displayImages.length);
 
   return (
-    <div className="carousel-container">
+    <div className="carousel-container listing-image-carousel">
       <div className="main-image-wrapper">
         {displayImages.length > 1 && (
           <button type="button" className="nav-arrow left" onClick={prev}>

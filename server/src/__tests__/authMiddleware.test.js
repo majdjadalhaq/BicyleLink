@@ -13,17 +13,13 @@ import mongoose from "mongoose";
 // Mock dependencies
 jest.mock("jsonwebtoken");
 jest.mock("../models/User.js");
-jest.mock("mongoose", () => {
-  const original = jest.requireActual("mongoose");
-  return {
-    ...original,
-    Types: {
-      ObjectId: {
-        isValid: jest.fn(),
-      },
+jest.mock("mongoose", () => ({
+  Types: {
+    ObjectId: {
+      isValid: jest.fn(),
     },
-  };
-});
+  },
+}));
 jest.mock("../util/logging.js", () => ({
   logError: jest.fn(),
 }));

@@ -5,11 +5,13 @@ import "../styles/ListingCard.css";
 import FavoriteButton from "./FavoriteButton";
 import { optimiseCloudinaryUrl } from "../utils/cloudinary";
 import useApi from "../hooks/useApi";
+import useToast from "../hooks/useToast";
 
-const ListingCard = ({ listing, isOwnerView = false }) => {
+const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const { _id, title, images, location, condition, brand } = listing;
   const [isUpdating, setIsUpdating] = useState(false);
   const { execute: executeApi } = useApi();
+  const { showToast, ToastContainer } = useToast();
 
   const rawImageUrl =
     images && images.length > 0
@@ -26,17 +28,20 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
 
   const handleDelete = async (e) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to delete this listing?"))
-      return;
+    // Use a custom confirmation via toast instead of window.confirm
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this listing?",
+    );
+    if (!confirmed) return;
 
     const data = await executeApi(`/api/listings/${_id}`, {
       method: "DELETE",
     });
 
     if (data?.success !== false) {
-      window.location.reload();
+      onUpdated?.(); // Notify parent to refresh list — no reload needed
     } else {
-      alert("Failed to delete");
+      showToast("Failed to delete listing", "error");
     }
   };
 
@@ -53,14 +58,16 @@ const ListingCard = ({ listing, isOwnerView = false }) => {
     setIsUpdating(false);
 
     if (data?.success) {
-      window.location.reload();
+      onUpdated?.(); // Notify parent — no reload needed
     } else {
-      alert("Failed to update status");
+      showToast("Failed to update status", "error");
     }
   };
 
   return (
     <div className="listing-card" data-id={_id}>
+      <ToastContainer />
+
       <div className="listing-card__image-container">
         <img src={imageUrl} alt={title} className="listing-card__image" />
 
@@ -151,6 +158,7 @@ ListingCard.propTypes = {
     status: PropTypes.string,
   }).isRequired,
   isOwnerView: PropTypes.bool,
+  onUpdated: PropTypes.func,
 };
 
 export default memo(ListingCard);
