@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
@@ -197,7 +198,12 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
 
-          <div className="listing-price">€{displayPrice}</div>
+          <div className="listing-metadata">
+            <span className="listing-price">€{displayPrice}</span>
+            <span className="posted-date">
+              Posted {formatDistanceToNow(new Date(listing.createdAt))} ago
+            </span>
+          </div>
 
           <div className="badges">
             {listing.condition && (
@@ -265,10 +271,34 @@ const ListingDetail = () => {
                 <span className="spec-value">{listing.brand}</span>
               </div>
             )}
+            {listing.model && (
+              <div className="spec-row">
+                <span className="spec-label">Model:</span>
+                <span className="spec-value">{listing.model}</span>
+              </div>
+            )}
+            {listing.category && (
+              <div className="spec-row">
+                <span className="spec-label">Category:</span>
+                <span className="spec-value">{listing.category}</span>
+              </div>
+            )}
+            {listing.year && (
+              <div className="spec-row">
+                <span className="spec-label">Year:</span>
+                <span className="spec-value">{listing.year}</span>
+              </div>
+            )}
             {listing.condition && (
               <div className="spec-row">
                 <span className="spec-label">Condition:</span>
                 <span className="spec-value">{listing.condition}</span>
+              </div>
+            )}
+            {listing.mileage != null && (
+              <div className="spec-row">
+                <span className="spec-label">Mileage:</span>
+                <span className="spec-value">{listing.mileage} km</span>
               </div>
             )}
           </div>
