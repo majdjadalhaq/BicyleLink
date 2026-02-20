@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
@@ -10,6 +11,8 @@ import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
 import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
 import SellerCard from "../../components/SellerCard/SellerCard";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import LocationMap from "../../components/LocationMap";
 import MarkAsSoldModal from "./components/MarkAsSoldModal";
 
 const ListingDetail = () => {
@@ -171,6 +174,13 @@ const ListingDetail = () => {
   return (
     <div className="listing-detail-container">
       <ToastContainer />
+      <Breadcrumbs
+        items={[
+          { label: "Listings", path: "/" },
+          { label: listing.title, path: `/listings/${id}` },
+        ]}
+      />
+
       <Link to="/" className="back-link">
         ← Back to Marketplace
       </Link>
@@ -196,7 +206,12 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
 
-          <div className="listing-price">€{displayPrice}</div>
+          <div className="listing-metadata">
+            <span className="listing-price">€{displayPrice}</span>
+            <span className="posted-time">
+              Posted {formatDistanceToNow(new Date(listing.createdAt))} ago
+            </span>
+          </div>
 
           <div className="badges">
             {listing.condition && (
@@ -264,13 +279,41 @@ const ListingDetail = () => {
                 <span className="spec-value">{listing.brand}</span>
               </div>
             )}
+            {listing.model && (
+              <div className="spec-row">
+                <span className="spec-label">Model:</span>
+                <span className="spec-value">{listing.model}</span>
+              </div>
+            )}
+            {listing.category && (
+              <div className="spec-row">
+                <span className="spec-label">Category:</span>
+                <span className="spec-value">{listing.category}</span>
+              </div>
+            )}
+            {listing.year && (
+              <div className="spec-row">
+                <span className="spec-label">Year:</span>
+                <span className="spec-value">{listing.year}</span>
+              </div>
+            )}
             {listing.condition && (
               <div className="spec-row">
                 <span className="spec-label">Condition:</span>
                 <span className="spec-value">{listing.condition}</span>
               </div>
             )}
+            {listing.mileage != null && (
+              <div className="spec-row">
+                <span className="spec-label">Mileage:</span>
+                <span className="spec-value">{listing.mileage} km</span>
+              </div>
+            )}
           </div>
+
+          {listing.coordinates && listing.coordinates.coordinates && (
+            <LocationMap coordinates={listing.coordinates.coordinates} />
+          )}
         </div>
 
         {listing.description && (

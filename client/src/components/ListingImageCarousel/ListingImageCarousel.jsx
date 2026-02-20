@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { optimiseCloudinaryUrl } from "../../utils/cloudinary";
 
 const PLACEHOLDER = "https://placehold.co/600x400?text=No+Image";
@@ -13,6 +13,7 @@ const PLACEHOLDER = "https://placehold.co/600x400?text=No+Image";
  */
 const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const displayImages =
     images && images.length > 0
@@ -27,6 +28,26 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
     );
   const next = () => setActiveIndex((i) => (i + 1) % displayImages.length);
 
+  // Keyboard navigation for Carousel and Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input or textarea
+      if (
+        document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "Escape" && isLightboxOpen) setIsLightboxOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen, displayImages.length]);
+
   return (
     <div className="carousel-container listing-image-carousel">
       <div className="main-image-wrapper">
@@ -40,6 +61,8 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
           src={displayImages[activeIndex]}
           alt={`${title} - View ${activeIndex + 1}`}
           className="listing-main-image"
+          onClick={() => setIsLightboxOpen(true)}
+          style={{ cursor: "zoom-in" }}
         />
 
         {displayImages.length > 1 && (
@@ -50,6 +73,54 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
 
         {status === "sold" && <div className="sold-overlay">SOLD</div>}
       </div>
+
+      {isLightboxOpen && (
+        <div
+          className="lightbox-overlay"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            className="lightbox-close"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            ×
+          </button>
+          <div
+            className="lightbox-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="lightbox-nav-arrow left"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prev();
+                  }}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="lightbox-nav-arrow right"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    next();
+                  }}
+                >
+                  ›
+                </button>
+              </>
+            )}
+            <img
+              src={images[activeIndex]}
+              alt={title}
+              className="lightbox-image"
+            />
+          </div>
+        </div>
+      )}
 
       {displayImages.length > 1 && (
         <div className="thumbnail-strip">
