@@ -13,7 +13,7 @@ export const geocodeLocation = async (locationString) => {
 
   try {
     const encoded = encodeURIComponent(locationString);
-    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=nl`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`;
 
     const response = await fetch(url, {
       headers: { "User-Agent": "BiCycleL/1.0 (hyf-project)" },
