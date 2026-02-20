@@ -80,6 +80,9 @@ const Home = () => {
 
   // Count active filters for badge
   const activeFilterCount = Object.keys(filters).filter((key) => {
+    // Exclude geolocation metadata from being counted as separate filters
+    if (["lat", "lng", "radius"].includes(key)) return false;
+
     const val = filters[key];
     if (Array.isArray(val)) return val.length > 0;
     if (val === null || val === undefined || val === "") return false;
