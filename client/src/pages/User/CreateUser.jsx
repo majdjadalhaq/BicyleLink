@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Country, City } from "country-state-city";
 
+import { useNavigate, Link } from "react-router-dom";
 import InputField from "../../components/form/InputField";
-import SelectField from "../../components/form/SelectField";
-import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import PasswordStrengthMeter from "../../components/PasswordStrengthMeter";
 import useFetch from "../../hooks/useFetch";
@@ -16,10 +13,6 @@ const CreateUser = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [bio, setBio] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [validationError, setValidationError] = useState("");
 
@@ -30,10 +23,6 @@ const CreateUser = () => {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
-    setBio("");
-    setCountry("");
-    setCity("");
-    setSelectedCountryCode("");
     setAgreedToTerms(false);
     setValidationError("");
     navigate("/verify-code", { state: { email } });
@@ -47,18 +36,6 @@ const CreateUser = () => {
   useEffect(() => {
     return cancelFetch;
   }, []);
-
-  const countries = Country.getAllCountries();
-  const cities = selectedCountryCode
-    ? City.getCitiesOfCountry(selectedCountryCode)
-    : [];
-
-  const handleCountryChange = (value) => {
-    const countryObj = countries.find((c) => c.isoCode === value);
-    setSelectedCountryCode(value);
-    setCountry(countryObj ? countryObj.name : "");
-    setCity("");
-  };
 
   const validateForm = () => {
     if (!username.trim()) {
@@ -78,16 +55,6 @@ const CreateUser = () => {
 
     if (!confirmPassword) {
       setValidationError("Please confirm your password");
-      return false;
-    }
-
-    if (!country) {
-      setValidationError("Country is required");
-      return false;
-    }
-
-    if (!city) {
-      setValidationError("City is required");
       return false;
     }
 
@@ -143,24 +110,11 @@ const CreateUser = () => {
           name: username,
           email,
           password,
-          bio: bio || undefined,
-          city: city || undefined,
-          country: country || undefined,
           agreedToTerms,
         },
       }),
     });
   };
-
-  const countryOptions = countries.map((c) => ({
-    value: c.isoCode,
-    label: c.name,
-  }));
-
-  const cityOptions = cities.map((c) => ({
-    value: c.name,
-    label: c.name,
-  }));
 
   let statusComponent = null;
   if (validationError) {
@@ -225,31 +179,6 @@ const CreateUser = () => {
           placeholder="Confirm Password"
           dataTestId={TEST_ID.confirmPasswordInput}
           autoComplete="new-password"
-        />
-        <SelectField
-          name="country"
-          value={selectedCountryCode}
-          onChange={handleCountryChange}
-          options={countryOptions}
-          placeholder="Country"
-          dataTestId={TEST_ID.countrySelect}
-        />
-        <SelectField
-          name="city"
-          value={city}
-          onChange={setCity}
-          options={cityOptions}
-          placeholder="City"
-          disabled={!selectedCountryCode}
-          dataTestId={TEST_ID.citySelect}
-        />
-        <TextAreaField
-          name="bio"
-          value={bio}
-          onChange={setBio}
-          placeholder="Bio (optional)"
-          rows={3}
-          dataTestId={TEST_ID.bioTextarea}
         />
         <label className={styles.checkboxContainer}>
           <input

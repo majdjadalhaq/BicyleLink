@@ -1,28 +1,30 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Country, City } from "country-state-city";
+
 import { FaUserCircle } from "react-icons/fa";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
 } from "../../utils/config";
 import ImageCropper from "../../components/ImageCropper/ImageCropper";
+
 import SelectField from "../../components/form/SelectField";
 import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
-import styles from "./ProfileSetup.module.css"; // Reuse same styles for consistency
+import styles from "./ProfileSetup.module.css";
 
-const Profile = () => {
+const ProfileSetup = () => {
   const { user, login } = useAuth();
+  const navigate = useNavigate();
 
-  const [name, setName] = useState(user?.name || "");
   const [country, setCountry] = useState(user?.country || "");
   const [city, setCity] = useState(user?.city || "");
   const [selectedCountryCode, setSelectedCountryCode] = useState("");
   const [bio, setBio] = useState(user?.bio || "");
   const [validationError, setValidationError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Avatar upload state
   const [avatarFile, setAvatarFile] = useState(null);
@@ -35,10 +37,9 @@ const Profile = () => {
 
   const onSuccess = (data) => {
     if (data?.user) {
-      login(data.user);
+      login(data.user); // Update global auth state
     }
-    setSuccessMessage("Profile updated successfully!");
-    setTimeout(() => setSuccessMessage(""), 5000);
+    navigate("/"); // Send to Home after setup
   };
 
   const { isLoading, error, performFetch } = useFetch(
@@ -59,10 +60,6 @@ const Profile = () => {
   };
 
   const validateForm = () => {
-    if (!name) {
-      setValidationError("Username is required");
-      return false;
-    }
     setValidationError("");
     return true;
   };
@@ -130,13 +127,16 @@ const Profile = () => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        name,
         country,
         city,
         bio,
         avatarUrl,
       }),
     });
+  };
+
+  const handleSkip = () => {
+    navigate("/");
   };
 
   const countryOptions = countries.map((c) => ({
@@ -149,8 +149,6 @@ const Profile = () => {
     label: c.name,
   }));
 
-  if (!user) return <div className={styles.container}>Please login first</div>;
-
   return (
     <div className={styles.container}>
       {showCropper && (
@@ -160,10 +158,13 @@ const Profile = () => {
           onCancel={handleCropCancel}
         />
       )}
-      <h1 className={styles.title}>Edit Profile</h1>
-      <p className={styles.subtitle}>Keep your information up to date.</p>
+      <h1 className={styles.title}>Complete Your Profile</h1>
+      <p className={styles.subtitle}>
+        Help others know you better by filling out these details.
+      </p>
 
       <form onSubmit={handleSubmit} className={styles.formContainer}>
+        {/* Avatar Upload Section */}
         <div className={styles.avatarSection}>
           <label htmlFor="avatar-upload" className={styles.avatarLabel}>
             {avatarPreview ? (
@@ -175,7 +176,7 @@ const Profile = () => {
             ) : (
               <div className={styles.avatarPlaceholder}>
                 <FaUserCircle size={80} color="#cbd5e1" />
-                <span>Change Photo</span>
+                <span>Upload Photo</span>
               </div>
             )}
           </label>
@@ -185,17 +186,6 @@ const Profile = () => {
             accept="image/*"
             onChange={handleFileChange}
             className={styles.fileInput}
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>Username</label>
-          <input
-            type="text"
-            className={styles.textInput}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Choose a unique username"
           />
         </div>
 
@@ -218,21 +208,26 @@ const Profile = () => {
           name="bio"
           value={bio}
           onChange={setBio}
-          placeholder="Tell us a little about yourself"
+          placeholder="Tell us a little about yourself (optional)"
           rows={4}
         />
 
-        {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
-        )}
         {validationError && (
           <div className={styles.validationError}>{validationError}</div>
         )}
         {error && <div className={styles.error}>{error.toString()}</div>}
 
         <div className={styles.buttonGroup}>
+          <button
+            type="button"
+            onClick={handleSkip}
+            className={styles.skipButton}
+            disabled={isLoading || isUploadingImage}
+          >
+            Skip for Now
+          </button>
           <SubmitButton isLoading={isLoading || isUploadingImage}>
-            Update Profile
+            Save Profile
           </SubmitButton>
         </div>
       </form>
@@ -240,4 +235,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileSetup;

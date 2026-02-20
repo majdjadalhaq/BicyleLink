@@ -13,7 +13,6 @@ const PLACEHOLDER = "https://placehold.co/600x400?text=No+Image";
  */
 const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const displayImages =
     images && images.length > 0
@@ -41,8 +40,6 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
           src={displayImages[activeIndex]}
           alt={`${title} - View ${activeIndex + 1}`}
           className="listing-main-image"
-          onClick={() => setIsLightboxOpen(true)}
-          style={{ cursor: "zoom-in" }}
         />
 
         {displayImages.length > 1 && (
@@ -53,30 +50,6 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
 
         {status === "sold" && <div className="sold-overlay">SOLD</div>}
       </div>
-
-      {isLightboxOpen && (
-        <div
-          className="lightbox-overlay"
-          onClick={() => setIsLightboxOpen(false)}
-        >
-          <button
-            className="lightbox-close"
-            onClick={() => setIsLightboxOpen(false)}
-          >
-            ×
-          </button>
-          <div
-            className="lightbox-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={images[activeIndex]}
-              alt={title}
-              className="lightbox-image"
-            />
-          </div>
-        </div>
-      )}
 
       {displayImages.length > 1 && (
         <div className="thumbnail-strip">

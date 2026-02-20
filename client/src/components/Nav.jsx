@@ -12,15 +12,17 @@ const Nav = () => {
   const { isDark, toggleTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const unreadCount = useUnreadCount(user);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Close menu when route changes
+  // Close menus when route changes
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
     setIsOpen(false);
+    setIsProfileOpen(false);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [location.pathname]);
 
@@ -124,19 +126,59 @@ const Nav = () => {
           </button>
 
           {user ? (
-            <>
-              <Link to="/profile" className="profile-icon">
-                <FaUserCircle size={28} />
-              </Link>
+            <div className="profile-dropdown-container">
               <button
                 type="button"
-                onClick={handleLogout}
-                className="btn-nav btn-logout"
-                data-testid={TEST_ID.linkToLogout}
+                className="profile-toggle"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                aria-label="User menu"
               >
-                Logout
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt="profile"
+                    className="nav-avatar"
+                  />
+                ) : (
+                  <FaUserCircle size={28} />
+                )}
               </button>
-            </>
+
+              {isProfileOpen && (
+                <div className="profile-dropdown">
+                  <div className="profile-dropdown-header">
+                    <p className="profile-name">{user.name}</p>
+                    <p className="profile-email">{user.email}</p>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  <Link
+                    to={`/profile/${user._id || user.id}`}
+                    className="dropdown-item"
+                  >
+                    My Profile
+                  </Link>
+                  <Link to="/profile/edit" className="dropdown-item">
+                    Edit Profile
+                  </Link>
+                  <Link to="/my-listings" className="dropdown-item">
+                    My Listings
+                  </Link>
+                  <Link to="/favorites" className="dropdown-item">
+                    Favorites
+                  </Link>
+                  <Link to="/account-settings" className="dropdown-item">
+                    Account Settings
+                  </Link>
+                  <hr className="dropdown-divider" />
+                  <button
+                    onClick={handleLogout}
+                    className="dropdown-item logout"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link

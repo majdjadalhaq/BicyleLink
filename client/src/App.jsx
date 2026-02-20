@@ -11,6 +11,11 @@ import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import Footer from "./components/Footer";
 import Breadcrumbs from "./components/Breadcrumbs";
 const Profile = lazy(() => import("./pages/Profile/Profile"));
+const ProfileView = lazy(() => import("./pages/Profile/ProfileView"));
+const ProfileSetup = lazy(() => import("./pages/Profile/ProfileSetup"));
+const AccountSettings = lazy(
+  () => import("./pages/AccountSettings/AccountSettings"),
+);
 
 // Lazy loaded components
 const Home = lazy(() => import("./pages/Home/Home"));
@@ -68,7 +73,14 @@ const App = () => {
                       element={<EditListing />}
                     />
                     <Route path="/my-listings" element={<MyListings />} />
-                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile" element={<ProfileView />} />
+                    <Route path="/profile/:id" element={<ProfileView />} />
+                    <Route path="/profile/edit" element={<Profile />} />
+                    <Route path="/profile/setup" element={<ProfileSetup />} />
+                    <Route
+                      path="/account-settings"
+                      element={<AccountSettings />}
+                    />
                   </Route>
                 </Route>
               </Routes>
