@@ -3,11 +3,12 @@ import mongoose from "mongoose";
 import validateAllowedFields from "../util/validateAllowedFields.js";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
+  pendingEmail: { type: String, unique: true, sparse: true },
   password: { type: String, required: true },
-  city: { type: String, required: true },
-  country: { type: String, required: true },
+  city: { type: String },
+  country: { type: String },
   bio: { type: String },
   isVerified: { type: Boolean, default: false },
   agreedToTerms: {
@@ -32,10 +33,12 @@ const userSchema = new mongoose.Schema({
   lockoutUntil: { type: Date },
   failedPasswordResetAttempts: { type: Number, default: 0 },
   failedLoginAttempts: { type: Number, default: 0 },
+  securityCode: { type: String },
+  securityCodeExpiry: { type: Date },
   // Rating System Fields
   ratingSum: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
-});
+}, { timestamps: true });
 
 // Virtual field for average rating
 userSchema.virtual("averageRating").get(function () {
@@ -60,6 +63,7 @@ export const validateUser = (userObject) => {
     "bio",
     "agreedToTerms",
     "avatarUrl",
+    "pendingEmail",
   ];
 
   const validatedKeysMessage = validateAllowedFields(userObject, allowedKeys);
@@ -80,6 +84,8 @@ export const validateUser = (userObject) => {
     errorList.push("password is a required field");
   }
 
+  /* Removed required checks for city/country to allow streamlined signup */
+  /*
   if (userObject.city == null) {
     errorList.push("city is a required field");
   }
@@ -87,6 +93,7 @@ export const validateUser = (userObject) => {
   if (userObject.country == null) {
     errorList.push("country is a required field");
   }
+  */
 
   if (userObject.agreedToTerms !== true) {
     errorList.push("Terms of Service must be accepted");

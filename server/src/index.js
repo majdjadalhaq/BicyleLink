@@ -178,12 +178,7 @@ io.on("connection", (socket) => {
 });
 
 // Check for required environment variables
-const requiredEnv = [
-  "JWT_SECRET",
-  "MONGODB_URL",
-  "MAILTRAP_USER",
-  "MAILTRAP_PASS",
-];
+const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "RESEND_API_KEY"];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
