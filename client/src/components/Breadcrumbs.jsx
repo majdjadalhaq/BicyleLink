@@ -10,34 +10,37 @@ const Breadcrumbs = () => {
 
   return (
     <nav aria-label="breadcrumb" className="breadcrumb-nav">
-      <ol className="breadcrumb-list">
-        <li className="breadcrumb-item">
-          <Link to="/">Home</Link>
-        </li>
-        {pathnames.map((value, index) => {
-          const to = `/${pathnames.slice(0, index + 1).join("/")}`;
-          const isLast = index === pathnames.length - 1;
+      <div className="breadcrumb-container">
+        <ol className="breadcrumb-list">
+          <li className="breadcrumb-item">
+            <Link to="/">Home</Link>
+          </li>
+          {pathnames.map((value, index) => {
+            const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+            const isLast = index === pathnames.length - 1;
 
-          // Format segment for display (capitalize, replace hyphens)
-          const name =
-            value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, " ");
+            // Handle listing IDs or other long hex IDs
+            let name = value;
+            if (/^[0-9a-fA-F]{24}$/.test(value)) {
+              name = "Listing Details";
+            } else {
+              name =
+                value.charAt(0).toUpperCase() +
+                value.slice(1).replace(/-/g, " ");
+            }
 
-          return (
-            <li
-              key={to}
-              className={`breadcrumb-item ${isLast ? "active" : ""}`}
-              aria-current={isLast ? "page" : undefined}
-            >
-              {isLast ? (
-                // Last item is just text, not a link
-                <span>{name}</span>
-              ) : (
-                <Link to={to}>{name}</Link>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+            return (
+              <li
+                key={to}
+                className={`breadcrumb-item ${isLast ? "active" : ""}`}
+                aria-current={isLast ? "page" : undefined}
+              >
+                {isLast ? <span>{name}</span> : <Link to={to}>{name}</Link>}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </nav>
   );
 };
