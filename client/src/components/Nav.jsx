@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 import "../styles/Nav.css";
+import { FaUserCircle } from "react-icons/fa";
 import { useTheme } from "../contexts/ThemeContext";
 import useUnreadCount from "../hooks/useUnreadCount";
 
@@ -124,7 +125,9 @@ const Nav = () => {
 
           {user ? (
             <>
-              <span className="user-greeting">Hi, {user.name || "User"}</span>
+              <Link to="/profile" className="profile-icon">
+                <FaUserCircle size={28} />
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}

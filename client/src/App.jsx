@@ -10,6 +10,7 @@ import RequireVerified from "./components/RequireVerified";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import Footer from "./components/Footer";
 import Breadcrumbs from "./components/Breadcrumbs";
+const Profile = lazy(() => import("./pages/Profile/Profile"));
 
 // Lazy loaded components
 const Home = lazy(() => import("./pages/Home/Home"));
@@ -67,6 +68,7 @@ const App = () => {
                       element={<EditListing />}
                     />
                     <Route path="/my-listings" element={<MyListings />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Route>
                 </Route>
               </Routes>
