@@ -39,6 +39,11 @@ const listingSchema = new mongoose.Schema({
     ref: "users",
     required: true,
   },
+  buyerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    default: null,
+  },
   location: {
     type: String,
     required: [true, "location is required"],

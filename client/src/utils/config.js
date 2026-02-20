@@ -2,6 +2,7 @@
 /**
  * Configuration utility to safely access environment variables.
  * This handles the difference between Vite's import.meta.env and Jest's environment.
+ * Moved from util/ to utils/ for consistency.
  */
 
 const getEnv = (key) => {

@@ -1,29 +1,37 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import "./HeroFilter.css";
 import { City } from "country-state-city";
+import FilterChips from "./FilterChips";
+import RangeInputGroup from "./RangeInputGroup";
+import CitySearchInput from "./CitySearchInput";
+import useToast from "../../hooks/useToast";
 
-const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
+// Strip common Dutch prefixes/suffixes to get clean city names
+const cleanCityName = (name) => {
+  return name
+    .replace(/^Gemeente\s+/i, "")
+    .replace(/\s+Stad$/i, "")
+    .replace(/\s+Dorp$/i, "")
+    .trim();
+};
+
+const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
+  const { showToast, ToastContainer } = useToast();
 
   // City Search State
   const [citySearch, setCitySearch] = useState("");
   const [cityOptions, setCityOptions] = useState([]);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Sync local state when external filters change (e.g. cleared)
-  // Intentional: syncing prop changes to local state
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Sync local state when external filters change
   useEffect(() => {
     setLocalFilters(filters);
-    if (filters.location) {
-      setCitySearch(filters.location);
-    } else {
-      setCitySearch("");
-    }
+    setCitySearch(filters.location || "");
   }, [filters]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -36,8 +44,11 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cache all cities to avoid calling getAllCities() on every keystroke
-  const allCities = useMemo(() => City.getAllCities(), []);
+  // Cache Dutch cities only
+  const allCities = useMemo(
+    () => City.getAllCities().filter((c) => c.countryCode === "NL"),
+    [],
+  );
 
   const handleChipToggle = (category, value) => {
     setLocalFilters((prev) => {
@@ -55,28 +66,27 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
   };
 
   const handleRangeChange = (type, value) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
+    setLocalFilters((prev) => ({ ...prev, [type]: value }));
   };
 
   const handleBrandChange = (e) => {
     const value = e.target.value;
-    setLocalFilters((prev) => ({
-      ...prev,
-      brand: value ? [value] : [],
-    }));
+    setLocalFilters((prev) => ({ ...prev, brand: value ? [value] : [] }));
   };
 
-  const handleCitySearchChange = (e) => {
-    const value = e.target.value;
+  const handleCitySearchChange = (value) => {
     setCitySearch(value);
 
     if (value.length > 2) {
-      // Filter cities - limiting to 10 for performance
+      const seen = new Set();
       const cities = allCities
-        .filter((c) => c.name.toLowerCase().includes(value.toLowerCase()))
+        .map((c) => ({ ...c, cleanName: cleanCityName(c.name) }))
+        .filter((c) => c.cleanName.toLowerCase().includes(value.toLowerCase()))
+        .filter((c) => {
+          if (seen.has(c.cleanName.toLowerCase())) return false;
+          seen.add(c.cleanName.toLowerCase());
+          return true;
+        })
         .slice(0, 10);
       setCityOptions(cities);
       setShowCityDropdown(true);
@@ -85,7 +95,6 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
       setShowCityDropdown(false);
     }
 
-    // Clear location if input is cleared
     if (value === "") {
       setLocalFilters((prev) => ({
         ...prev,
@@ -97,10 +106,11 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
   };
 
   const handleCitySelect = (city) => {
-    setCitySearch(city.name);
+    const name = city.cleanName || cleanCityName(city.name);
+    setCitySearch(name);
     setLocalFilters((prev) => ({
       ...prev,
-      location: city.name,
+      location: name,
       lat: city.latitude,
       lng: city.longitude,
     }));
@@ -109,18 +119,69 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
 
   const handleApply = () => {
     const filtersToApply = { ...localFilters };
-    // Ensure default radius matches UI if location is set but radius untouched
     if (
       (filtersToApply.location || filtersToApply.lat || filtersToApply.lng) &&
       !filtersToApply.radius
     ) {
       filtersToApply.radius = 50;
     }
+    if (filtersToApply.location && onClearSearch) {
+      onClearSearch();
+    }
     onApply(filtersToApply);
   };
 
-  // Safe default for facets in case fetching fails or is slow
-  // Use static categories from backend model to ensure options always appear
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser", "error");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&countrycodes=nl`,
+            { headers: { "User-Agent": "BikeBazaar-App/1.0" } },
+          );
+
+          if (!response.ok) throw new Error("Reverse geocoding failed");
+
+          const data = await response.json();
+          const city =
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.county;
+
+          if (city) {
+            setCitySearch(city);
+            setLocalFilters((prev) => ({
+              ...prev,
+              location: city,
+              lat: latitude,
+              lng: longitude,
+            }));
+            showToast(`Location set to ${city}`, "success");
+          } else {
+            showToast("Could not determine your city", "error");
+          }
+        } catch {
+          showToast("Error getting location details", "error");
+        } finally {
+          setIsLoadingLocation(false);
+        }
+      },
+      () => {
+        setIsLoadingLocation(false);
+        showToast("Unable to retrieve your location", "error");
+      },
+    );
+  };
+
   const categories = [
     "Road",
     "Mountain",
@@ -141,53 +202,25 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
     { label: "Poor", value: "poor" },
   ];
 
-  const minPriceLimit = facets?.minPrice || 0;
-  const maxPriceLimit = facets?.maxPrice || 10000;
-
   if (!isOpen) return null;
 
   return (
     <div className="hero-filter-container">
+      <ToastContainer />
       <div className="filter-grid">
-        {/* Left Column: Categories, Condition, Brand */}
         <div className="filter-column">
-          {/* Category Section */}
-          <div className="filter-section">
-            <label className="filter-title">Category</label>
-            <div className="filter-chips">
-              {categories.map((cat) => (
-                <div
-                  key={cat}
-                  className={`filter-chip ${
-                    localFilters.category?.includes(cat) ? "active" : ""
-                  }`}
-                  onClick={() => handleChipToggle("category", cat)}
-                >
-                  {cat}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Condition Section */}
-          <div className="filter-section">
-            <label className="filter-title">Condition</label>
-            <div className="filter-chips">
-              {conditions.map((cond) => (
-                <div
-                  key={cond.value}
-                  className={`filter-chip ${
-                    localFilters.condition?.includes(cond.value) ? "active" : ""
-                  }`}
-                  onClick={() => handleChipToggle("condition", cond.value)}
-                >
-                  {cond.label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Brand Section */}
+          <FilterChips
+            title="Category"
+            options={categories}
+            selected={localFilters.category}
+            onToggle={(val) => handleChipToggle("category", val)}
+          />
+          <FilterChips
+            title="Condition"
+            options={conditions}
+            selected={localFilters.condition}
+            onToggle={(val) => handleChipToggle("condition", val)}
+          />
           <div className="filter-section">
             <label className="filter-title">Brand</label>
             <input
@@ -200,102 +233,39 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
           </div>
         </div>
 
-        {/* Right Column: Price, Year, Location */}
         <div className="filter-column">
-          {/* Price Range */}
+          <RangeInputGroup
+            title="Price Range"
+            minKey="minPrice"
+            maxKey="maxPrice"
+            filters={localFilters}
+            onChange={handleRangeChange}
+          />
+          <RangeInputGroup
+            title="Year"
+            minKey="minYear"
+            maxKey="maxYear"
+            filters={localFilters}
+            onChange={handleRangeChange}
+            minPlaceholder="2010"
+            maxPlaceholder={new Date().getFullYear().toString()}
+            minLabel="From"
+            maxLabel="To"
+          />
+
+          <CitySearchInput
+            citySearch={citySearch}
+            cityOptions={cityOptions}
+            showCityDropdown={showCityDropdown}
+            isLoadingLocation={isLoadingLocation}
+            onSearchChange={handleCitySearchChange}
+            onFocus={() => citySearch.length > 2 && setShowCityDropdown(true)}
+            onSelect={handleCitySelect}
+            onUseGPS={handleUseMyLocation}
+            dropdownRef={dropdownRef}
+          />
+
           <div className="filter-section">
-            <label className="filter-title">Price Range</label>
-            <div className="range-group">
-              <div className="range-input-wrapper">
-                <span className="range-label">Min</span>
-                <input
-                  type="number"
-                  className="styled-input"
-                  placeholder={minPriceLimit}
-                  value={localFilters.minPrice || ""}
-                  onChange={(e) =>
-                    handleRangeChange("minPrice", Number(e.target.value))
-                  }
-                />
-              </div>
-              <div className="range-input-wrapper">
-                <span className="range-label">Max</span>
-                <input
-                  type="number"
-                  className="styled-input"
-                  placeholder={maxPriceLimit}
-                  value={localFilters.maxPrice || ""}
-                  onChange={(e) =>
-                    handleRangeChange("maxPrice", Number(e.target.value))
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Year Range */}
-          <div className="filter-section">
-            <label className="filter-title">Year</label>
-            <div className="range-group">
-              <div className="range-input-wrapper">
-                <span className="range-label">From</span>
-                <input
-                  type="number"
-                  className="styled-input"
-                  placeholder="2010"
-                  value={localFilters.minYear || ""}
-                  onChange={(e) =>
-                    handleRangeChange("minYear", Number(e.target.value))
-                  }
-                />
-              </div>
-              <div className="range-input-wrapper">
-                <span className="range-label">To</span>
-                <input
-                  type="number"
-                  className="styled-input"
-                  placeholder={new Date().getFullYear()}
-                  value={localFilters.maxYear || ""}
-                  onChange={(e) =>
-                    handleRangeChange("maxYear", Number(e.target.value))
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Location & Distance */}
-          <div className="filter-section">
-            <label className="filter-title">Location</label>
-
-            <div className="location-container" ref={dropdownRef}>
-              <input
-                type="text"
-                className="styled-input"
-                placeholder="Enter city..."
-                value={citySearch}
-                onChange={handleCitySearchChange}
-                onFocus={() =>
-                  citySearch.length > 2 && setShowCityDropdown(true)
-                }
-              />
-
-              {showCityDropdown && cityOptions.length > 0 && (
-                <div className="city-dropdown">
-                  {cityOptions.map((city, index) => (
-                    <div
-                      key={`${city.name}-${index}`}
-                      className="city-option"
-                      onClick={() => handleCitySelect(city)}
-                    >
-                      <span className="city-name">{city.name}</span>
-                      <span className="city-country">{city.countryCode}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <div className="slider-wrapper">
               <span className="range-label">Distance:</span>
               <div className="slider-container">
@@ -309,9 +279,7 @@ const HeroFilter = ({ filters, onApply, onClear, facets, isOpen }) => {
                   }
                   className="styled-range"
                   style={{
-                    background: `linear-gradient(to right, #6a1b9a 0%, #6a1b9a ${
-                      localFilters.radius || 50
-                    }%, #e9ecef ${localFilters.radius || 50}%, #e9ecef 100%)`,
+                    background: `linear-gradient(to right, #6a1b9a 0%, #6a1b9a ${localFilters.radius || 50}%, #e9ecef ${localFilters.radius || 50}%, #e9ecef 100%)`,
                   }}
                 />
               </div>

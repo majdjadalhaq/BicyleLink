@@ -5,7 +5,7 @@ import SelectField from "../form/SelectField";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
-} from "../../util/config";
+} from "../../utils/config";
 import "../../styles/CreateListing.css"; // We'll reuse the existing styles for now or refactor later
 
 const CATEGORY_OPTIONS = [

@@ -24,13 +24,13 @@ jest.mock("country-state-city", () => ({
     getAllCities: jest.fn().mockReturnValue([
       {
         name: "London",
-        countryCode: "GB",
+        countryCode: "NL",
         latitude: "51.5074",
         longitude: "-0.1278",
       },
       {
         name: "Londonderry",
-        countryCode: "GB",
+        countryCode: "NL",
         latitude: "54.9966",
         longitude: "-7.3086",
       },

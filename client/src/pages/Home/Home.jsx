@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useFetch from "../../hooks/useFetch";
 import ListingCard from "../../components/ListingCard.jsx";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
 import HeroFilter from "../../components/HeroFilter/HeroFilter.jsx";
+
 import TEST_ID from "./Home.testid";
 import "../../styles/Home.css";
 
@@ -16,19 +17,6 @@ const Home = () => {
   // Advanced Filter State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
-  const [facetOptions, setFacetOptions] = useState(null);
-
-  // Fetch Facets for Filter Options
-  const { performFetch: fetchFacets } = useFetch(
-    "/listings/facets",
-    (response) => {
-      setFacetOptions(response);
-    },
-  );
-
-  useEffect(() => {
-    fetchFacets();
-  }, []);
 
   // Debounce search term
   useEffect(() => {
@@ -39,8 +27,8 @@ const Home = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Construct query string including filters
-  const buildQuery = () => {
+  // Memoized query string — only recomputes when its dependencies change
+  const query = useMemo(() => {
     const params = new URLSearchParams({
       page,
       limit: 12,
@@ -62,10 +50,10 @@ const Home = () => {
     if (filters.radius) params.append("radius", filters.radius);
 
     return params.toString();
-  };
+  }, [page, debouncedSearchTerm, filters]);
 
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    `/listings?${buildQuery()}`,
+    `/listings?${query}`,
     (response) => {
       if (page === 1) {
         setListings(response.result);
@@ -90,57 +78,25 @@ const Home = () => {
     setPage(1);
   };
 
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  // Count active filters for badge
+  const activeFilterCount = Object.keys(filters).filter((key) => {
+    // Exclude geolocation metadata from being counted as separate filters
+    if (["lat", "lng", "radius"].includes(key)) return false;
 
-  const handleLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
+    const val = filters[key];
+    if (Array.isArray(val)) return val.length > 0;
+    if (val === null || val === undefined || val === "") return false;
+    return true;
+  }).length;
 
-    setIsLoadingLocation(true);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          // Use OpenStreetMap Nominatim for free reverse geocoding
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-          );
-          const data = await response.json();
-
-          const city =
-            data.address.city ||
-            data.address.town ||
-            data.address.village ||
-            data.address.county;
-
-          if (city) {
-            setSearchTerm(city);
-            setPage(1);
-          } else {
-            alert("Could not determine your city");
-          }
-        } catch (error) {
-          console.error("Location error:", error);
-          alert("Error getting location details");
-        } finally {
-          setIsLoadingLocation(false);
-        }
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-        setIsLoadingLocation(false);
-        alert("Unable to retrieve your location");
-      },
-    );
+  const handleClearSearch = () => {
+    setSearchTerm("");
   };
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setPage(1);
-    setIsFilterOpen(false); // Optional: close on apply
+    setIsFilterOpen(false);
   };
 
   const handleClearFilters = () => {
@@ -165,18 +121,6 @@ const Home = () => {
                 className="search-input"
               />
             </div>
-            <button
-              className="btn-location"
-              onClick={handleLocation}
-              title="Use my location"
-              disabled={isLoadingLocation}
-            >
-              {isLoadingLocation ? (
-                <span className="spinner">📍</span>
-              ) : (
-                <span>📍</span>
-              )}
-            </button>
             <button
               className={`filter-toggle-btn ${isFilterOpen ? "active" : ""}`}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -203,6 +147,14 @@ const Home = () => {
                 <line x1="9" y1="8" x2="15" y2="8"></line>
                 <line x1="17" y1="16" x2="23" y2="16"></line>
               </svg>
+              {activeFilterCount > 0 && (
+                <span
+                  className="filter-badge"
+                  aria-label={`${activeFilterCount} active filter${activeFilterCount === 1 ? "" : "s"}`}
+                >
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
           </div>
 
@@ -211,7 +163,7 @@ const Home = () => {
             filters={filters}
             onApply={handleApplyFilters}
             onClear={handleClearFilters}
-            facets={facetOptions}
+            onClearSearch={handleClearSearch}
           />
         </div>
       </div>

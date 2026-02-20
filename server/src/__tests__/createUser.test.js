@@ -1,3 +1,4 @@
+import { jest } from "@jest/globals";
 import supertest from "supertest";
 
 import { connectToMockDB, closeMockDatabase } from "../__testUtils__/dbMock.js";
