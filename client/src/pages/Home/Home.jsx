@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useFetch from "../../hooks/useFetch";
 import ListingCard from "../../components/ListingCard.jsx";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
@@ -27,8 +27,8 @@ const Home = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Construct query string including filters
-  const buildQuery = () => {
+  // Memoized query string — only recomputes when its dependencies change
+  const query = useMemo(() => {
     const params = new URLSearchParams({
       page,
       limit: 12,
@@ -50,10 +50,10 @@ const Home = () => {
     if (filters.radius) params.append("radius", filters.radius);
 
     return params.toString();
-  };
+  }, [page, debouncedSearchTerm, filters]);
 
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    `/listings?${buildQuery()}`,
+    `/listings?${query}`,
     (response) => {
       if (page === 1) {
         setListings(response.result);
@@ -96,7 +96,7 @@ const Home = () => {
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setPage(1);
-    setIsFilterOpen(false); // Optional: close on apply
+    setIsFilterOpen(false);
   };
 
   const handleClearFilters = () => {

@@ -4,44 +4,24 @@ import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 import "../styles/Nav.css";
 import { useTheme } from "../contexts/ThemeContext";
+import useUnreadCount from "../hooks/useUnreadCount";
 
 const Nav = () => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = useUnreadCount(user);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   // Close menu when route changes
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setIsOpen(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [location.pathname]);
-
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (!user) return;
-      try {
-        const res = await fetch("/api/messages/unread-total");
-        if (!res.ok) {
-          if (res.status === 401) return;
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const data = await res.json();
-        if (data.success) setUnreadCount(data.result);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Failed to fetch unread count:", err);
-        }
-      }
-    };
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
 
   const handleLogout = async () => {
     await logout();

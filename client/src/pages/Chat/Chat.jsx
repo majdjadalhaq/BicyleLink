@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
-} from "../../util/config";
+} from "../../utils/config";
 import styles from "./Chat.module.css";
 
 /**

@@ -91,7 +91,7 @@ const CreateUser = () => {
       return false;
     }
 
-    const usernameRegex = /^[a-zA-Z0-9]{3,30}$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     if (!usernameRegex.test(username)) {
       setValidationError("Username must be 3-30 alphanumeric characters");
       return false;
