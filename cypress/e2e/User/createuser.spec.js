@@ -19,15 +19,6 @@ describe("createuser", () => {
     cy.getByTestId(TEST_ID_CREATE_USER.passwordInput).type(testPassword);
     cy.getByTestId(TEST_ID_CREATE_USER.confirmPasswordInput).type(testPassword);
 
-    // Select country
-    cy.getByTestId(TEST_ID_CREATE_USER.countrySelect).select("Netherlands");
-
-    // Wait for city select to be enabled
-    cy.getByTestId(TEST_ID_CREATE_USER.citySelect, { timeout: 10000 }).should(
-      "not.be.disabled",
-    );
-    cy.getByTestId(TEST_ID_CREATE_USER.citySelect).select("Amsterdam");
-
     // Intercept and ensure no call is made if ToS is not checked
     cy.intercept("POST", "/api/users").as("signupRequest");
     cy.clickByTestId(TEST_ID_CREATE_USER.submitButton);

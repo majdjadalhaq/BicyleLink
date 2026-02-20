@@ -37,5 +37,13 @@ module.exports = (on, config) => {
         return response.data;
       });
     },
+    "db:verifyUser": async (email) => {
+      const { data } = await axios.post(`${baseUrl}/api/test/verify-user`, { email });
+      return data;
+    },
+    "db:getLastCode": async (email) => {
+      const { data } = await axios.get(`${baseUrl}/api/test/get-last-code`, { params: { email } });
+      return data;
+    },
   });
 };

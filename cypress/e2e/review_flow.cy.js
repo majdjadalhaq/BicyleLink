@@ -39,7 +39,8 @@ describe("Seller Rating and Review Flow", () => {
 
     cy.location("pathname", { timeout: 15000 }).should("include", "/listings/");
     cy.contains(listingTitle).should("be.visible");
-    cy.get(".btn-logout").click();
+    cy.get(".profile-toggle").click();
+    cy.contains("Logout").click();
 
     // 2. Login as Buyer and start a chat
     login(buyerEmail, buyerPassword);
@@ -52,13 +53,15 @@ describe("Seller Rating and Review Flow", () => {
     cy.get(".btn-contact").click();
     cy.get('input[placeholder*="message"]', { timeout: 10000 }).type("Hi, I want to buy this!{enter}");
     cy.contains("Hi, I want to buy this!", { timeout: 10000 }).should("be.visible");
-    cy.get(".btn-logout").click();
+    cy.get(".profile-toggle").click();
+    cy.contains("Logout").click();
 
     // 3. Login as Seller and Mark as Sold
     login(sellerEmail, sellerPassword);
-    cy.visit("/my-listings");
-    cy.contains(".listing-card__title", listingTitle).parents(".listing-card").within(() => {
-         cy.contains("View Details").click(); 
+    cy.visit("/");
+    cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
+    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
+        cy.contains("View Details").click();
     });
 
     cy.get("button").contains("Mark as Sold").click();
@@ -70,7 +73,8 @@ describe("Seller Rating and Review Flow", () => {
     });
     cy.get("button").contains("Confirm Sold").click();
     cy.get(".toast--success", { timeout: 10000 }).should("be.visible");
-    cy.get(".btn-logout").click();
+    cy.get(".profile-toggle").click();
+    cy.contains("Logout").click();
 
     // 4. Login as Buyer and submit a review
     login(buyerEmail, buyerPassword);

@@ -10,8 +10,6 @@ describe("PR #1: Core Identity Infrastructure Verification", () => {
     cy.get('input[name="email"]').type(uniqueEmail);
     cy.get('input[name="password"]').type(password);
     cy.get('input[name="confirmPassword"]').type(password);
-    cy.get('select[name="country"]').select("Netherlands");
-    cy.get('select[name="city"]').select("Amsterdam");
 
     // Intercept signup
     cy.intercept("POST", "/api/users").as("signupRequest");
