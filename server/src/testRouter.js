@@ -121,6 +121,40 @@ testRouter.post("/seed", async (req, res) => {
   }
 });
 
+testRouter.post("/verify-user", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOneAndUpdate(
+      { email },
+      { isVerified: true },
+      { new: true },
+    );
+    // eslint-disable-next-line no-console
+    console.log(`[TEST] Verified user: ${email}, found: ${!!user}`);
+    res.status(200).json({ success: true, found: !!user });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`[TEST] Verification error: ${err.message}`);
+    res.status(500).json({ success: false });
+  }
+});
+
+testRouter.get("/get-last-code", async (req, res) => {
+  const { email } = req.query;
+  try {
+    const user = await User.findOne({ email }).select(
+      "+verificationCode +securityCode",
+    );
+    res.status(200).json({
+      success: true,
+      verificationCode: user?.verificationCode,
+      securityCode: user?.securityCode,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to seed test users" });
+  }
+});
+
 const emptyDatabase = async () => {
   const collections = mongoose.connection.collections;
 
