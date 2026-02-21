@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
@@ -10,6 +11,8 @@ import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
 import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
 import SellerCard from "../../components/SellerCard/SellerCard";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import LocationMap from "../../components/LocationMap";
 import MarkAsSoldModal from "./components/MarkAsSoldModal";
 
 const ListingDetail = () => {
@@ -59,6 +62,23 @@ const ListingDetail = () => {
     performFetch();
     return () => cancelFetch();
   }, [id, reviewsRefreshTrigger]);
+
+  // Track page view
+  useEffect(() => {
+    if (!listing || !id) return;
+
+    // Only track if user is NOT the owner
+    // If user is not logged in, we still track (optionalAuth handles it)
+    const trackView = async () => {
+      const isActuallyOwner =
+        user && user._id === (listing.ownerId?._id || listing.ownerId);
+      if (!isActuallyOwner) {
+        await executeApi(`/api/listings/${id}/view`, { method: "PATCH" });
+      }
+    };
+
+    trackView();
+  }, [id, !!listing]); // Trigger when listing is loaded
 
   // Fetch candidate buyers when the status modal opens
   useEffect(() => {
@@ -171,6 +191,13 @@ const ListingDetail = () => {
   return (
     <div className="listing-detail-container">
       <ToastContainer />
+      <Breadcrumbs
+        items={[
+          { label: "Listings", path: "/" },
+          { label: listing.title, path: `/listings/${id}` },
+        ]}
+      />
+
       <Link to="/" className="back-link">
         ← Back to Marketplace
       </Link>
@@ -196,7 +223,54 @@ const ListingDetail = () => {
 
           <h1 className="listing-title">{listing.title}</h1>
 
-          <div className="listing-price">€{displayPrice}</div>
+          {isOwner && (
+            <div className="listing-analytics-bar">
+              <div
+                className="analytics-item"
+                title="Unique views from potential buyers"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>{listing.views || 0} Views</span>
+              </div>
+              <div
+                className="analytics-item"
+                title="Unique buyers who messaged you"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                <span>{listing.inquiries || 0} Inquiries</span>
+              </div>
+            </div>
+          )}
+
+          <div className="listing-metadata">
+            <span className="listing-price">€{displayPrice}</span>
+            <span className="posted-time">
+              Posted {formatDistanceToNow(new Date(listing.createdAt))} ago
+            </span>
+          </div>
 
           <div className="badges">
             {listing.condition && (
@@ -264,13 +338,41 @@ const ListingDetail = () => {
                 <span className="spec-value">{listing.brand}</span>
               </div>
             )}
+            {listing.model && (
+              <div className="spec-row">
+                <span className="spec-label">Model:</span>
+                <span className="spec-value">{listing.model}</span>
+              </div>
+            )}
+            {listing.category && (
+              <div className="spec-row">
+                <span className="spec-label">Category:</span>
+                <span className="spec-value">{listing.category}</span>
+              </div>
+            )}
+            {listing.year && (
+              <div className="spec-row">
+                <span className="spec-label">Year:</span>
+                <span className="spec-value">{listing.year}</span>
+              </div>
+            )}
             {listing.condition && (
               <div className="spec-row">
                 <span className="spec-label">Condition:</span>
                 <span className="spec-value">{listing.condition}</span>
               </div>
             )}
+            {listing.mileage != null && (
+              <div className="spec-row">
+                <span className="spec-label">Mileage:</span>
+                <span className="spec-value">{listing.mileage} km</span>
+              </div>
+            )}
           </div>
+
+          {listing.coordinates && listing.coordinates.coordinates && (
+            <LocationMap coordinates={listing.coordinates.coordinates} />
+          )}
         </div>
 
         {listing.description && (

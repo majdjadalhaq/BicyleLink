@@ -8,6 +8,7 @@ import {
   updateStatus,
   getListingFacets,
   getCandidates,
+  incrementViews,
 } from "../controllers/listing.js";
 import {
   authenticate,
@@ -65,5 +66,8 @@ listingRouter.patch(
   requireOwnership(Listing),
   updateStatus,
 );
+
+// PATCH /api/listings/:id/view - Increment view count
+listingRouter.patch("/:id/view", optionalAuth, incrementViews);
 
 export default listingRouter;

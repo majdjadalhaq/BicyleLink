@@ -166,6 +166,32 @@
   font-style: italic;
 }
 
+.listing-card__analytics {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding-top: 12px;
+  border-top: 1px dotted #e2e8f0;
+}
+
+.analytics-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  background-color: #f8fafc;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.analytics-pill svg {
+  color: var(--primary-color);
+}
+
 .listing-card__actions {
   display: flex;
   gap: 10px;

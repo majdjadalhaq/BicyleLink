@@ -46,6 +46,9 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Index for efficient inquiry tracking and fetching listing messages
+messageSchema.index({ listingId: 1, senderId: 1 });
+
 const Message = mongoose.model("Message", messageSchema);
 
 export default Message;

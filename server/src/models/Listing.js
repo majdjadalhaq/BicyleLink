@@ -99,6 +99,8 @@ const listingSchema = new mongoose.Schema({
     required: [true, "condition is required"],
   },
   mileage: { type: Number },
+  views: { type: Number, default: 0 },
+  inquiries: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -32,7 +32,12 @@ const forceUpdateBerlin = async () => {
       console.log(
         `Updating coords for ${listing.location} (ID: ${listing._id})...`,
       );
-      const coords = await geocodeLocation(listing.location);
+      // Explicitly add ", Germany" to avoid ambiguity (was picking Saint Martin!)
+      const query =
+        listing.location.toLowerCase() === "berlin"
+          ? "Berlin, Germany"
+          : listing.location;
+      const coords = await geocodeLocation(query);
 
       if (coords) {
         listing.coordinates = coords;

@@ -390,3 +390,34 @@ export const getCandidates = async (req, res) => {
     res.status(500).json({ success: false, msg: "Unable to get candidates" });
   }
 };
+
+// PATCH /api/listings/:id/view — increment view count
+export const incrementViews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    // Optional: Only increment if the viewer is NOT the owner
+    // We check this here if req.user is available via optionalAuth
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    if (req.user && listing.ownerId.toString() === req.user.id) {
+      // Don't increment for owner, but return success 200 to silence client
+      return res.status(200).json({ success: true, msg: "Owner view ignored" });
+    }
+
+    await Listing.findByIdAndUpdate(id, { $inc: { views: 1 } });
+    res.status(200).json({ success: true, msg: "View count incremented" });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Internal server error" });
+  }
+};

@@ -13,6 +13,7 @@ import testRouter from "./testRouter.js";
 import http from "http";
 import { Server } from "socket.io";
 import Message from "./models/Message.js";
+import Listing from "./models/Listing.js";
 import ConversationStatus from "./models/ConversationStatus.js";
 
 const server = http.createServer(app);
@@ -97,6 +98,24 @@ io.on("connection", (socket) => {
 
       const savedMessage = await Message.create(msg);
       io.to(msg.room).emit("receive_message", savedMessage);
+
+      // --- INQUIRY TRACKING ---
+      const listing = await Listing.findById(msg.listingId);
+      if (listing && listing.ownerId.toString() !== msg.senderId) {
+        // Check if this is the first message from this sender for this listing
+        const existingMessages = await Message.countDocuments({
+          listingId: msg.listingId,
+          senderId: msg.senderId,
+          _id: { $ne: savedMessage._id },
+        });
+
+        if (existingMessages === 0) {
+          // First message from a potential buyer! Increment inquiries.
+          await Listing.findByIdAndUpdate(msg.listingId, {
+            $inc: { inquiries: 1 },
+          });
+        }
+      }
     } catch (error) {
       logError(error);
     }
