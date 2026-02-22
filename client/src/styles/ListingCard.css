@@ -230,6 +230,21 @@
   background-color: #fecaca;
 }
 
+.btn-delete-card--pending {
+  background-color: #fbbf24;
+  color: #92400e;
+  animation: pulse-confirm 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-confirm {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
 .btn-status-card {
   flex: 1;
   padding: 8px 12px;

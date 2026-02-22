@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
@@ -10,8 +10,18 @@ import useToast from "../hooks/useToast";
 const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const { _id, title, images, location, condition, brand } = listing;
   const [isUpdating, setIsUpdating] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const deleteTimerRef = useRef(null);
   const { execute: executeApi } = useApi();
   const { showToast, ToastContainer } = useToast();
+
+  // Auto-reset pendingDelete after 3 seconds
+  useEffect(() => {
+    if (pendingDelete) {
+      deleteTimerRef.current = setTimeout(() => setPendingDelete(false), 3000);
+    }
+    return () => clearTimeout(deleteTimerRef.current);
+  }, [pendingDelete]);
 
   const rawImageUrl =
     images && images.length > 0
@@ -28,12 +38,13 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
 
   const handleDelete = async (e) => {
     e.preventDefault();
-    // Use a custom confirmation via toast instead of window.confirm
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this listing?",
-    );
-    if (!confirmed) return;
+    if (!pendingDelete) {
+      setPendingDelete(true);
+      return;
+    }
 
+    // Second click — actually delete
+    setPendingDelete(false);
     const data = await executeApi(`/api/listings/${_id}`, {
       method: "DELETE",
     });
@@ -164,8 +175,11 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
             >
               {listing.status === "sold" ? "🔄 Reactivate" : "🤝 Sold"}
             </button>
-            <button onClick={handleDelete} className="btn-delete-card">
-              🗑️ Delete
+            <button
+              onClick={handleDelete}
+              className={`btn-delete-card${pendingDelete ? " btn-delete-card--pending" : ""}`}
+            >
+              {pendingDelete ? "⚠️ Confirm?" : "🗑️ Delete"}
             </button>
           </div>
         ) : (
