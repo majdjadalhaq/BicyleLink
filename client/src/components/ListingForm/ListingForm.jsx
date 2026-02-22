@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import InputField from "../form/InputField";
 import SelectField from "../form/SelectField";
@@ -7,7 +7,7 @@ import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
 } from "../../utils/config";
-import "../../styles/CreateListing.css"; // We'll reuse the existing styles for now or refactor later
+import "../../styles/CreateListing.css";
 
 const CATEGORY_OPTIONS = [
   { value: "Road", label: "Road" },
@@ -29,6 +29,9 @@ const CONDITION_OPTIONS = [
   { value: "fair", label: "Fair" },
   { value: "poor", label: "Poor" },
 ];
+
+const MAX_IMAGES = 5;
+const MAX_FILE_SIZE_MB = 5;
 
 const ListingForm = ({
   initialValues,
@@ -52,12 +55,14 @@ const ListingForm = ({
     coordinates: null,
   });
 
-  const [previewCoords, setPreviewCoords] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Derive preview coords from formData — no redundant state
+  const previewCoords = formData.coordinates?.coordinates ?? null;
 
   useEffect(() => {
     if (initialValues) {
@@ -69,58 +74,54 @@ const ListingForm = ({
         category: initialValues.category || "Other",
         condition: initialValues.condition || "good",
       }));
-      if (initialValues.images && Array.isArray(initialValues.images)) {
+      if (Array.isArray(initialValues.images)) {
         setExistingImages(initialValues.images);
-      }
-      if (initialValues.coordinates) {
-        setPreviewCoords(initialValues.coordinates.coordinates);
       }
     }
   }, [initialValues]);
 
-  // Debounced geocoding logic for text input
+  // Debounced geocoding — fires 1.5s after user stops typing a location
   useEffect(() => {
+    if (!formData.location || formData.location.length <= 2) return;
+
     const timer = setTimeout(async () => {
-      // Only geocode if the location strictly changed and isn't empty
-      if (formData.location && formData.location.length > 2) {
-        try {
-          const res = await fetch(
-            `/api/utils/geocode?q=${encodeURIComponent(formData.location)}`,
-          );
-          const data = await res.json();
-          if (data.success) {
-            setPreviewCoords(data.result.coordinates);
-            setFormData((prev) => ({ ...prev, coordinates: data.result }));
-          }
-        } catch (err) {
-          console.error("Geocoding preview failed", err);
+      try {
+        const res = await fetch(
+          `/api/utils/geocode?q=${encodeURIComponent(formData.location)}`,
+        );
+        const data = await res.json();
+        if (data.success) {
+          setFormData((prev) => ({ ...prev, coordinates: data.result }));
         }
+      } catch (err) {
+        console.error("Geocoding preview failed", err);
       }
     }, 1500);
 
     return () => clearTimeout(timer);
   }, [formData.location]);
 
+  // Clean up object URLs to prevent memory leaks
   useEffect(() => {
     return () => {
       newFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     };
   }, [newFiles]);
 
-  const handleChange = (name, value) => {
+  const handleChange = useCallback((name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleUseMyLocation = () => {
+  const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      setFormError("Geolocation is not supported by your browser.");
       return;
     }
 
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
+      async ({ coords }) => {
+        const { latitude, longitude } = coords;
         try {
           const res = await fetch(
             `/api/utils/reverse-geocode?lat=${latitude}&lon=${longitude}`,
@@ -135,10 +136,10 @@ const ListingForm = ({
                 coordinates: [longitude, latitude],
               },
             }));
-            setPreviewCoords([longitude, latitude]);
           }
         } catch (err) {
           console.error("Reverse geocoding failed", err);
+          setFormError("Could not resolve your location address.");
         } finally {
           setIsLocating(false);
         }
@@ -146,18 +147,20 @@ const ListingForm = ({
       (err) => {
         console.error(err);
         setIsLocating(false);
-        alert(
-          "Could not detect your location. Please check browser permissions.",
+        setFormError(
+          "Could not detect your location. Check browser permissions.",
         );
       },
       { timeout: 10000 },
     );
-  };
+  }, []);
 
-  // Handler for when the user drags the pin on the map
-  const handleMapLocationChange = async (newCoords) => {
+  const handleMapLocationChange = useCallback(async (newCoords) => {
     const [lng, lat] = newCoords;
-    setPreviewCoords(newCoords);
+    setFormData((prev) => ({
+      ...prev,
+      coordinates: { type: "Point", coordinates: newCoords },
+    }));
 
     try {
       const res = await fetch(
@@ -165,58 +168,55 @@ const ListingForm = ({
       );
       const data = await res.json();
       if (data.success) {
-        setFormData((prev) => ({
-          ...prev,
-          location: data.result,
-          coordinates: { type: "Point", coordinates: newCoords },
-        }));
+        setFormData((prev) => ({ ...prev, location: data.result }));
       }
     } catch (err) {
       console.error("Reverse geocoding after drag failed", err);
     }
-  };
+  }, []);
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const validFiles = [];
-    let errorMsg = "";
+  const handleFileChange = useCallback(
+    (e) => {
+      const files = Array.from(e.target.files);
 
-    const totalImages = existingImages.length + newFiles.length + files.length;
-    if (totalImages > 5) {
-      setFormError("You can only have a maximum of 5 images.");
-      return;
-    }
-
-    files.forEach((file) => {
-      if (file.size > 5 * 1024 * 1024) {
-        errorMsg = `File ${file.name} is too large. Max 5MB allowed.`;
-      } else {
-        validFiles.push({
-          file,
-          previewUrl: URL.createObjectURL(file),
-        });
+      if (existingImages.length + newFiles.length + files.length > MAX_IMAGES) {
+        setFormError(`You can only have a maximum of ${MAX_IMAGES} images.`);
+        return;
       }
-    });
 
-    if (errorMsg) {
-      setFormError(errorMsg);
-      return;
-    }
+      let errorMsg = "";
+      const validFiles = [];
 
-    setFormError("");
-    setNewFiles((prev) => [...prev, ...validFiles]);
-    e.target.value = "";
-  };
+      files.forEach((file) => {
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          errorMsg = `"${file.name}" is too large. Max ${MAX_FILE_SIZE_MB}MB allowed.`;
+        } else {
+          validFiles.push({ file, previewUrl: URL.createObjectURL(file) });
+        }
+      });
 
-  const removeExistingImage = (index) => {
+      if (errorMsg) {
+        setFormError(errorMsg);
+        return;
+      }
+
+      setFormError("");
+      setNewFiles((prev) => [...prev, ...validFiles]);
+      e.target.value = "";
+    },
+    [existingImages.length, newFiles.length],
+  );
+
+  const removeExistingImage = useCallback((index) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const removeNewFile = (index) => {
-    const fileToRemove = newFiles[index];
-    URL.revokeObjectURL(fileToRemove.previewUrl);
-    setNewFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeNewFile = useCallback((index) => {
+    setNewFiles((prev) => {
+      URL.revokeObjectURL(prev[index].previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
 
   const uploadImageToCloudinary = async (file) => {
     const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
@@ -234,13 +234,15 @@ const ListingForm = ({
     e.preventDefault();
     setFormError("");
 
+    const { title, description, price, location, category, condition } =
+      formData;
     if (
-      !formData.title ||
-      !formData.description ||
-      !formData.price ||
-      !formData.location ||
-      !formData.category ||
-      !formData.condition
+      !title ||
+      !description ||
+      !price ||
+      !location ||
+      !category ||
+      !condition
     ) {
       setFormError("Please fill in all required fields.");
       return;
@@ -252,22 +254,17 @@ const ListingForm = ({
     }
 
     setIsUploading(true);
-
     try {
       const uploadedUrls = await Promise.all(
         newFiles.map((item) => uploadImageToCloudinary(item.file)),
       );
 
-      const finalImages = [...existingImages, ...uploadedUrls];
-
-      const payload = {
+      await onSubmit({
         ...formData,
         price: Number(formData.price),
         year: formData.year ? Number(formData.year) : undefined,
-        images: finalImages,
-      };
-
-      await onSubmit(payload);
+        images: [...existingImages, ...uploadedUrls],
+      });
     } catch (err) {
       console.error(err);
       setFormError("Failed to upload images or save listing.");
@@ -276,20 +273,23 @@ const ListingForm = ({
     }
   };
 
+  const totalImages = existingImages.length + newFiles.length;
+
   return (
     <form onSubmit={handleSubmit} className="create-listing__form">
       {formError && <div className="create-listing__error">{formError}</div>}
 
       <div className="create-listing__image-section">
-        <label>Bike Photos * (Max 5)</label>
+        <label>Bike Photos * (Max {MAX_IMAGES})</label>
         <div className="image-gallery">
           {existingImages.map((url, index) => (
             <div key={`existing-${index}`} className="gallery-item">
-              <img src={url} alt={`Existing ${index}`} />
+              <img src={url} alt={`Existing ${index + 1}`} />
               <button
                 type="button"
                 className="remove-img-btn"
                 onClick={() => removeExistingImage(index)}
+                aria-label="Remove image"
               >
                 ×
               </button>
@@ -298,18 +298,19 @@ const ListingForm = ({
 
           {newFiles.map((item, index) => (
             <div key={`new-${index}`} className="gallery-item">
-              <img src={item.previewUrl} alt={`New Preview ${index}`} />
+              <img src={item.previewUrl} alt={`Preview ${index + 1}`} />
               <button
                 type="button"
                 className="remove-img-btn"
                 onClick={() => removeNewFile(index)}
+                aria-label="Remove image"
               >
                 ×
               </button>
             </div>
           ))}
 
-          {existingImages.length + newFiles.length < 5 && (
+          {totalImages < MAX_IMAGES && (
             <button
               type="button"
               className="add-image-trigger"
@@ -364,7 +365,7 @@ const ListingForm = ({
           required
         />
 
-        <div className="location-input-group" style={{ position: "relative" }}>
+        <div className="location-input-group">
           <InputField
             name="location"
             placeholder="Location *"
@@ -377,19 +378,8 @@ const ListingForm = ({
             className="btn-use-location"
             onClick={handleUseMyLocation}
             disabled={isLocating}
-            style={{
-              position: "absolute",
-              right: "10px",
-              top: "10px",
-              background: "none",
-              border: "none",
-              color: "#7c3aed",
-              fontWeight: "600",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-            }}
           >
-            {isLocating ? "Locating..." : "📍 Use My Location"}
+            {isLocating ? "Locating…" : "📍 Use My Location"}
           </button>
         </div>
 
@@ -432,17 +422,9 @@ const ListingForm = ({
         />
       </div>
 
-      {/* Seller Preview Map with Draggable Pin */}
       {previewCoords && (
         <div className="seller-preview-map">
-          <p
-            style={{
-              fontSize: "0.85rem",
-              color: "#64748b",
-              marginBottom: "8px",
-              fontWeight: "500",
-            }}
-          >
+          <p className="seller-map-hint">
             🗺️ Location Preview (Drag the pin to set your listing&apos;s center)
           </p>
           <LocationMap
@@ -460,9 +442,9 @@ const ListingForm = ({
         disabled={isLoading || isUploading}
       >
         {isUploading
-          ? "Uploading..."
+          ? "Uploading…"
           : isLoading
-            ? "Saving..."
+            ? "Saving…"
             : isEditMode
               ? "Update Listing"
               : "Publish Listing"}
