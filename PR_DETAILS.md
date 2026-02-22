@@ -18,6 +18,16 @@ This PR improves the listing system to make it better and faster. It includes se
 - **Code Splitting**: Used `React.lazy` to make the initial page load faster.
 - **Backend Security**: Consolidated validation in the Mongoose model and enforced image limits (max 5 per listing).
 
+### 3. Interactive Map & Location (PR 3)
+
+- **Smart Map for Buyers**: Buyers can now see a map with two pins: one for their location and one for the bike. The map draws a line between them and gets bigger or smaller automatically so you can see both pins clearly.
+- **Easy Map for Sellers**: Sellers have a map pin they can move around easily. It automatically finds their correct address when they move the pin.
+- **Better Location System**: The server is now upgraded to understand real addresses and map coordinates perfectly.
+
+### 4. Notifications & Better Experience (PR 4)
+
+- **Notification Bell**: We added a new notification bell at the top of the page. You can click it to open a dropdown menu and see your latest updates.
+
 ## Technical Details
 
 - **Backend**: Updated `getListings` for backend search/pagination and added a status update route.

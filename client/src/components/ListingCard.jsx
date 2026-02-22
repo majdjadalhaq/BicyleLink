@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/ListingCard.css";
@@ -36,44 +36,50 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
 
   const displayPrice = listing.price?.$numberDecimal || listing.price;
 
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    if (!pendingDelete) {
-      setPendingDelete(true);
-      return;
-    }
+  const handleDelete = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (!pendingDelete) {
+        setPendingDelete(true);
+        return;
+      }
 
-    // Second click — actually delete
-    setPendingDelete(false);
-    const data = await executeApi(`/api/listings/${_id}`, {
-      method: "DELETE",
-    });
+      // Second click — actually delete
+      setPendingDelete(false);
+      const data = await executeApi(`/api/listings/${_id}`, {
+        method: "DELETE",
+      });
 
-    if (data?.success !== false) {
-      onUpdated?.(); // Notify parent to refresh list — no reload needed
-    } else {
-      showToast("Failed to delete listing", "error");
-    }
-  };
+      if (data?.success !== false) {
+        onUpdated?.(); // Notify parent to refresh list — no reload needed
+      } else {
+        showToast("Failed to delete listing", "error");
+      }
+    },
+    [pendingDelete, _id, executeApi, onUpdated, showToast],
+  );
 
-  const handleStatusToggle = async (e) => {
-    e.preventDefault();
-    setIsUpdating(true);
-    const newStatus = listing.status === "active" ? "sold" : "active";
+  const handleStatusToggle = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setIsUpdating(true);
+      const newStatus = listing.status === "active" ? "sold" : "active";
 
-    const data = await executeApi(`/api/listings/${_id}/status`, {
-      method: "PATCH",
-      body: { status: newStatus },
-    });
+      const data = await executeApi(`/api/listings/${_id}/status`, {
+        method: "PATCH",
+        body: { status: newStatus },
+      });
 
-    setIsUpdating(false);
+      setIsUpdating(false);
 
-    if (data?.success) {
-      onUpdated?.(); // Notify parent — no reload needed
-    } else {
-      showToast("Failed to update status", "error");
-    }
-  };
+      if (data?.success) {
+        onUpdated?.(); // Notify parent — no reload needed
+      } else {
+        showToast("Failed to update status", "error");
+      }
+    },
+    [listing.status, _id, executeApi, onUpdated, showToast],
+  );
 
   return (
     <div className="listing-card" data-id={_id}>
