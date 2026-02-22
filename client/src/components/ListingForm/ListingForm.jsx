@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import InputField from "../form/InputField";
 import SelectField from "../form/SelectField";
+import LocationMap from "../LocationMap";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
@@ -48,12 +49,14 @@ const ListingForm = ({
     condition: "",
     category: "",
     images: [],
+    coordinates: null,
   });
 
-  // Keep track of existing images (URLs) vs new files to upload
+  const [previewCoords, setPreviewCoords] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
-  const [newFiles, setNewFiles] = useState([]); // Array of { file, previewUrl }
+  const [newFiles, setNewFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
@@ -63,16 +66,41 @@ const ListingForm = ({
         ...initialValues,
         price: initialValues.price ? String(initialValues.price) : "",
         year: initialValues.year ? String(initialValues.year) : "",
-        category: initialValues.category || "Other", // Default for legacy data
-        condition: initialValues.condition || "good", // Default for legacy data
+        category: initialValues.category || "Other",
+        condition: initialValues.condition || "good",
       }));
       if (initialValues.images && Array.isArray(initialValues.images)) {
         setExistingImages(initialValues.images);
       }
+      if (initialValues.coordinates) {
+        setPreviewCoords(initialValues.coordinates.coordinates);
+      }
     }
   }, [initialValues]);
 
-  // Cleanup object URLs on unmount
+  // Debounced geocoding logic for text input
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      // Only geocode if the location strictly changed and isn't empty
+      if (formData.location && formData.location.length > 2) {
+        try {
+          const res = await fetch(
+            `/api/utils/geocode?q=${encodeURIComponent(formData.location)}`,
+          );
+          const data = await res.json();
+          if (data.success) {
+            setPreviewCoords(data.result.coordinates);
+            setFormData((prev) => ({ ...prev, coordinates: data.result }));
+          }
+        } catch (err) {
+          console.error("Geocoding preview failed", err);
+        }
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [formData.location]);
+
   useEffect(() => {
     return () => {
       newFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
@@ -81,6 +109,71 @@ const ListingForm = ({
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `/api/utils/reverse-geocode?lat=${latitude}&lon=${longitude}`,
+          );
+          const data = await res.json();
+          if (data.success) {
+            setFormData((prev) => ({
+              ...prev,
+              location: data.result,
+              coordinates: {
+                type: "Point",
+                coordinates: [longitude, latitude],
+              },
+            }));
+            setPreviewCoords([longitude, latitude]);
+          }
+        } catch (err) {
+          console.error("Reverse geocoding failed", err);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        console.error(err);
+        setIsLocating(false);
+        alert(
+          "Could not detect your location. Please check browser permissions.",
+        );
+      },
+      { timeout: 10000 },
+    );
+  };
+
+  // Handler for when the user drags the pin on the map
+  const handleMapLocationChange = async (newCoords) => {
+    const [lng, lat] = newCoords;
+    setPreviewCoords(newCoords);
+
+    try {
+      const res = await fetch(
+        `/api/utils/reverse-geocode?lat=${lat}&lon=${lng}`,
+      );
+      const data = await res.json();
+      if (data.success) {
+        setFormData((prev) => ({
+          ...prev,
+          location: data.result,
+          coordinates: { type: "Point", coordinates: newCoords },
+        }));
+      }
+    } catch (err) {
+      console.error("Reverse geocoding after drag failed", err);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -112,7 +205,6 @@ const ListingForm = ({
 
     setFormError("");
     setNewFiles((prev) => [...prev, ...validFiles]);
-    // Reset input so change event fires again if same file selected
     e.target.value = "";
   };
 
@@ -162,15 +254,12 @@ const ListingForm = ({
     setIsUploading(true);
 
     try {
-      // 1. Upload new files
       const uploadedUrls = await Promise.all(
         newFiles.map((item) => uploadImageToCloudinary(item.file)),
       );
 
-      // 2. Combine with existing images
       const finalImages = [...existingImages, ...uploadedUrls];
 
-      // 3. Prepare payload
       const payload = {
         ...formData,
         price: Number(formData.price),
@@ -194,7 +283,6 @@ const ListingForm = ({
       <div className="create-listing__image-section">
         <label>Bike Photos * (Max 5)</label>
         <div className="image-gallery">
-          {/* Existing Images */}
           {existingImages.map((url, index) => (
             <div key={`existing-${index}`} className="gallery-item">
               <img src={url} alt={`Existing ${index}`} />
@@ -208,7 +296,6 @@ const ListingForm = ({
             </div>
           ))}
 
-          {/* New File Previews */}
           {newFiles.map((item, index) => (
             <div key={`new-${index}`} className="gallery-item">
               <img src={item.previewUrl} alt={`New Preview ${index}`} />
@@ -261,7 +348,7 @@ const ListingForm = ({
           onChange={(e) => handleChange("description", e.target.value)}
           placeholder="Describe your bike..."
           rows={5}
-          className="form-textarea" // Ensure you have/add styles for this or reuse styles
+          className="form-textarea"
           required
         />
       </div>
@@ -277,13 +364,34 @@ const ListingForm = ({
           required
         />
 
-        <InputField
-          name="location"
-          placeholder="Location *"
-          value={formData.location}
-          onChange={(val) => handleChange("location", val)}
-          required
-        />
+        <div className="location-input-group" style={{ position: "relative" }}>
+          <InputField
+            name="location"
+            placeholder="Location *"
+            value={formData.location}
+            onChange={(val) => handleChange("location", val)}
+            required
+          />
+          <button
+            type="button"
+            className="btn-use-location"
+            onClick={handleUseMyLocation}
+            disabled={isLocating}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "10px",
+              background: "none",
+              border: "none",
+              color: "#7c3aed",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+            }}
+          >
+            {isLocating ? "Locating..." : "📍 Use My Location"}
+          </button>
+        </div>
 
         <SelectField
           name="category"
@@ -323,6 +431,28 @@ const ListingForm = ({
           onChange={(val) => handleChange("year", val)}
         />
       </div>
+
+      {/* Seller Preview Map with Draggable Pin */}
+      {previewCoords && (
+        <div className="seller-preview-map">
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "#64748b",
+              marginBottom: "8px",
+              fontWeight: "500",
+            }}
+          >
+            🗺️ Location Preview (Drag the pin to set your listing&apos;s center)
+          </p>
+          <LocationMap
+            coordinates={previewCoords}
+            draggable={true}
+            onLocationChange={handleMapLocationChange}
+            title="Set Listing Location"
+          />
+        </div>
+      )}
 
       <button
         type="submit"
