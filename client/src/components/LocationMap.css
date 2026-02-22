@@ -3,7 +3,7 @@
   margin-bottom: 0.5rem;
 }
 
-.location-map-t.distance-badge {
+.distance-badge {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   padding: 8px 16px;
