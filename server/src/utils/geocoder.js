@@ -46,3 +46,53 @@ export const geocodeLocation = async (locationString) => {
     return null;
   }
 };
+
+/**
+ * Reverse geocodes a lat/lng pair to a readable location string using the Nominatim API.
+ *
+ * @param {number} lat - Latitude.
+ * @param {number} lon - Longitude.
+ * @returns {Promise<string | null>}
+ */
+export const reverseGeocode = async (lat, lon) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`;
+
+    const response = await fetch(url, {
+      headers: { "User-Agent": "BiCycleL/1.0 (hyf-project)" },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      logError(`Reverse geocoding failed with status ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data && data.display_name) {
+      const { address } = data;
+      const city =
+        address.city || address.town || address.village || address.suburb;
+      const country = address.country;
+
+      if (city && country) {
+        return `${city}, ${country}`;
+      }
+      return data.display_name.split(",").slice(0, 2).join(",").trim();
+    }
+
+    return null;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name !== "AbortError") {
+      logError(error);
+    }
+    return null;
+  }
+};

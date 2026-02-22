@@ -9,6 +9,7 @@ import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
 import messageRouter from "./routes/message.js";
 import reviewRouter from "./routes/review.js";
+import utilsRouter from "./routes/utils.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
 
@@ -67,6 +68,7 @@ app.use("/api/listings", listingRouter);
 app.use("/api/favorites", favoriteRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/utils", utilsRouter);
 
 // Error Handling
 app.use(errorHandler);
