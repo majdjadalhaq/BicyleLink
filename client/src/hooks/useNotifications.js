@@ -1,41 +1,70 @@
-import { useMemo, useState } from "react";
-
-const MOCK = [
-  {
-    id: "n1",
-    type: "message",
-    title: "New message",
-    body: "New message received",
-    link: "/inbox",
-    read: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "n2",
-    type: "favorite",
-    title: "Added to favorites",
-    body: "Someone added your listing to favorites",
-    link: "/my-listings",
-    read: true,
-    createdAt: new Date(Date.now() - 3600_000).toISOString(),
-  },
-];
+import { useEffect, useState, useCallback } from "react";
+import useApi from "./useApi";
+import { useSocket } from "./useSocket";
 
 export default function useNotifications(user) {
-  const [overrides, setOverrides] = useState({}); // store read status changes
+  const [items, setItems] = useState([]);
+  const [unread, setUnread] = useState(0);
+  const { execute } = useApi();
+  const socket = useSocket();
 
-  const items = useMemo(() => {
-    if (!user) return [];
-    return MOCK.map((n) =>
-      overrides[n.id] ? { ...n, ...overrides[n.id] } : n,
-    );
-  }, [user, overrides]);
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const data = await execute("/api/notifications");
+    if (data?.success) {
+      setItems(data.result);
+    }
+  }, [user, execute]);
 
-  const unread = useMemo(() => items.filter((n) => !n.read).length, [items]);
+  const fetchUnread = useCallback(async () => {
+    if (!user) return;
+    const data = await execute("/api/notifications/unread-count");
+    if (data?.success) {
+      setUnread(data.result);
+    }
+  }, [user, execute]);
 
-  const markAsRead = (id) => {
-    setOverrides((prev) => ({ ...prev, [id]: { read: true } }));
-  };
+  useEffect(() => {
+    const loadData = async () => {
+      if (user) {
+        await fetchNotifications();
+        await fetchUnread();
+      } else {
+        setItems([]);
+        setUnread(0);
+      }
+    };
+    loadData();
+  }, [user, fetchNotifications, fetchUnread]);
 
-  return { items, unread, markAsRead };
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handleNewNotification = (notification) => {
+      setItems((prev) => [notification, ...prev]);
+      if (!notification.read) {
+        setUnread((prev) => prev + 1);
+      }
+    };
+
+    socket.on("new_notification", handleNewNotification);
+    return () => socket.off("new_notification", handleNewNotification);
+  }, [socket, user]);
+
+  const markAsRead = useCallback(
+    async (id) => {
+      const data = await execute(`/api/notifications/${id}/read`, {
+        method: "PATCH",
+      });
+      if (data?.success) {
+        setItems((prev) =>
+          prev.map((n) => (n._id === id ? { ...n, _id: id, read: true } : n)),
+        );
+        setUnread((prev) => Math.max(prev - 1, 0));
+      }
+    },
+    [execute],
+  );
+
+  return { items, unread, markAsRead, refresh: fetchNotifications };
 }

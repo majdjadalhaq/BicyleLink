@@ -1,6 +1,7 @@
 import Message from "../models/Message.js";
 import Listing from "../models/Listing.js";
 import ConversationStatus from "../models/ConversationStatus.js";
+import Notification from "../models/Notification.js";
 import { logError } from "../util/logging.js";
 
 const onlineUsers = new Map();
@@ -95,6 +96,23 @@ export const initSocket = (io) => {
             });
           }
         }
+
+        // --- NOTIFICATION ---
+        // Create notification for receiver
+        const notification = await Notification.create({
+          userId: msg.receiverId,
+          type: "message",
+          title: "New message",
+          body:
+            msg.content.length > 50
+              ? `${msg.content.substring(0, 47)}...`
+              : msg.content,
+          link: "/inbox", // In a future enhancement, this could be /chat/roomID
+          read: false,
+        });
+
+        // Emit real-time notification to the receiver's personal room
+        io.to(`user_${msg.receiverId}`).emit("new_notification", notification);
       } catch (error) {
         logError(error);
       }

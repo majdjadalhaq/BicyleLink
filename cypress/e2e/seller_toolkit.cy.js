@@ -16,9 +16,11 @@ describe("Seller Toolkit - Location Features", () => {
     const mockCoords = { latitude: 52.52, longitude: 13.405 };
 
     cy.window().then((win) => {
-      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake((cb) => {
-        cb({ coords: mockCoords });
-      });
+      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake(
+        (cb) => {
+          cb({ coords: mockCoords });
+        },
+      );
     });
 
     cy.intercept("GET", "/api/utils/reverse-geocode*", {

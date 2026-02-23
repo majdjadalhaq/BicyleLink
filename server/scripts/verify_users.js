@@ -42,14 +42,14 @@ const run = async () => {
         country: "Germany",
         isVerified: true,
         agreedToTerms: true,
-      }
+      },
     ];
 
     for (const u of users) {
       console.log(`Processing ${u.email}...`);
       const result = await User.findOneAndUpdate(
         { email: u.email },
-        { 
+        {
           $set: {
             name: u.name,
             password: u.password,
@@ -60,12 +60,14 @@ const run = async () => {
             failedLoginAttempts: 0,
             lockoutUntil: null,
             verificationCode: undefined, // Clear any pending verification
-            verificationCodeExpiry: undefined
-          }
+            verificationCodeExpiry: undefined,
+          },
         },
-        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
       );
-      console.log(`✓ Upserted ${u.email} (ID: ${result._id}, Verified: ${result.isVerified})`);
+      console.log(
+        `✓ Upserted ${u.email} (ID: ${result._id}, Verified: ${result.isVerified})`,
+      );
     }
 
     console.log("Verification checks completed.");

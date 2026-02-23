@@ -33,7 +33,7 @@ export default [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "quotes": ["error", "double"],
+      quotes: ["error", "double"],
     },
   },
 ];

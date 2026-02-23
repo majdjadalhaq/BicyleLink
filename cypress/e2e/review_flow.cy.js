@@ -1,4 +1,3 @@
-
 describe("Seller Rating and Review Flow", () => {
   const sellerEmail = "seller@test.com";
   const sellerPassword = "Password123!";
@@ -31,10 +30,12 @@ describe("Seller Rating and Review Flow", () => {
     cy.get('input[name="brand"]').type("Cypress Brand");
     cy.get('select[name="condition"]').select("Good");
     cy.get('select[name="category"]').select("Other");
-    cy.get('#description').type("This is a test listing for review flow");
-    cy.get('input[type="file"]').selectFile("cypress/fixtures/test_image.png", { force: true });
+    cy.get("#description").type("This is a test listing for review flow");
+    cy.get('input[type="file"]').selectFile("cypress/fixtures/test_image.png", {
+      force: true,
+    });
     cy.get('input[name="price"]').type("150");
-    cy.get('input[name="location"]').type("Berlin"); 
+    cy.get('input[name="location"]').type("Berlin");
     cy.get('button[type="submit"]').click();
 
     cy.location("pathname", { timeout: 15000 }).should("include", "/listings/");
@@ -46,13 +47,20 @@ describe("Seller Rating and Review Flow", () => {
     login(buyerEmail, buyerPassword);
     cy.visit("/");
     cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
-    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
+    cy.contains(".listing-card__title", listingTitle)
+      .first()
+      .parents(".listing-card")
+      .within(() => {
         cy.contains("View Details").click();
-    });
+      });
 
     cy.get(".btn-contact").click();
-    cy.get('input[placeholder*="message"]', { timeout: 10000 }).type("Hi, I want to buy this!{enter}");
-    cy.contains("Hi, I want to buy this!", { timeout: 10000 }).should("be.visible");
+    cy.get('input[placeholder*="message"]', { timeout: 10000 }).type(
+      "Hi, I want to buy this!{enter}",
+    );
+    cy.contains("Hi, I want to buy this!", { timeout: 10000 }).should(
+      "be.visible",
+    );
     cy.get(".profile-toggle").click();
     cy.contains("Logout").click();
 
@@ -60,17 +68,22 @@ describe("Seller Rating and Review Flow", () => {
     login(sellerEmail, sellerPassword);
     cy.visit("/");
     cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
-    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
+    cy.contains(".listing-card__title", listingTitle)
+      .first()
+      .parents(".listing-card")
+      .within(() => {
         cy.contains("View Details").click();
-    });
+      });
 
     cy.get("button").contains("Mark as Sold").click();
     cy.get(".modal-content", { timeout: 10000 }).should("be.visible");
     cy.contains("Loading buyers...").should("not.exist");
-    
-    cy.get("select option").contains(buyerEmail).then($opt => {
-      cy.get("select").select($opt.val());
-    });
+
+    cy.get("select option")
+      .contains(buyerEmail)
+      .then(($opt) => {
+        cy.get("select").select($opt.val());
+      });
     cy.get("button").contains("Confirm Sold").click();
     cy.get(".toast--success", { timeout: 10000 }).should("be.visible");
     cy.get(".profile-toggle").click();
@@ -80,18 +93,22 @@ describe("Seller Rating and Review Flow", () => {
     login(buyerEmail, buyerPassword);
     cy.visit("/");
     cy.get('input[placeholder*="Search"]').type(`${listingTitle}{enter}`);
-    cy.contains(".listing-card__title", listingTitle).first().parents(".listing-card").within(() => {
+    cy.contains(".listing-card__title", listingTitle)
+      .first()
+      .parents(".listing-card")
+      .within(() => {
         cy.contains("View Details").click();
-    });
+      });
 
     cy.contains("Rate Seller").click();
     cy.get(".star-btn").last().click();
     cy.get("textarea.review-comment-input").type(reviewComment);
     cy.get('button[type="submit"]').click();
 
-    cy.get(".toast--success", { timeout: 10000 }).should("be.visible")
+    cy.get(".toast--success", { timeout: 10000 })
+      .should("be.visible")
       .and("contain", "Review submitted successfully");
-    
+
     // Verify review in list
     cy.contains(reviewComment).should("be.visible");
     cy.get(".reviews-modal-close").click();
@@ -107,7 +124,7 @@ describe("Seller Rating and Review Flow", () => {
     cy.contains("Delete").click();
     cy.on("window:confirm", () => true);
     cy.contains(updatedComment).should("not.exist");
-    
+
     cy.get(".reviews-modal-close").click();
     cy.contains("Rate Seller").should("be.visible");
   });

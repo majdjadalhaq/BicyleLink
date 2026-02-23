@@ -11,9 +11,11 @@ describe("Buyer Experience - Proximity Features", () => {
     const mockCoords = { latitude: 52.52, longitude: 13.405 };
 
     cy.window().then((win) => {
-      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake((cb) => {
-        cb({ coords: mockCoords });
-      });
+      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake(
+        (cb) => {
+          cb({ coords: mockCoords });
+        },
+      );
     });
 
     // Initial state — no distance badge or user marker yet
@@ -31,7 +33,9 @@ describe("Buyer Experience - Proximity Features", () => {
     cy.get(".user-location-marker", { timeout: 5000 }).should("exist");
 
     // The button row should now show "Open in Google Maps"
-    cy.get(".btn-map-action").contains("Open in Google Maps").should("be.visible");
+    cy.get(".btn-map-action")
+      .contains("Open in Google Maps")
+      .should("be.visible");
 
     // View toggles should appear in the header
     cy.get(".map-view-toggles").should("be.visible");
@@ -42,9 +46,11 @@ describe("Buyer Experience - Proximity Features", () => {
     const mockCoords = { latitude: 52.52, longitude: 13.405 };
 
     cy.window().then((win) => {
-      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake((cb) => {
-        cb({ coords: mockCoords });
-      });
+      cy.stub(win.navigator.geolocation, "getCurrentPosition").callsFake(
+        (cb) => {
+          cb({ coords: mockCoords });
+        },
+      );
     });
 
     cy.get(".btn-map-primary").click();

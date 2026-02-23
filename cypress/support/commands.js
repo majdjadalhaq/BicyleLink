@@ -41,5 +41,8 @@ Cypress.Commands.add("requestFromDatabase", (url) => {
 });
 
 Cypress.Commands.add("seedDatabase", () => {
-  return cy.request("POST", "/api/test/seed").its("status").should("equal", 201);
+  return cy
+    .request("POST", "/api/test/seed")
+    .its("status")
+    .should("equal", 201);
 });
