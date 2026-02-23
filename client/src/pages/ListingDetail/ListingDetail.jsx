@@ -13,6 +13,7 @@ import ListingHeader from "./components/ListingHeader";
 import ListingInfo from "./components/ListingInfo";
 import ListingActions from "./components/ListingActions";
 import ListingSpecs from "./components/ListingSpecs";
+import ReportModal from "../../components/ReportModal/ReportModal";
 
 // Hooks
 import useListingDetail from "./hooks/useListingDetail";
@@ -46,6 +47,10 @@ const ListingDetail = () => {
     handleReviewSubmit,
     ToastContainer,
     displayPrice,
+    reportModalOpen,
+    setReportModalOpen,
+    isSubmittingReport,
+    handleReportSubmit,
   } = useListingDetail();
 
   if (loading)
@@ -91,6 +96,7 @@ const ListingDetail = () => {
             user={user}
             id={id}
             handleStatusClick={handleStatusClick}
+            onReportClick={() => setReportModalOpen(true)}
           />
 
           <SellerCard
@@ -144,6 +150,14 @@ const ListingDetail = () => {
           setHasReviewed(false);
           setReviewsRefreshTrigger((prev) => prev + 1);
         }}
+      />
+
+      <ReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        onSubmit={handleReportSubmit}
+        isSubmitting={isSubmittingReport}
+        targetTitle={listing.title}
       />
     </div>
   );

@@ -308,3 +308,61 @@ export const updateListingByAdmin = async (req, res) => {
     res.status(500).json({ success: false, msg: "Unable to update listing" });
   }
 };
+
+export const getReportsByAdmin = async (req, res) => {
+  try {
+    const reports = await Report.find()
+      .populate("reporterId", "name email")
+      .sort({ createdAt: -1 });
+
+    // Manual population for targetId since it can be multiple models
+    const populatedReports = await Promise.all(
+      reports.map(async (report) => {
+        let target = null;
+        if (report.targetType === "Listing") {
+          target = await Listing.findById(report.targetId).select(
+            "title images",
+          );
+        } else if (report.targetType === "User") {
+          target = await User.findById(report.targetId).select(
+            "name email profilePicture",
+          );
+        }
+        return { ...report.toObject(), target };
+      }),
+    );
+
+    res.status(200).json({ success: true, reports: populatedReports });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to retrieve reports" });
+  }
+};
+
+export const updateReportStatusByAdmin = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    if (!["pending", "resolved", "dismissed"].includes(status)) {
+      return res.status(400).json({ success: false, msg: "Invalid status" });
+    }
+
+    const report = await Report.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    ).populate("reporterId", "name email");
+
+    if (!report) {
+      return res.status(404).json({ success: false, msg: "Report not found" });
+    }
+
+    res.status(200).json({ success: true, report });
+  } catch (error) {
+    logError(error);
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to update report status" });
+  }
+};

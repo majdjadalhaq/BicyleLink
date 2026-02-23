@@ -25,6 +25,8 @@ const useListingDetail = () => {
   const [reviewsListOpen, setReviewsListOpen] = useState(false);
   const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   // Reset when navigating between listings
   if (id !== prevId) {
@@ -156,6 +158,27 @@ const useListingDetail = () => {
     }
   };
 
+  const handleReportSubmit = async (reason) => {
+    if (!user) {
+      navigate("/login", { state: { from: `/listings/${id}` } });
+      return;
+    }
+
+    setIsSubmittingReport(true);
+    const data = await executeApi("/api/reports", {
+      method: "POST",
+      body: { targetId: id, targetType: "Listing", reason },
+    });
+    setIsSubmittingReport(false);
+
+    if (data?.success) {
+      setReportModalOpen(false);
+      showToast("Listing reported successfully", "success");
+    } else {
+      showToast(data?.msg || "Failed to submit report", "error");
+    }
+  };
+
   const displayPrice = listing ? formatPrice(listing.price) : "";
 
   return {
@@ -184,6 +207,10 @@ const useListingDetail = () => {
     handleStatusClick,
     handleStatusUpdate,
     handleReviewSubmit,
+    reportModalOpen,
+    setReportModalOpen,
+    isSubmittingReport,
+    handleReportSubmit,
     navigate,
     showToast,
     ToastContainer,

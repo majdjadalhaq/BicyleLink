@@ -12,6 +12,7 @@ import reviewRouter from "./routes/review.js";
 import utilsRouter from "./routes/utils.js";
 import adminRouter from "./routes/admin.js";
 import notificationRouter from "./routes/notification.js";
+import reportRouter from "./routes/report.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
 
@@ -73,6 +74,7 @@ app.use("/api/reviews", reviewRouter);
 app.use("/api/utils", utilsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/reports", reportRouter);
 
 // Error Handling
 app.use(errorHandler);

@@ -12,6 +12,8 @@ import {
   deleteListingByAdmin,
   getAdminSentWarnings,
   updateListingByAdmin,
+  getReportsByAdmin,
+  updateReportStatusByAdmin,
 } from "../controllers/admin.js";
 
 const adminRouter = express.Router();
@@ -35,5 +37,9 @@ adminRouter.get("/listings", getListings);
 adminRouter.patch("/listings/:id/featured", toggleListingFeatured);
 adminRouter.patch("/listings/:id", updateListingByAdmin);
 adminRouter.delete("/listings/:id", deleteListingByAdmin);
+
+// Report Management
+adminRouter.get("/reports", getReportsByAdmin);
+adminRouter.patch("/reports/:id", updateReportStatusByAdmin);
 
 export default adminRouter;
