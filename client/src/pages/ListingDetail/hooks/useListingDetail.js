@@ -1,0 +1,194 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
+import useFetch from "../../../hooks/useFetch";
+import useApi from "../../../hooks/useApi";
+import useToast from "../../../hooks/useToast";
+import { formatPrice } from "../../../utils/formatPrice";
+
+const useListingDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showToast, ToastContainer } = useToast();
+
+  const [listing, setListing] = useState(null);
+  const [prevId, setPrevId] = useState(id);
+
+  // Modal and selection state
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+  const [selectedBuyerId, setSelectedBuyerId] = useState("");
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewsListOpen, setReviewsListOpen] = useState(false);
+  const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
+  const [hasReviewed, setHasReviewed] = useState(false);
+
+  // Reset when navigating between listings
+  if (id !== prevId) {
+    setListing(null);
+    setPrevId(id);
+  }
+
+  const isOwner = user && listing && user?._id === listing.ownerId?._id;
+  const isBuyer = user && listing && user?._id === listing.buyerId;
+  const canRate = isBuyer && listing?.status === "sold" && !hasReviewed;
+  const canViewReviews = (listing?.ownerId?.reviewCount ?? 0) > 0;
+
+  const { execute: executeApi } = useApi();
+
+  // Fetch listing details
+  const {
+    isLoading: loading,
+    error,
+    performFetch,
+    cancelFetch,
+  } = useFetch(`/listings/${id}`, (response) => {
+    setListing(response.result);
+  });
+
+  useEffect(() => {
+    performFetch();
+    return () => cancelFetch();
+  }, [id, reviewsRefreshTrigger]);
+
+  // Track page view
+  useEffect(() => {
+    if (!listing || !id) return;
+
+    const trackView = async () => {
+      const isActuallyOwner =
+        user && user._id === (listing.ownerId?._id || listing.ownerId);
+      if (!isActuallyOwner) {
+        await executeApi(`/api/listings/${id}/view`, { method: "PATCH" });
+      }
+    };
+
+    trackView();
+  }, [id, !!listing]);
+
+  // Fetch candidate buyers when the status modal opens
+  useEffect(() => {
+    if (!statusModalOpen) return;
+
+    const fetchCandidates = async () => {
+      setIsLoadingCandidates(true);
+      const data = await executeApi(`/api/listings/${id}/candidates`);
+      if (data?.success) {
+        setCandidates(data.result);
+      }
+      setIsLoadingCandidates(false);
+    };
+
+    fetchCandidates();
+  }, [statusModalOpen, id]);
+
+  // Check if the current user has already reviewed this listing
+  useEffect(() => {
+    if (!user || !id) return;
+
+    const checkReview = async () => {
+      const data = await executeApi(`/api/reviews/check?listingId=${id}`);
+      if (data?.success) {
+        setHasReviewed(data.hasReviewed);
+      }
+    };
+
+    checkReview();
+  }, [id, user, reviewsRefreshTrigger]);
+
+  const handleStatusClick = () => {
+    if (listing.status === "active") {
+      setStatusModalOpen(true);
+    } else {
+      handleStatusUpdate("active");
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus) => {
+    const buyerId =
+      newStatus === "sold" && selectedBuyerId !== "other"
+        ? selectedBuyerId
+        : null;
+
+    const data = await executeApi(`/api/listings/${id}/status`, {
+      method: "PATCH",
+      body: { status: newStatus, ...(buyerId ? { buyerId } : {}) },
+    });
+
+    if (data?.success) {
+      setListing((prev) => ({
+        ...prev,
+        status: data.listing.status,
+        buyerId: data.listing.buyerId,
+      }));
+      setStatusModalOpen(false);
+      showToast(`Listing marked as ${newStatus}`, "success");
+    } else {
+      showToast("Failed to update status", "error");
+    }
+  };
+
+  const handleReviewSubmit = async ({ rating, comment }) => {
+    setIsSubmittingReview(true);
+
+    const targetId = listing.ownerId?._id || listing.ownerId;
+    const data = await executeApi("/api/reviews", {
+      method: "POST",
+      body: { targetId, listingId: listing._id, rating, comment },
+    });
+
+    setIsSubmittingReview(false);
+
+    if (data?.success) {
+      setReviewModalOpen(false);
+      setReviewsRefreshTrigger((prev) => prev + 1);
+      setHasReviewed(true);
+      setReviewsListOpen(true);
+      showToast("Review submitted successfully", "success");
+    } else {
+      showToast(
+        data?.msg || data?.errors?.[0]?.message || "Failed to submit review",
+        "error",
+      );
+    }
+  };
+
+  const displayPrice = listing ? formatPrice(listing.price) : "";
+
+  return {
+    id,
+    listing,
+    loading,
+    error,
+    user,
+    isOwner,
+    canRate,
+    canViewReviews,
+    statusModalOpen,
+    setStatusModalOpen,
+    candidates,
+    isLoadingCandidates,
+    selectedBuyerId,
+    setSelectedBuyerId,
+    reviewModalOpen,
+    setReviewModalOpen,
+    isSubmittingReview,
+    reviewsListOpen,
+    setReviewsListOpen,
+    reviewsRefreshTrigger,
+    setReviewsRefreshTrigger,
+    setHasReviewed,
+    handleStatusClick,
+    handleStatusUpdate,
+    handleReviewSubmit,
+    navigate,
+    showToast,
+    ToastContainer,
+    displayPrice,
+  };
+};
+
+export default useListingDetail;
