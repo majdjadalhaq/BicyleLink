@@ -96,6 +96,11 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
               SOLD
             </span>
           )}
+          {listing.isFeatured && (
+            <span className="listing-card__badge listing-card__badge--featured">
+              ★ FEATURED
+            </span>
+          )}
           {condition && (
             <span className="listing-card__badge">{condition}</span>
           )}

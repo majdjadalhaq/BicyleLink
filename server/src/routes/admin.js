@@ -11,6 +11,7 @@ import {
   toggleListingFeatured,
   deleteListingByAdmin,
   getAdminSentWarnings,
+  updateListingByAdmin,
 } from "../controllers/admin.js";
 
 const adminRouter = express.Router();
@@ -32,6 +33,7 @@ adminRouter.get("/users/:id/warnings", getAdminSentWarnings);
 // Listing Moderation
 adminRouter.get("/listings", getListings);
 adminRouter.patch("/listings/:id/featured", toggleListingFeatured);
+adminRouter.patch("/listings/:id", updateListingByAdmin);
 adminRouter.delete("/listings/:id", deleteListingByAdmin);
 
 export default adminRouter;

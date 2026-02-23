@@ -47,7 +47,7 @@ export const getListings = async (req, res) => {
     }
 
     const { sort, page = 1, limit = 10 } = req.query;
-    const { sortBy, sortOrder } = buildListingSort(sort);
+    const { sortBy, sortObject } = buildListingSort(sort);
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
@@ -74,7 +74,7 @@ export const getListings = async (req, res) => {
 
     const [listings, totalCount] = await Promise.all([
       Listing.find(filter)
-        .sort({ [sortBy]: sortOrder })
+        .sort(sortObject)
         .skip(skip)
         .limit(limitNum)
         .populate("ownerId", "name email avatarUrl ratingSum reviewCount"),

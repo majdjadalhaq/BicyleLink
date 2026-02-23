@@ -4,6 +4,10 @@ import Report from "../models/Report.js";
 import Message from "../models/Message.js";
 import { logError } from "../util/logging.js";
 
+// Helper to check if value is a non-null, non-array object
+const isPlainObject = (val) =>
+  val != null && typeof val === "object" && !Array.isArray(val);
+
 export const getAdminStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
@@ -254,5 +258,53 @@ export const getAdminSentWarnings = async (req, res) => {
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to fetch warnings" });
+  }
+};
+
+export const updateListingByAdmin = async (req, res) => {
+  try {
+    const updates = req.body?.listing;
+    const { id } = req.params;
+
+    if (!isPlainObject(updates)) {
+      return res.status(400).json({
+        success: false,
+        msg: "You need to provide a 'listing' object with updates.",
+      });
+    }
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    // Reuse ALLOWED_UPDATE_FIELDS logic or similar
+    const ALLOWED_UPDATE_FIELDS = [
+      "title",
+      "description",
+      "price",
+      "images",
+      "location",
+      "brand",
+      "model",
+      "year",
+      "condition",
+      "mileage",
+      "status",
+      "category",
+      "coordinates",
+    ];
+
+    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+      if (updates[field] !== undefined) {
+        listing[field] = updates[field];
+      }
+    });
+
+    await listing.save();
+    res.status(200).json({ success: true, listing });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to update listing" });
   }
 };

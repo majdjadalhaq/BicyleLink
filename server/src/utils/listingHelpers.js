@@ -147,11 +147,17 @@ export const buildListingFilter = (query) => {
  */
 export const buildListingSort = (sort) => {
   const sortMap = {
-    price_asc: { sortBy: "price", sortOrder: 1 },
-    price_desc: { sortBy: "price", sortOrder: -1 },
-    year_desc: { sortBy: "year", sortOrder: -1 },
-    year_asc: { sortBy: "year", sortOrder: 1 },
+    price_asc: { sortBy: "price", sortOrder: 1, sortObject: { price: 1 } },
+    price_desc: { sortBy: "price", sortOrder: -1, sortObject: { price: -1 } },
+    year_desc: { sortBy: "year", sortOrder: -1, sortObject: { year: -1 } },
+    year_asc: { sortBy: "year", sortOrder: 1, sortObject: { year: 1 } },
   };
 
-  return sortMap[sort] || { sortBy: "createdAt", sortOrder: -1 };
+  return (
+    sortMap[sort] || {
+      sortBy: "createdAt",
+      sortOrder: -1,
+      sortObject: { isFeatured: -1, createdAt: -1 },
+    }
+  );
 };
