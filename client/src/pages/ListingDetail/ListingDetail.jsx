@@ -7,6 +7,7 @@ import useApi from "../../hooks/useApi";
 import useToast from "../../hooks/useToast";
 import "../../styles/ListingDetail.css";
 import FavoriteButton from "../../components/FavoriteButton";
+import { formatPrice } from "../../utils/formatPrice";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
 import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
@@ -173,14 +174,7 @@ const ListingDetail = () => {
     return <div className="listing-detail-container">Error: {error}</div>;
   if (!listing) return null;
 
-  let displayPrice = listing.price;
-  if (listing.price && typeof listing.price === "object") {
-    if (listing.price.$numberDecimal) {
-      displayPrice = listing.price.$numberDecimal;
-    } else if (listing.price.value != null) {
-      displayPrice = listing.price.value;
-    }
-  }
+  const displayPrice = formatPrice(listing.price);
 
   const sellerData = {
     name: listing.ownerId?.name,
