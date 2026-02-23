@@ -6,6 +6,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 
 import Favorites from "./pages/Favorites/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import RequireVerified from "./components/RequireVerified";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import Footer from "./components/Footer";
@@ -31,6 +32,7 @@ const EditListing = lazy(() => import("./pages/EditListing/EditListing"));
 const MyListings = lazy(() => import("./pages/MyListings/MyListings"));
 const UserList = lazy(() => import("./pages/User/UserList"));
 const CreateListing = lazy(() => import("./pages/CreateListing/CreateListing"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
 
 const App = () => {
   return (
@@ -81,6 +83,11 @@ const App = () => {
                       element={<AccountSettings />}
                     />
                   </Route>
+                </Route>
+
+                {/* Admin Routes */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
                 </Route>
               </Routes>
             </Suspense>

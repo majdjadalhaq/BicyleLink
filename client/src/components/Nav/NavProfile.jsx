@@ -57,6 +57,15 @@ const NavProfile = ({
             <p className="profile-email">{user.email}</p>
           </div>
           <hr className="dropdown-divider" />
+          {user.role === "admin" && (
+            <Link
+              to="/admin"
+              className="dropdown-item"
+              style={{ fontWeight: "600", color: "var(--color-primary-main)" }}
+            >
+              Admin Dashboard
+            </Link>
+          )}
           <Link
             to={`/profile/${user._id || user.id}`}
             className="dropdown-item"

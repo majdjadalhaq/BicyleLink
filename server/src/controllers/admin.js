@@ -13,7 +13,7 @@ export const getAdminStats = async (req, res) => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const recentListings = await Listing.aggregate([
+    const recentListingsRaw = await Listing.aggregate([
       { $match: { createdAt: { $gte: sevenDaysAgo } } },
       {
         $group: {
@@ -23,6 +23,24 @@ export const getAdminStats = async (req, res) => {
       },
       { $sort: { _id: 1 } },
     ]);
+
+    // Pad the data so we always have the last 7 days on the graph
+    const recentListings = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      // Format as YYYY-MM-DD in local time to match what MongoDB produces
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      const found = recentListingsRaw.find((item) => item._id === dateStr);
+      recentListings.push({
+        _id: dateStr,
+        count: found ? found.count : 0,
+      });
+    }
 
     const pendingReports = await Report.countDocuments({ status: "pending" });
 
