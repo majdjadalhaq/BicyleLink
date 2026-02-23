@@ -5,7 +5,7 @@ import {
   CLOUDINARY_UPLOAD_PRESET,
 } from "../../../utils/config";
 
-const useChat = (listingId, user, receiverId) => {
+const useChat = (listingId, user, receiverId, roomParam) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [listing, setListing] = useState(null);
@@ -25,7 +25,12 @@ const useChat = (listingId, user, receiverId) => {
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const sellerId = receiverId?._id || receiverId;
-  const room = `${listingId}_${[user?._id, sellerId].sort().join("_")}`;
+
+  const isAdminWarning =
+    listingId === "admin-warning" || roomParam?.startsWith("admin-warning");
+  const room = isAdminWarning
+    ? roomParam || `admin-warning-${user?._id}`
+    : `${listingId}_${[user?._id, sellerId].sort().join("_")}`;
 
   // Fetch History and Listing
   useEffect(() => {
@@ -39,13 +44,23 @@ const useChat = (listingId, user, receiverId) => {
       .catch((err) => console.error("Failed to load history:", err))
       .finally(() => setIsLoadingHistory(false));
 
-    fetch(`/api/listings/${listingId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setListing(data.result);
-      })
-      .catch((err) => console.error("Failed to load listing:", err));
-  }, [room, user, listingId]);
+    if (isAdminWarning) {
+      setListing({
+        _id: "system",
+        title: "Administrator Warning",
+        images: [
+          "https://placehold.co/400x400/6a1b9a/ffffff?text=System+Notice",
+        ],
+      });
+    } else {
+      fetch(`/api/listings/${listingId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) setListing(data.result);
+        })
+        .catch((err) => console.error("Failed to load listing:", err));
+    }
+  }, [room, user, listingId, isAdminWarning]);
 
   // Socket
   useEffect(() => {
@@ -56,7 +71,9 @@ const useChat = (listingId, user, receiverId) => {
     socketRef.current.emit("check_online_status", sellerId);
 
     socketRef.current.on("receive_message", (message) => {
-      setMessages((prev) => [...prev, message]);
+      if (message.room === room) {
+        setMessages((prev) => [...prev, message]);
+      }
     });
 
     socketRef.current.on("typing_status", (data) => {
@@ -220,6 +237,7 @@ const useChat = (listingId, user, receiverId) => {
     isLocationLoading,
     selectedImageUrl,
     setSelectedImageUrl,
+    isAdminWarning,
   };
 };
 

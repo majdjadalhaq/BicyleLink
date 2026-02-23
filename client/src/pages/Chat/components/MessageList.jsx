@@ -13,6 +13,7 @@ const MessageList = ({
   onScroll,
   isLoadingHistory,
   isOtherTyping,
+  isAdminWarning,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -38,6 +39,7 @@ const MessageList = ({
             onCopyUsername={onCopyUsername}
             onImageClick={onImageClick}
             copyFeedback={copyFeedback}
+            isAdminWarning={isAdminWarning}
           />
         ))
       )}
@@ -59,6 +61,7 @@ MessageList.propTypes = {
   onScroll: PropTypes.func.isRequired,
   isLoadingHistory: PropTypes.bool.isRequired,
   isOtherTyping: PropTypes.bool.isRequired,
+  isAdminWarning: PropTypes.bool,
 };
 
 export default MessageList;

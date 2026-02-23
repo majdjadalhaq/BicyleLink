@@ -60,6 +60,11 @@ const Inbox = () => {
       }));
     });
 
+    socket.on("receive_message", () => {
+      // Re-fetch inbox so new messages immediately bubble to the top
+      performFetch();
+    });
+
     socket.on("online_status_result", (data) => {
       setOnlineStatuses((prev) => ({
         ...prev,
@@ -80,8 +85,9 @@ const Inbox = () => {
       socket.off("user_status_change");
       socket.off("online_status_result");
       socket.off("typing_status");
+      socket.off("receive_message");
     };
-  }, [socket, user?._id]);
+  }, [socket, user?._id, performFetch]);
 
   const handleArchive = async (e, room, currentStatus) => {
     e.stopPropagation();
@@ -162,11 +168,15 @@ const Inbox = () => {
               <div
                 key={conv.room}
                 className={`${styles.card} ${conv.unreadCount > 0 ? styles.unreadCard : ""}`}
-                onClick={() =>
-                  navigate(
-                    `/chat/${conv.listing?._id}?receiverId=${conv.otherUser?._id}`,
-                  )
-                }
+                onClick={() => {
+                  const isWarning = conv.room.startsWith("admin-warning");
+                  const listingParam = isWarning
+                    ? "admin-warning"
+                    : conv.listing?._id;
+                  let chatUrl = `/chat/${listingParam}?receiverId=${conv.otherUser?._id}`;
+                  if (isWarning) chatUrl += `&room=${conv.room}`;
+                  navigate(chatUrl);
+                }}
               >
                 <div className={styles.cardHeader}>
                   <div className={styles.listingInfo}>

@@ -95,9 +95,22 @@ export const getInbox = async (req, res) => {
             : msg.senderId;
 
         const otherUser = await User.findById(otherUserId).select("name email");
-        const listing = await Listing.findById(msg.listingId).select(
-          "title images",
-        );
+
+        // Handle Admin Warning messages without a listingId
+        let listing;
+        if (msg.listingId) {
+          listing = await Listing.findById(msg.listingId).select(
+            "title images",
+          );
+        } else {
+          listing = {
+            _id: "system",
+            title: "Administrator Warning",
+            images: [
+              "https://placehold.co/400x400/6a1b9a/ffffff?text=System+Notice",
+            ],
+          };
+        }
 
         // Get unread count for this room and user
         const status = await ConversationStatus.findOne({

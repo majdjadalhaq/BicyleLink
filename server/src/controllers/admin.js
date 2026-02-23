@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Listing from "../models/Listing.js";
 import Report from "../models/Report.js";
+import Message from "../models/Message.js";
 import { logError } from "../util/logging.js";
 
 export const getAdminStats = async (req, res) => {
@@ -142,6 +143,49 @@ export const toggleUserVerify = async (req, res) => {
   }
 };
 
+export const sendAdminWarning = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    if (!message || message.trim() === "") {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Warning message cannot be empty" });
+    }
+
+    // A unique room for admin warnings for this specific user
+    const room = `admin-warning-${user._id.toString()}`;
+
+    // Create a warning message
+    const savedMessage = await Message.create({
+      senderId: req.user._id,
+      receiverId: user._id,
+      content: message,
+      room,
+      read: false,
+    });
+
+    // Notify the user in real-time if they are online
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user_${user._id}`).emit("receive_message", savedMessage);
+    }
+
+    res
+      .status(200)
+      .json({ success: true, msg: "Admin warning sent successfully" });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to send warning" });
+  }
+};
+
 export const getListings = async (req, res) => {
   try {
     const listings = await Listing.find()
@@ -190,5 +234,25 @@ export const deleteListingByAdmin = async (req, res) => {
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to delete listing" });
+  }
+};
+
+export const getAdminSentWarnings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch messages sent to this user where the room signifies an admin warning
+    // We don't filter by senderId so the current admin can see warnings sent by OTHER admins too.
+    const warnings = await Message.find({
+      receiverId: id,
+      room: `admin-warning-${id}`,
+    })
+      .sort({ createdAt: -1 }) // Newest first
+      .select("content createdAt read");
+
+    res.status(200).json({ success: true, warnings });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to fetch warnings" });
   }
 };

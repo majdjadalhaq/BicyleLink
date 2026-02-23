@@ -7,9 +7,27 @@ const MessageItem = ({
   onCopyUsername,
   onImageClick,
   copyFeedback,
+  isAdminWarning,
 }) => {
   const isSender = (msg.senderId._id || msg.senderId) === user._id;
   const senderName = msg.senderId.name || "User";
+
+  if (isAdminWarning) {
+    return (
+      <div className={styles.systemWarning}>
+        <div className={styles.warningHeader}>
+          <span className={styles.warningIcon}>⚠️</span> Administrator Warning
+        </div>
+        <div className={styles.warningContent}>{msg.content}</div>
+        <div className={styles.timeStamp}>
+          {new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -113,6 +131,7 @@ MessageItem.propTypes = {
   onCopyUsername: PropTypes.func.isRequired,
   onImageClick: PropTypes.func.isRequired,
   copyFeedback: PropTypes.string,
+  isAdminWarning: PropTypes.bool,
 };
 
 export default MessageItem;

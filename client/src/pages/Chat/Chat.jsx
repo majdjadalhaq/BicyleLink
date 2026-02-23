@@ -14,6 +14,7 @@ const Chat = () => {
   const { id: listingId } = useParams();
   const [searchParams] = useSearchParams();
   const receiverId = searchParams.get("receiverId");
+  const roomParam = searchParams.get("room");
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -40,7 +41,8 @@ const Chat = () => {
     isLocationLoading,
     selectedImageUrl,
     setSelectedImageUrl,
-  } = useChat(listingId, user, receiverId);
+    isAdminWarning,
+  } = useChat(listingId, user, receiverId, roomParam);
 
   if (!user) {
     return (
@@ -69,6 +71,7 @@ const Chat = () => {
         onScroll={handleScroll}
         isLoadingHistory={isLoadingHistory}
         isOtherTyping={isOtherTyping}
+        isAdminWarning={isAdminWarning}
       />
 
       {isUploading && (
@@ -80,18 +83,20 @@ const Chat = () => {
         </div>
       )}
 
-      <ChatInput
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        onSend={handleSendMessage}
-        onTyping={handleTyping}
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
-        onImageUpload={handleImageUpload}
-        onSendLocation={handleSendLocation}
-        isUploading={isUploading}
-        isLocationLoading={isLocationLoading}
-      />
+      {isAdminWarning ? null : (
+        <ChatInput
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          onSend={handleSendMessage}
+          onTyping={handleTyping}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          onImageUpload={handleImageUpload}
+          onSendLocation={handleSendLocation}
+          isUploading={isUploading}
+          isLocationLoading={isLocationLoading}
+        />
+      )}
 
       {selectedImageUrl && (
         <div

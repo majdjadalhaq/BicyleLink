@@ -120,6 +120,13 @@ export const loginUser = async (req, res) => {
         .json({ success: false, msg: "Invalid credentials" });
     }
 
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        msg: "Your account has been blocked by an administrator.",
+      });
+    }
+
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
 

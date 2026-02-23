@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSocket } from "./useSocket";
 
 /**
  * Custom hook that polls the server for the current user's unread message count.
@@ -9,6 +10,7 @@ import { useState, useEffect } from "react";
  */
 const useUnreadCount = (user, intervalMs = 30000) => {
   const [unreadCount, setUnreadCount] = useState(0);
+  const socket = useSocket();
 
   useEffect(() => {
     // No user → nothing to fetch
@@ -37,8 +39,19 @@ const useUnreadCount = (user, intervalMs = 30000) => {
 
     fetchCount();
     const id = setInterval(fetchCount, intervalMs);
-    return () => clearInterval(id);
-  }, [user, intervalMs]);
+
+    if (socket && user) {
+      socket.emit("join_room", { userId: user._id, room: `user_${user._id}` });
+      socket.on("receive_message", fetchCount);
+    }
+
+    return () => {
+      clearInterval(id);
+      if (socket) {
+        socket.off("receive_message", fetchCount);
+      }
+    };
+  }, [user, intervalMs, socket]);
 
   return unreadCount;
 };

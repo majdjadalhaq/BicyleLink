@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema(
     listingId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "listings",
-      required: true,
+      required: false,
     },
     content: {
       type: String,

@@ -37,6 +37,13 @@ export const authenticate = async (req, res, next) => {
         });
       }
 
+      if (user.isBlocked) {
+        return res.status(403).json({
+          success: false,
+          msg: "Your account has been blocked by an administrator.",
+        });
+      }
+
       req.user = user;
       next();
     } catch (error) {
