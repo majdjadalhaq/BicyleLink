@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Report from "../models/Report.js";
 import { logError } from "../util/logging.js";
 
@@ -9,6 +10,13 @@ export const createReport = async (req, res) => {
       return res.status(400).json({
         success: false,
         msg: "Target ID, Target Type, and Reason are required.",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid Target ID format.",
       });
     }
 

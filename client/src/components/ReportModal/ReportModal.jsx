@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./ReportModal.css";
 
 const ReportModal = ({
@@ -10,6 +10,15 @@ const ReportModal = ({
 }) => {
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeout(() => {
+        setReason("");
+        setCustomReason("");
+      }, 0);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -32,7 +41,11 @@ const ReportModal = ({
   return (
     <div className="report-modal-overlay">
       <div className="report-modal-content">
-        <button className="report-modal-close" onClick={onClose}>
+        <button
+          className="report-modal-close"
+          onClick={onClose}
+          aria-label="Close report dialog"
+        >
           &times;
         </button>
         <h2>Report Listing</h2>

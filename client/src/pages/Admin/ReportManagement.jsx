@@ -20,7 +20,7 @@ const ReportManagement = () => {
       if (data?.success) {
         setReports(data.reports);
       } else {
-        setError(data?.msg || "Failed to load reports");
+        setError(data?.message || data?.msg || "Failed to load reports");
       }
     } catch {
       setError("Error connecting to server");
@@ -46,9 +46,17 @@ const ReportManagement = () => {
           ),
         );
         showToast(`Report marked as ${status}`, "success");
+      } else {
+        showToast(
+          data?.message || data?.msg || "Failed to update report status",
+          "error",
+        );
+        // Refetch reports to ensure UI is consistent with server state if an error occurred during update
+        fetchReports();
       }
     } catch {
       showToast("Failed to update report status", "error");
+      fetchReports();
     }
   };
 

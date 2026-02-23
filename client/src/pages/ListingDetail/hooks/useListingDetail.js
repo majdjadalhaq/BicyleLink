@@ -175,7 +175,10 @@ const useListingDetail = () => {
       setReportModalOpen(false);
       showToast("Listing reported successfully", "success");
     } else {
-      showToast(data?.msg || "Failed to submit report", "error");
+      showToast(
+        data?.message || data?.msg || "Failed to submit report",
+        "error",
+      );
     }
   };
 

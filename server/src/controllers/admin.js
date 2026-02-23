@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import Listing from "../models/Listing.js";
 import Report from "../models/Report.js";
@@ -311,9 +312,17 @@ export const updateListingByAdmin = async (req, res) => {
 
 export const getReportsByAdmin = async (req, res) => {
   try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const skip = (page - 1) * limit;
+
     const reports = await Report.find()
       .populate("reporterId", "name email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Report.countDocuments();
 
     // Manual population for targetId since it can be multiple models
     const populatedReports = await Promise.all(
@@ -325,14 +334,23 @@ export const getReportsByAdmin = async (req, res) => {
           );
         } else if (report.targetType === "User") {
           target = await User.findById(report.targetId).select(
-            "name email profilePicture",
+            "name email avatarUrl",
           );
         }
         return { ...report.toObject(), target };
       }),
     );
 
-    res.status(200).json({ success: true, reports: populatedReports });
+    res.status(200).json({
+      success: true,
+      reports: populatedReports,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to retrieve reports" });
@@ -343,6 +361,10 @@ export const updateReportStatusByAdmin = async (req, res) => {
   try {
     const { status } = req.body;
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid report ID" });
+    }
 
     if (!["pending", "resolved", "dismissed"].includes(status)) {
       return res.status(400).json({ success: false, msg: "Invalid status" });
