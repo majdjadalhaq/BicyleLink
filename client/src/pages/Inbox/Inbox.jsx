@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
+import useApi from "../../hooks/useApi";
+import { useSocket } from "../../hooks/useSocket";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
 import styles from "./Inbox.module.css";
 
@@ -17,7 +18,8 @@ const Inbox = () => {
   const [typingRooms, setTypingRooms] = useState({}); // room -> bool
   const navigate = useNavigate();
   const { user } = useAuth();
-  const socketRef = useRef(null);
+  const { execute: executeApi } = useApi();
+  const socket = useSocket();
 
   // Fetch inbox data from the API
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
@@ -27,10 +29,10 @@ const Inbox = () => {
       setConversations(convs);
 
       // Request initial online status for all contacts
-      if (socketRef.current) {
+      if (socket) {
         convs.forEach((c) => {
           if (c.otherUser?._id) {
-            socketRef.current.emit("check_online_status", c.otherUser._id);
+            socket.emit("check_online_status", c.otherUser._id);
           }
         });
       }
@@ -42,34 +44,30 @@ const Inbox = () => {
     return () => cancelFetch();
   }, [view]);
 
-  // Socket Connection for Real-time Presence and Typing
+  // Join personal room for Inbox notifications
   useEffect(() => {
-    if (!user) return;
+    if (!socket || !user) return;
 
-    socketRef.current = io(window.location.origin);
-
-    // Join personal room to receive status updates and typing events from any contact
-    socketRef.current.emit("join_room", {
+    socket.emit("join_room", {
       userId: user._id,
       room: `user_${user._id}`,
     });
 
-    socketRef.current.on("user_status_change", (data) => {
+    socket.on("user_status_change", (data) => {
       setOnlineStatuses((prev) => ({
         ...prev,
         [data.userId]: data.status === "online",
       }));
     });
 
-    socketRef.current.on("online_status_result", (data) => {
+    socket.on("online_status_result", (data) => {
       setOnlineStatuses((prev) => ({
         ...prev,
         [data.userId]: data.isOnline,
       }));
     });
 
-    // Listen for typing events across all conversations
-    socketRef.current.on("typing_status", (data) => {
+    socket.on("typing_status", (data) => {
       if (data.userId !== user._id) {
         setTypingRooms((prev) => ({
           ...prev,
@@ -79,25 +77,22 @@ const Inbox = () => {
     });
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      socket.off("user_status_change");
+      socket.off("online_status_result");
+      socket.off("typing_status");
     };
-  }, [user]);
+  }, [socket, user?._id]);
 
   const handleArchive = async (e, room, currentStatus) => {
     e.stopPropagation();
     const newStatus = !currentStatus;
-    try {
-      const res = await fetch(`/api/messages/archive/${room}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setConversations((prev) => prev.filter((c) => c.room !== room));
-      }
-    } catch (err) {
-      console.error("Failed to update archive status:", err);
+    const data = await executeApi(`/api/messages/archive/${room}`, {
+      method: "POST",
+      body: { status: newStatus },
+    });
+
+    if (data?.success) {
+      setConversations((prev) => prev.filter((c) => c.room !== room));
     }
   };
 

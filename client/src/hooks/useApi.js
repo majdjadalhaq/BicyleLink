@@ -1,72 +1,54 @@
 import { useState, useCallback } from "react";
+import { useAuth } from "./useAuth";
 
-/**
- * Imperative mutation hook for POST, PUT, PATCH, and DELETE requests.
- *
- * Usage:
- *   const { execute, data, isLoading, error, reset } = useApi();
- *   await execute("/api/reviews", { method: "POST", body: { rating: 5 } });
- *
- * - `execute` is stable across renders (wrapped in useCallback) — safe to pass
- *   to React.memo components without triggering unnecessary re-renders.
- * - Body is automatically JSON.stringify'd — pass a plain object.
- * - Returns a Promise so callers can await the result.
- * - Handles 204 No Content responses without calling .json().
- */
 const useApi = () => {
-  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { token, logout } = useAuth();
 
-  const execute = useCallback(async (url, options = {}) => {
-    setIsLoading(true);
-    setError(null);
+  const execute = useCallback(
+    async (url, options = {}) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
-        credentials: "include",
-      });
+      // Add Authorization header if token exists
+      const headers = {
+        "Content-Type": "application/json",
+        ...options.headers,
+      };
 
-      // 204 No Content — no body to parse
-      if (response.status === 204) {
-        setData(null);
-        setIsLoading(false);
-        return { success: true };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const result = await response.json();
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+          body: options.body ? JSON.stringify(options.body) : undefined,
+        });
 
-      if (!response.ok) {
-        const errorMsg =
-          result?.msg || result?.errors?.[0]?.message || "Request failed";
-        setError(errorMsg);
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            logout(); // Auto logout on unauthorized
+          }
+          throw new Error(data.message || "Something went wrong");
+        }
+
+        return data;
+      } catch (err) {
+        setError(err.message);
+        return { success: false, message: err.message };
+      } finally {
         setIsLoading(false);
-        return { success: false, error: errorMsg };
       }
+    },
+    [token, logout],
+  );
 
-      setData(result);
-      setIsLoading(false);
-      return result;
-    } catch (err) {
-      const errorMsg = err.message || "Network error";
-      setError(errorMsg);
-      setIsLoading(false);
-      return { success: false, error: errorMsg };
-    }
-  }, []);
-
-  const reset = useCallback(() => {
-    setData(null);
-    setError(null);
-  }, []);
-
-  return { execute, data, isLoading, error, reset };
+  return { execute, isLoading, error };
 };
 
 export default useApi;
