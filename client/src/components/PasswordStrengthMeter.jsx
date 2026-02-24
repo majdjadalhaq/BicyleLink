@@ -1,5 +1,3 @@
-import styles from "../pages/User/CreateUser.module.css";
-
 const PasswordStrengthMeter = ({ password }) => {
   const getStrength = (password) => {
     let strength = 0;
@@ -35,10 +33,10 @@ const PasswordStrengthMeter = ({ password }) => {
   if (!password) return null;
 
   return (
-    <div className={styles.strengthMeter}>
-      <div className={styles.strengthBarContainer}>
+    <div className="-mt-1 mb-4">
+      <div className="h-1 w-full bg-slate-200 dark:bg-dark-border rounded-sm overflow-hidden mb-1.5">
         <div
-          className={styles.strengthBar}
+          className="h-full transition-all duration-300 ease-in-out"
           style={{
             width: getStrengthWidth(strength),
             backgroundColor: getStrengthColor(strength),
@@ -46,7 +44,7 @@ const PasswordStrengthMeter = ({ password }) => {
         />
       </div>
       <span
-        className={styles.strengthText}
+        className="text-xs font-medium"
         style={{ color: getStrengthColor(strength) }}
       >
         Password Strength: {getStrengthText(strength)}

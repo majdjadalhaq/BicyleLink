@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import useFetch from "../hooks/useFetch";
-import "../styles/ListingCard.css";
 
 const FavoriteButton = ({ listingId, variant, onToggled }) => {
   const [isFav, setIsFav] = useState(false);

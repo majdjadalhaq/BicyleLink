@@ -1,49 +1,69 @@
 import { Link } from "react-router-dom";
-import "../styles/Footer.css";
 
 const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="site-footer">
-      <div className="footer-content">
-        <div className="footer-section brand">
-          <h3>BiCycleL</h3>
-          <p>The premium marketplace for second-hand bicycles.</p>
+    <footer className="mt-16 bg-white dark:bg-dark-surface border-t border-gray-200 dark:border-dark-border py-10 px-6 text-gray-600 dark:text-gray-400">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-10 text-center md:text-left">
+        <div className="md:col-span-2">
+          <h3 className="text-2xl font-bold text-emerald mb-4">BiCycleL</h3>
+          <p className="leading-relaxed">
+            The premium marketplace for second-hand bicycles.
+          </p>
         </div>
 
-        <div className="footer-section links">
-          <h4>Explore</h4>
-          <ul>
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Explore
+          </h4>
+          <ul className="space-y-2">
             <li>
-              <Link to="/">Home</Link>
+              <Link to="/" className="hover:text-emerald transition-colors">
+                Home
+              </Link>
             </li>
             <li>
-              <Link to="/listing/create">Sell a Bike</Link>
+              <Link
+                to="/listing/create"
+                className="hover:text-emerald transition-colors"
+              >
+                Sell a Bike
+              </Link>
             </li>
             <li>
-              <Link to="/user">Community</Link>
+              <Link to="/user" className="hover:text-emerald transition-colors">
+                Community
+              </Link>
             </li>
           </ul>
         </div>
 
-        <div className="footer-section legal">
-          <h4>Legal</h4>
-          <ul>
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Legal
+          </h4>
+          <ul className="space-y-2">
             <li>
-              <span className="disabled-link">Terms of Service</span>
+              <span className="opacity-60 cursor-not-allowed">
+                Terms of Service
+              </span>
             </li>
             <li>
-              <span className="disabled-link">Privacy Policy</span>
+              <span className="opacity-60 cursor-not-allowed">
+                Privacy Policy
+              </span>
             </li>
             <li>
-              <span className="disabled-link">Cookie Policy</span>
+              <span className="opacity-60 cursor-not-allowed">
+                Cookie Policy
+              </span>
             </li>
           </ul>
         </div>
       </div>
 
-      <div className="footer-bottom">
+      <div className="max-w-7xl mx-auto pt-6 border-t border-gray-200 dark:border-dark-border text-center text-sm">
         <p>&copy; {year} BiCycleL. All rights reserved.</p>
       </div>
     </footer>

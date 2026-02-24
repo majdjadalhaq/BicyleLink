@@ -11,7 +11,6 @@ import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
-import styles from "./ProfileSetup.module.css"; // Reuse same styles for consistency
 
 const Profile = () => {
   const { user, login } = useAuth();
@@ -149,10 +148,15 @@ const Profile = () => {
     label: c.name,
   }));
 
-  if (!user) return <div className={styles.container}>Please login first</div>;
+  if (!user)
+    return (
+      <div className="max-w-[500px] mx-auto py-10 px-6 sm:px-8 text-center text-gray-900 border border-gray-100 rounded-xl mt-12 bg-white">
+        Please login first
+      </div>
+    );
 
   return (
-    <div className={styles.container}>
+    <div className="max-w-[500px] mx-auto py-10 px-6 sm:px-8 animate-in slide-in-from-bottom-2 duration-300">
       {showCropper && (
         <ImageCropper
           image={tempImage}
@@ -160,20 +164,30 @@ const Profile = () => {
           onCancel={handleCropCancel}
         />
       )}
-      <h1 className={styles.title}>Edit Profile</h1>
-      <p className={styles.subtitle}>Keep your information up to date.</p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
+        Edit Profile
+      </h1>
+      <p className="text-center text-gray-500 dark:text-gray-400 mb-8 text-base">
+        Keep your information up to date.
+      </p>
 
-      <form onSubmit={handleSubmit} className={styles.formContainer}>
-        <div className={styles.avatarSection}>
-          <label htmlFor="avatar-upload" className={styles.avatarLabel}>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 p-6 sm:p-8 border border-gray-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-surface shadow-md"
+      >
+        <div className="flex justify-center mb-6">
+          <label
+            htmlFor="avatar-upload"
+            className="cursor-pointer rounded-full overflow-hidden w-32 h-32 flex items-center justify-center bg-gray-50 dark:bg-dark-input border-2 border-dashed border-gray-300 dark:border-gray-600 transition-colors hover:border-gray-400 hover:bg-gray-100 dark:hover:bg-dark-border"
+          >
             {avatarPreview ? (
               <img
                 src={avatarPreview}
                 alt="Avatar preview"
-                className={styles.avatarPreview}
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className={styles.avatarPlaceholder}>
+              <div className="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 text-sm font-medium">
                 <FaUserCircle size={80} color="#cbd5e1" />
                 <span>Change Photo</span>
               </div>
@@ -184,15 +198,17 @@ const Profile = () => {
             id="avatar-upload"
             accept="image/*"
             onChange={handleFileChange}
-            className={styles.fileInput}
+            className="hidden"
           />
         </div>
 
-        <div className={styles.inputGroup}>
-          <label>Username</label>
+        <div className="flex flex-col gap-2 w-full">
+          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Username
+          </label>
           <input
             type="text"
-            className={styles.textInput}
+            className="px-3 py-2.5 border border-gray-300 dark:border-dark-border rounded-lg text-base text-gray-900 dark:text-gray-100 bg-white dark:bg-dark-input transition-all focus:outline-none focus:border-emerald focus:ring-2 focus:ring-emerald/20"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Choose a unique username"
@@ -223,14 +239,22 @@ const Profile = () => {
         />
 
         {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-400 text-sm text-center font-medium">
+            {successMessage}
+          </div>
         )}
         {validationError && (
-          <div className={styles.validationError}>{validationError}</div>
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
+            {validationError}
+          </div>
         )}
-        {error && <div className={styles.error}>{error.toString()}</div>}
+        {error && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
+            {error.toString()}
+          </div>
+        )}
 
-        <div className={styles.buttonGroup}>
+        <div className="flex justify-center items-center mt-3">
           <SubmitButton isLoading={isLoading || isUploadingImage}>
             Update Profile
           </SubmitButton>

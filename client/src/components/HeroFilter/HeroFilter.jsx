@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import "./HeroFilter.css";
 import { City } from "country-state-city";
 import FilterChips from "./FilterChips";
 import RangeInputGroup from "./RangeInputGroup";
@@ -205,9 +204,9 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="hero-filter-container">
-      <div className="filter-grid">
-        <div className="filter-column">
+    <div className="w-full max-w-[900px] bg-white dark:bg-dark-surface rounded-xl p-8 mt-6 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-dark-border flex flex-col gap-6 animate-in slide-in-from-top-2 duration-300">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        <div className="flex flex-col gap-6">
           <FilterChips
             title="Category"
             options={categories}
@@ -220,11 +219,13 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
             selected={localFilters.condition}
             onToggle={(val) => handleChipToggle("condition", val)}
           />
-          <div className="filter-section">
-            <label className="filter-title">Brand</label>
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-1">
+              Brand
+            </label>
             <input
               type="text"
-              className="styled-input"
+              className="w-full px-3 py-2.5 bg-white dark:bg-dark-input border border-gray-300 dark:border-dark-border rounded-lg text-sm text-gray-700 dark:text-gray-200 transition-colors focus:outline-none focus:border-emerald focus:ring-4 focus:ring-emerald/10 placeholder-gray-400"
               placeholder="e.g. Trek, Specialized"
               value={localFilters.brand?.[0] || ""}
               onChange={handleBrandChange}
@@ -232,7 +233,7 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
           </div>
         </div>
 
-        <div className="filter-column">
+        <div className="flex flex-col gap-6">
           <RangeInputGroup
             title="Price Range"
             minKey="minPrice"
@@ -264,10 +265,12 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
             dropdownRef={dropdownRef}
           />
 
-          <div className="filter-section">
-            <div className="slider-wrapper">
-              <span className="range-label">Distance:</span>
-              <div className="slider-container">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4 pt-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                Distance:
+              </span>
+              <div className="flex-1 relative h-6 flex items-center">
                 <input
                   type="range"
                   min="0"
@@ -276,13 +279,13 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
                   onChange={(e) =>
                     handleRangeChange("radius", Number(e.target.value))
                   }
-                  className="styled-range"
-                  style={{
-                    background: `linear-gradient(to right, #6a1b9a 0%, #6a1b9a ${localFilters.radius || 50}%, #e9ecef ${localFilters.radius || 50}%, #e9ecef 100%)`,
-                  }}
+                  className="w-full h-2 bg-gray-200 dark:bg-dark-border rounded-lg appearance-none cursor-pointer accent-emerald"
                 />
               </div>
-              <span className="range-label" style={{ minWidth: "60px" }}>
+              <span
+                className="text-xs text-gray-500 dark:text-gray-400 font-medium"
+                style={{ minWidth: "60px" }}
+              >
                 {localFilters.radius || 50} km
               </span>
             </div>
@@ -290,11 +293,17 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
         </div>
       </div>
 
-      <div className="filter-actions">
-        <button className="clear-btn" onClick={onClear}>
+      <div className="flex justify-between items-center mt-4 pt-6 border-t border-gray-100 dark:border-dark-border">
+        <button
+          className="px-6 py-2.5 bg-transparent border border-gray-300 dark:border-dark-border text-gray-500 dark:text-gray-400 font-semibold rounded-full text-sm transition-colors hover:border-emerald hover:text-emerald dark:hover:text-emerald-light hover:bg-emerald-50 dark:hover:bg-emerald-900/40"
+          onClick={onClear}
+        >
           Clear all filters
         </button>
-        <button className="apply-btn" onClick={handleApply}>
+        <button
+          className="px-10 py-3 bg-gradient-to-r from-emerald-600 to-emerald tracking-wide text-white font-semibold rounded-full text-base transition-all shadow-lg shadow-emerald/30 hover:-translate-y-0.5 hover:shadow-emerald/40 active:translate-y-0"
+          onClick={handleApply}
+        >
           Apply Filters
         </button>
       </div>

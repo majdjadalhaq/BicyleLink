@@ -14,7 +14,6 @@ import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
-import styles from "./ProfileSetup.module.css";
 
 const ProfileSetup = () => {
   const { user, login } = useAuth();
@@ -150,7 +149,7 @@ const ProfileSetup = () => {
   }));
 
   return (
-    <div className={styles.container}>
+    <div className="max-w-[500px] mx-auto py-10 px-6 sm:px-8 animate-in slide-in-from-bottom-2 duration-300">
       {showCropper && (
         <ImageCropper
           image={tempImage}
@@ -158,23 +157,31 @@ const ProfileSetup = () => {
           onCancel={handleCropCancel}
         />
       )}
-      <h1 className={styles.title}>Complete Your Profile</h1>
-      <p className={styles.subtitle}>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
+        Complete Your Profile
+      </h1>
+      <p className="text-center text-gray-500 dark:text-gray-400 mb-8 text-base">
         Help others know you better by filling out these details.
       </p>
 
-      <form onSubmit={handleSubmit} className={styles.formContainer}>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 p-6 sm:p-8 border border-gray-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-surface shadow-md"
+      >
         {/* Avatar Upload Section */}
-        <div className={styles.avatarSection}>
-          <label htmlFor="avatar-upload" className={styles.avatarLabel}>
+        <div className="flex justify-center mb-6">
+          <label
+            htmlFor="avatar-upload"
+            className="cursor-pointer rounded-full overflow-hidden w-32 h-32 flex items-center justify-center bg-gray-50 dark:bg-dark-input border-2 border-dashed border-gray-300 dark:border-gray-600 transition-colors hover:border-gray-400 hover:bg-gray-100 dark:hover:bg-dark-border"
+          >
             {avatarPreview ? (
               <img
                 src={avatarPreview}
                 alt="Avatar preview"
-                className={styles.avatarPreview}
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className={styles.avatarPlaceholder}>
+              <div className="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 text-sm font-medium">
                 <FaUserCircle size={80} color="#cbd5e1" />
                 <span>Upload Photo</span>
               </div>
@@ -185,7 +192,7 @@ const ProfileSetup = () => {
             id="avatar-upload"
             accept="image/*"
             onChange={handleFileChange}
-            className={styles.fileInput}
+            className="hidden"
           />
         </div>
 
@@ -213,15 +220,21 @@ const ProfileSetup = () => {
         />
 
         {validationError && (
-          <div className={styles.validationError}>{validationError}</div>
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
+            {validationError}
+          </div>
         )}
-        {error && <div className={styles.error}>{error.toString()}</div>}
+        {error && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
+            {error.toString()}
+          </div>
+        )}
 
-        <div className={styles.buttonGroup}>
+        <div className="flex justify-between items-center mt-3">
           <button
             type="button"
             onClick={handleSkip}
-            className={styles.skipButton}
+            className="bg-transparent border-none text-gray-500 font-medium cursor-pointer py-2 px-4 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-dark-input hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading || isUploadingImage}
           >
             Skip for Now

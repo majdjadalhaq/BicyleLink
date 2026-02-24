@@ -3,28 +3,30 @@ import PropTypes from "prop-types";
 /**
  * Reusable chip-toggle group for multi-select filters.
  * Renders a row of clickable chips, each toggling in the active selection.
- *
- * @param {string} title - Section label
- * @param {Array} options - Array of { label, value } or plain string options
- * @param {string[]} selected - Currently selected values
- * @param {function} onToggle - Called with the toggled value
  */
 const FilterChips = ({ title, options, selected, onToggle }) => (
-  <div className="filter-section">
-    <label className="filter-title">{title}</label>
-    <div className="filter-chips">
+  <div className="flex flex-col gap-3">
+    <label className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-1">
+      {title}
+    </label>
+    <div className="flex flex-wrap gap-2.5">
       {options.map((opt) => {
         const value = typeof opt === "string" ? opt : opt.value;
         const label = typeof opt === "string" ? opt : opt.label;
+        const isActive = selected?.includes(value);
         return (
           <div
             key={value}
-            className={`filter-chip ${selected?.includes(value) ? "active" : ""}`}
+            className={`px-4 py-2 rounded-lg bg-gray-50 dark:bg-dark-input border border-gray-200 dark:border-dark-border cursor-pointer text-sm text-gray-700 dark:text-gray-300 transition-colors font-medium select-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald dark:hover:text-emerald-light hover:border-emerald-200 dark:hover:border-emerald-800/50 ${
+              isActive
+                ? "!bg-emerald-50 dark:!bg-emerald-900/40 !text-emerald dark:!text-emerald-light !border-emerald-200 dark:!border-emerald-800/50"
+                : ""
+            }`}
             onClick={() => onToggle(value)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === "Enter" && onToggle(value)}
-            aria-pressed={selected?.includes(value)}
+            aria-pressed={isActive}
           >
             {label}
           </div>

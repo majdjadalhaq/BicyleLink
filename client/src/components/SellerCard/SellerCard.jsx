@@ -4,14 +4,6 @@ import StarRating from "../StarRating/StarRating";
  * Seller information card displayed on a listing detail page.
  * Uses intent-based props so the parent computes business logic,
  * and this component stays purely presentational.
- *
- * @param {object} props
- * @param {{ name: string, averageRating: number, reviewCount: number }} props.seller
- * @param {boolean} props.canRate     - True when buyer can rate this seller.
- * @param {boolean} props.canViewReviews - True when the seller has reviews to show.
- * @param {boolean} props.isSold      - True when the listing is sold.
- * @param {function} props.onRate     - Called when user clicks "Rate Seller".
- * @param {function} props.onViewReviews - Called when user clicks the rating display.
  */
 const SellerCard = ({
   seller,
@@ -25,16 +17,22 @@ const SellerCard = ({
   const initial = name?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="seller-info-section">
-      <h3 className="seller-info-title">Seller Information</h3>
-      <div className="seller-card">
-        <div className="seller-avatar">{initial}</div>
-        <div className="seller-details">
-          <span className="seller-name">{name || "Unknown Seller"}</span>
+    <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-5 mb-8">
+      <h3 className="text-base font-semibold mb-3 text-slate-700 dark:text-slate-300">
+        Seller Information
+      </h3>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-emerald text-white rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0">
+          {initial}
+        </div>
+        <div className="flex flex-col">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            {name || "Unknown Seller"}
+          </span>
 
           {canViewReviews ? (
             <div
-              className="seller-rating-display"
+              className="flex items-center gap-2 cursor-pointer px-1 py-0.5 -ml-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-dark-input mt-0.5 group"
               onClick={onViewReviews}
               role="button"
               tabIndex={0}
@@ -44,21 +42,30 @@ const SellerCard = ({
               <StarRating rating={averageRating} count={reviewCount} />
             </div>
           ) : (
-            <span className="seller-no-reviews">No reviews yet</span>
+            <span className="text-sm text-gray-400 italic mt-0.5">
+              No reviews yet
+            </span>
           )}
 
-          <span className="seller-email">Verified User</span>
+          <span className="text-sm text-emerald mt-1 font-medium">
+            Verified User
+          </span>
         </div>
       </div>
 
       {canRate && (
-        <button className="btn-rate-seller" onClick={onRate}>
+        <button
+          className="w-full mt-4 bg-yellow-400 text-yellow-900 border-none px-4 py-2.5 rounded-lg font-semibold cursor-pointer transition-transform hover:-translate-y-0.5 hover:bg-yellow-500 shadow-sm"
+          onClick={onRate}
+        >
           ⭐ Rate Seller
         </button>
       )}
 
       {isSold && !canRate && (
-        <span className="seller-sold-badge">Sold Item</span>
+        <span className="inline-block mt-4 text-xs font-bold uppercase bg-gray-100 text-gray-500 px-3 py-1 rounded">
+          Sold Item
+        </span>
       )}
     </div>
   );

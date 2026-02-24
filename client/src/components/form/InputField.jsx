@@ -1,4 +1,3 @@
-import styles from "./InputField.module.css";
 import PropTypes from "prop-types";
 
 const InputField = ({
@@ -9,10 +8,15 @@ const InputField = ({
   onChange,
   placeholder,
   dataTestId,
+  className,
   ...rest
 }) => (
-  <div className={styles.inputGroup}>
-    {label && <label htmlFor={name}>{label}</label>}
+  <div className="flex flex-col gap-1.5 w-full">
+    {label && (
+      <label htmlFor={name} className="text-sm font-medium ml-1">
+        {label}
+      </label>
+    )}
     <input
       id={name}
       name={name}
@@ -21,6 +25,7 @@ const InputField = ({
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       data-testid={dataTestId}
+      className={`input-emerald ${className || ""}`}
       {...rest}
     />
   </div>
@@ -34,6 +39,7 @@ InputField.propTypes = {
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   dataTestId: PropTypes.string,
+  className: PropTypes.string,
 };
 
 InputField.defaultProps = {
@@ -42,6 +48,7 @@ InputField.defaultProps = {
   value: "",
   placeholder: "",
   dataTestId: undefined,
+  className: "",
 };
 
 export default InputField;

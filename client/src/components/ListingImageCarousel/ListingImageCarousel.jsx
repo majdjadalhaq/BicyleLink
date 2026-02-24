@@ -4,14 +4,6 @@ import { optimiseCloudinaryUrl } from "../../utils/cloudinary";
 
 const PLACEHOLDER = "https://placehold.co/600x400?text=No+Image";
 
-/**
- * Image carousel for a listing's photos.
- *
- * @param {object} props
- * @param {string[]} props.images - Array of image URLs.
- * @param {string} props.title - Listing title (used for alt text).
- * @param {string} props.status - Listing status ("active" | "sold" | "cancelled").
- */
 const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -36,10 +28,8 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
     [displayImages.length],
   );
 
-  // Keyboard navigation for Carousel and Lightbox
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger if user is typing in an input or textarea
       if (
         document.activeElement.tagName === "INPUT" ||
         document.activeElement.tagName === "TEXTAREA"
@@ -57,10 +47,14 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
   }, [isLightboxOpen, next, prev]);
 
   return (
-    <div className="carousel-container listing-image-carousel">
-      <div className="main-image-wrapper">
+    <div className="flex flex-col gap-4">
+      <div className="relative bg-gray-50 dark:bg-dark-input rounded-xl overflow-hidden flex items-center justify-center aspect-[4/3] w-full group">
         {displayImages.length > 1 && (
-          <button type="button" className="nav-arrow left" onClick={prev}>
+          <button
+            type="button"
+            className="absolute top-1/2 -translate-y-1/2 left-4 bg-white/80 dark:bg-dark-surface/80 border border-gray-200 dark:border-dark-border rounded-full w-10 h-10 flex items-center justify-center text-2xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 pb-1 hover:bg-white dark:hover:bg-dark-surface hover:shadow-md opacity-0 group-hover:opacity-100"
+            onClick={prev}
+          >
             ‹
           </button>
         )}
@@ -68,41 +62,48 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
         <img
           src={displayImages[activeIndex]}
           alt={`${title} - View ${activeIndex + 1}`}
-          className="listing-main-image"
+          className="w-full h-full object-cover cursor-zoom-in"
           onClick={() => setIsLightboxOpen(true)}
-          style={{ cursor: "zoom-in" }}
         />
 
         {displayImages.length > 1 && (
-          <button type="button" className="nav-arrow right" onClick={next}>
+          <button
+            type="button"
+            className="absolute top-1/2 -translate-y-1/2 right-4 bg-white/80 dark:bg-dark-surface/80 border border-gray-200 dark:border-dark-border rounded-full w-10 h-10 flex items-center justify-center text-2xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 pb-1 hover:bg-white dark:hover:bg-dark-surface hover:shadow-md opacity-0 group-hover:opacity-100"
+            onClick={next}
+          >
             ›
           </button>
         )}
 
-        {status === "sold" && <div className="sold-overlay">SOLD</div>}
+        {status === "sold" && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[15deg] bg-red-600/90 text-white px-8 py-4 text-4xl sm:text-5xl font-black border-4 border-white rounded-xl pointer-events-none z-[2] shadow-lg drop-shadow-md">
+            SOLD
+          </div>
+        )}
       </div>
 
       {isLightboxOpen && (
         <div
-          className="lightbox-overlay"
+          className="fixed inset-0 w-screen h-screen bg-black/90 flex justify-center items-center z-[2000] cursor-zoom-out"
           onClick={() => setIsLightboxOpen(false)}
         >
           <button
-            className="lightbox-close"
+            className="absolute top-5 right-5 bg-transparent border-none text-white text-5xl cursor-pointer z-[2001] leading-none transition-transform hover:scale-110"
             onClick={() => setIsLightboxOpen(false)}
             aria-label="Close lightbox"
           >
             ×
           </button>
           <div
-            className="lightbox-content"
+            className="relative max-w-[90%] max-h-[90%]"
             onClick={(e) => e.stopPropagation()}
           >
             {displayImages.length > 1 && (
               <>
                 <button
                   type="button"
-                  className="lightbox-nav-arrow left"
+                  className="absolute top-1/2 -translate-y-1/2 -left-12 sm:-left-20 bg-white/20 border-none rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-4xl sm:text-5xl text-white cursor-pointer z-[2005] transition-all pb-2 hover:bg-white/40 hover:scale-110"
                   onClick={(e) => {
                     e.stopPropagation();
                     prev();
@@ -112,7 +113,7 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
                 </button>
                 <button
                   type="button"
-                  className="lightbox-nav-arrow right"
+                  className="absolute top-1/2 -translate-y-1/2 -right-12 sm:-right-20 bg-white/20 border-none rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-4xl sm:text-5xl text-white cursor-pointer z-[2005] transition-all pb-2 hover:bg-white/40 hover:scale-110"
                   onClick={(e) => {
                     e.stopPropagation();
                     next();
@@ -132,22 +133,26 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
                   : PLACEHOLDER
               }
               alt={title}
-              className="lightbox-image"
+              className="max-w-full max-h-[90vh] object-contain rounded drop-shadow-2xl cursor-default"
             />
           </div>
         </div>
       )}
 
       {displayImages.length > 1 && (
-        <div className="thumbnail-strip">
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide shrink-0">
           {displayImages.map((img, index) => (
             <button
               type="button"
               key={index}
-              className={`thumbnail ${index === activeIndex ? "active" : ""}`}
+              className={`w-20 h-16 rounded-lg overflow-hidden cursor-pointer border-2 p-0 bg-transparent flex-shrink-0 transition-opacity duration-200 ${index === activeIndex ? "opacity-100 border-emerald" : "opacity-50 hover:opacity-80 border-transparent"}`}
               onClick={() => setActiveIndex(index)}
             >
-              <img src={img} alt={`Thumbnail ${index + 1}`} />
+              <img
+                src={img}
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>

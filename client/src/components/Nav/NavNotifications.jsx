@@ -23,26 +23,35 @@ const NavNotifications = ({ user, isOpen, setIsOpen, setIsProfileOpen }) => {
   if (!user) return null;
 
   return (
-    <div className="notif-wrapper" ref={dropdownRef}>
+    <div className="relative inline-block" ref={dropdownRef}>
       <button
         type="button"
-        className="notif-button"
+        className="relative flex items-center justify-center p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-emerald hover:bg-gray-100 dark:hover:bg-dark-border focus:outline-none transition-colors"
         onClick={toggleOpen}
         aria-label="Notifications"
       >
-        <FaBell size={18} />
-        {unread > 0 && <span className="notif-badge">{unread}</span>}
+        <FaBell size={20} />
+        {unread > 0 && (
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full border-2 border-white dark:border-dark-surface">
+            {unread}
+          </span>
+        )}
       </button>
 
       {isOpen && (
-        <div className="notif-dropdown" role="menu">
-          <div className="notif-header">
-            <span>Notifications</span>
-            <div className="notif-header-actions">
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-80 max-h-[420px] overflow-auto bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl shadow-lg z-50 animate-in slide-in-from-top-2 duration-200 hide-scrollbar"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-dark-border">
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Notifications
+            </span>
+            <div className="flex items-center gap-3">
               {unread > 0 && (
                 <button
                   type="button"
-                  className="notif-mark-all"
+                  className="text-sm text-emerald hover:text-emerald-hover transition-colors font-medium"
                   onClick={markAllAsRead}
                 >
                   Mark all as read
@@ -50,7 +59,7 @@ const NavNotifications = ({ user, isOpen, setIsOpen, setIsProfileOpen }) => {
               )}
               <button
                 type="button"
-                className="notif-close"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 ✕
@@ -59,26 +68,34 @@ const NavNotifications = ({ user, isOpen, setIsOpen, setIsProfileOpen }) => {
           </div>
 
           {notifications.length === 0 ? (
-            <div className="notif-empty">No notifications</div>
+            <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              No notifications
+            </div>
           ) : (
-            <ul className="notif-list">
+            <ul className="divide-y divide-gray-100 dark:divide-dark-border">
               {notifications.slice(0, 10).map((n) => (
                 <li
                   key={n._id}
-                  className={`notif-item ${n.read ? "" : "unread"}`}
+                  className={`transition-colors hover:bg-gray-50 dark:hover:bg-dark-bg ${n.read ? "opacity-80" : "bg-emerald/5 dark:bg-emerald/10"}`}
                 >
                   <button
                     type="button"
-                    className="notif-item-btn"
+                    className="w-full text-left px-4 py-3 focus:outline-none"
                     onClick={async () => {
                       if (!n.read) await markAsRead(n._id);
                       setIsOpen(false);
                       navigate(n.link || "/inbox");
                     }}
                   >
-                    <div className="notif-title">{n.title}</div>
-                    <div className="notif-body">{n.body}</div>
-                    <div className="notif-time">
+                    <div
+                      className={`text-sm ${n.read ? "font-medium text-gray-700 dark:text-gray-300" : "font-semibold text-gray-900 dark:text-white"}`}
+                    >
+                      {n.title}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                      {n.body}
+                    </div>
+                    <div className="text-[11px] text-gray-400 dark:text-gray-500 mt-2">
                       {new Date(n.createdAt).toLocaleString()}
                     </div>
                   </button>
@@ -87,10 +104,10 @@ const NavNotifications = ({ user, isOpen, setIsOpen, setIsProfileOpen }) => {
             </ul>
           )}
 
-          <div className="notif-footer">
+          <div className="p-3 border-t border-gray-100 dark:border-dark-border bg-gray-50 dark:bg-dark-bg/50 sticky bottom-0">
             <button
               type="button"
-              className="notif-viewall"
+              className="w-full py-2 text-sm font-medium text-center text-emerald hover:text-emerald-hover transition-colors rounded-lg hover:bg-emerald/10"
               onClick={() => {
                 setIsOpen(false);
                 navigate("/inbox");

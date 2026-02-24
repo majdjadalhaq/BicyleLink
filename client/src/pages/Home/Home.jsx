@@ -1,11 +1,12 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import useFetch from "../../hooks/useFetch";
-import ListingCard from "../../components/ListingCard.jsx";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
-import HeroFilter from "../../components/HeroFilter/HeroFilter.jsx";
-
 import TEST_ID from "./Home.testid";
-import "../../styles/Home.css";
+
+const ListingCard = lazy(() => import("../../components/ListingCard.jsx"));
+const HeroFilter = lazy(
+  () => import("../../components/HeroFilter/HeroFilter.jsx"),
+);
 
 const Home = () => {
   const [listings, setListings] = useState([]);
@@ -14,27 +15,22 @@ const Home = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  // Advanced Filter State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
 
-  // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 500);
-
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Memoized query string — only recomputes when its dependencies change
   const query = useMemo(() => {
     const params = new URLSearchParams({
       page,
       limit: 12,
       search: debouncedSearchTerm,
     });
-
     if (filters.minPrice) params.append("minPrice", filters.minPrice);
     if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
     if (filters.minYear) params.append("minYear", filters.minYear);
@@ -48,7 +44,6 @@ const Home = () => {
     if (filters.lat) params.append("lat", filters.lat);
     if (filters.lng) params.append("lng", filters.lng);
     if (filters.radius) params.append("radius", filters.radius);
-
     return params.toString();
   }, [page, debouncedSearchTerm, filters]);
 
@@ -69,60 +64,57 @@ const Home = () => {
     return () => cancelFetch();
   }, [page, debouncedSearchTerm, filters]);
 
-  const handleLoadMore = () => {
-    setPage((prev) => prev + 1);
-  };
-
+  const handleLoadMore = () => setPage((prev) => prev + 1);
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
   };
+  const handleClearSearch = () => setSearchTerm("");
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+    setIsFilterOpen(false);
+  };
+  const handleClearFilters = () => {
+    setFilters({});
+    setPage(1);
+  };
 
-  // Count active filters for badge
   const activeFilterCount = Object.keys(filters).filter((key) => {
-    // Exclude geolocation metadata from being counted as separate filters
     if (["lat", "lng", "radius"].includes(key)) return false;
-
     const val = filters[key];
     if (Array.isArray(val)) return val.length > 0;
     if (val === null || val === undefined || val === "") return false;
     return true;
   }).length;
 
-  const handleClearSearch = () => {
-    setSearchTerm("");
-  };
-
-  const handleApplyFilters = (newFilters) => {
-    setFilters(newFilters);
-    setPage(1);
-    setIsFilterOpen(false);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({});
-    setPage(1);
-  };
-
   return (
-    <div className="home-container" data-testid={TEST_ID.container}>
-      <div className="home-hero">
-        <h1>Find Your Perfect Ride</h1>
-        <p>Browse quality second-hand bikes in your area</p>
+    <div className="w-full pb-12" data-testid={TEST_ID.container}>
+      <div className="bg-gradient-to-br from-emerald-dark to-emerald text-white text-center px-4 py-16 sm:py-20 rounded-b-3xl shadow-lg shadow-emerald/30 mb-8 max-w-7xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
+          Find Your Perfect Ride
+        </h1>
+        <p className="text-lg sm:text-xl opacity-90 mb-8 max-w-2xl mx-auto font-medium">
+          Browse quality second-hand bikes in your area
+        </p>
 
-        <div className="home-search-wrapper">
-          <div className="home-search">
-            <div className="search-input-wrapper">
+        <div className="max-w-3xl mx-auto flex flex-col items-center relative gap-3">
+          <div className="w-full flex items-center gap-3 relative z-10">
+            <div className="relative flex-grow">
               <input
                 type="text"
                 placeholder="Search by bike name, brand, or city..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="search-input"
+                className="w-full px-6 py-4 text-base sm:text-lg rounded-full border-0 shadow-lg focus:shadow-xl focus:outline-none focus:ring-4 focus:ring-emerald-light/40 transition-all text-gray-900 dark:text-white bg-white dark:bg-dark-surface placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
             <button
-              className={`filter-toggle-btn ${isFilterOpen ? "active" : ""}`}
+              className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-emerald-light/40 relative ${
+                isFilterOpen
+                  ? "bg-dark-surface text-emerald shadow-inner"
+                  : "bg-white text-emerald hover:bg-gray-50 hover:-translate-y-0.5"
+              }`}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               title="Advanced Filters"
               aria-label="Advanced Filters"
@@ -148,65 +140,98 @@ const Home = () => {
                 <line x1="17" y1="16" x2="23" y2="16"></line>
               </svg>
               {activeFilterCount > 0 && (
-                <span
-                  className="filter-badge"
-                  aria-label={`${activeFilterCount} active filter${activeFilterCount === 1 ? "" : "s"}`}
-                >
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
                   {activeFilterCount}
                 </span>
               )}
             </button>
           </div>
 
-          <HeroFilter
-            isOpen={isFilterOpen}
-            filters={filters}
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-            onClearSearch={handleClearSearch}
-          />
-        </div>
-      </div>
-
-      {error && (
-        <div className="home-error">
-          Error loading listings: {error.toString()}
-        </div>
-      )}
-
-      {isLoading && page === 1 && (
-        <div className="listing-grid">
-          {[...Array(8)].map((_, i) => (
-            <Skeleton key={i} type="card" />
-          ))}
-        </div>
-      )}
-
-      {!isLoading && !error && listings.length === 0 && (
-        <div className="home-empty">
-          {debouncedSearchTerm || Object.keys(filters).length > 0
-            ? "No bikes found matching your search or filters."
-            : "No bikes listed yet. Be the first to sell yours!"}
-        </div>
-      )}
-
-      <div className="listing-grid">
-        {listings.map((listing) => (
-          <ListingCard key={listing._id} listing={listing} />
-        ))}
-      </div>
-
-      {hasMore && (
-        <div className="home-pagination">
-          <button
-            className="load-more-btn"
-            onClick={handleLoadMore}
-            disabled={isLoading}
+          <Suspense
+            fallback={
+              <div className="h-2 w-full mt-4 bg-gray-200 dark:bg-dark-border animate-pulse rounded"></div>
+            }
           >
-            {isLoading ? "Loading..." : "Load More"}
-          </button>
+            <HeroFilter
+              isOpen={isFilterOpen}
+              filters={filters}
+              onApply={handleApplyFilters}
+              onClear={handleClearFilters}
+              onClearSearch={handleClearSearch}
+            />
+          </Suspense>
         </div>
-      )}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {error && (
+          <div className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-xl text-center font-medium mb-6">
+            Error loading listings: {error.toString()}
+          </div>
+        )}
+
+        {isLoading && page === 1 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} type="card" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && !error && listings.length === 0 && (
+          <div className="text-center py-16 px-4 bg-gray-50 dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-dark-border mt-4">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+              ></path>
+            </svg>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">
+              {debouncedSearchTerm || Object.keys(filters).length > 0
+                ? "No bikes found matching your search."
+                : "No bikes listed yet."}
+            </p>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Try adjusting your filters, or be the first to sell yours!
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <Suspense
+            fallback={
+              <>
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={`lazy-skeleton-${i}`} type="card" />
+                ))}
+              </>
+            }
+          >
+            {listings.map((listing) => (
+              <ListingCard key={listing._id} listing={listing} />
+            ))}
+          </Suspense>
+        </div>
+
+        {hasMore && (
+          <div className="text-center mt-12 pb-8">
+            <button
+              className="px-8 py-3 bg-emerald text-white font-semibold rounded-full shadow-md hover:bg-emerald-hover hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-4 focus:ring-emerald/30 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              onClick={handleLoadMore}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Load More Bikes"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
