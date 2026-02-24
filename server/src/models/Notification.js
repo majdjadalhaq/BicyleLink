@@ -2,16 +2,26 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
-    userId: {
+    recipientId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "users",
       required: true,
     },
-    // e.g. "message", "favorite", "review"
-    type: { type: String, required: true },
-    title: { type: String, required: true },
-    body: { type: String, required: true },
-    // frontend route
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+    },
+    listingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "listings",
+    },
+    type: {
+      type: String,
+      enum: ["message", "favorite"],
+      required: true,
+    },
+    title: { type: String },
+    body: { type: String },
     link: { type: String, default: "/" },
     read: { type: Boolean, default: false },
   },
@@ -19,7 +29,7 @@ const notificationSchema = new mongoose.Schema(
 );
 
 const Notification =
-  mongoose.models.Notification ||
-  mongoose.model("Notification", notificationSchema);
+  mongoose.models.notifications ||
+  mongoose.model("notifications", notificationSchema);
 
 export default Notification;

@@ -1,24 +1,24 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaBell } from "react-icons/fa";
 import useNotifications from "../../hooks/useNotifications";
 import PropTypes from "prop-types";
 
-const NavNotifications = ({ user }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { items: notifications, unread, markAsRead } = useNotifications(user);
+const NavNotifications = ({ user, isOpen, setIsOpen, setIsProfileOpen }) => {
+  const {
+    items: notifications,
+    unread,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications(user);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Auto-close profile when opening notifications
+  const toggleOpen = () => {
+    if (!isOpen) setIsProfileOpen(false);
+    setIsOpen(!isOpen);
+  };
 
   if (!user) return null;
 
@@ -27,7 +27,7 @@ const NavNotifications = ({ user }) => {
       <button
         type="button"
         className="notif-button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         aria-label="Notifications"
       >
         <FaBell size={18} />
@@ -38,13 +38,24 @@ const NavNotifications = ({ user }) => {
         <div className="notif-dropdown" role="menu">
           <div className="notif-header">
             <span>Notifications</span>
-            <button
-              type="button"
-              className="notif-close"
-              onClick={() => setIsOpen(false)}
-            >
-              ✕
-            </button>
+            <div className="notif-header-actions">
+              {unread > 0 && (
+                <button
+                  type="button"
+                  className="notif-mark-all"
+                  onClick={markAllAsRead}
+                >
+                  Mark all as read
+                </button>
+              )}
+              <button
+                type="button"
+                className="notif-close"
+                onClick={() => setIsOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {notifications.length === 0 ? (
@@ -96,6 +107,9 @@ const NavNotifications = ({ user }) => {
 
 NavNotifications.propTypes = {
   user: PropTypes.object,
+  isOpen: PropTypes.bool.isRequired,
+  setIsOpen: PropTypes.func.isRequired,
+  setIsProfileOpen: PropTypes.func.isRequired,
 };
 
 export default NavNotifications;

@@ -100,7 +100,9 @@ export const initSocket = (io) => {
         // --- NOTIFICATION ---
         // Create notification for receiver
         const notification = await Notification.create({
-          userId: msg.receiverId,
+          recipientId: msg.receiverId,
+          senderId: msg.senderId,
+          listingId: msg.listingId,
           type: "message",
           title: "New message",
           body:

@@ -7,9 +7,11 @@ export const getMyNotifications = async (req, res) => {
     const userId = req.user._id;
     const limit = Number(req.query.limit || 20);
 
-    const result = await Notification.find({ userId })
+    const result = await Notification.find({ recipientId: userId })
       .sort({ createdAt: -1 })
-      .limit(limit);
+      .limit(limit)
+      .populate("senderId", "name avatarUrl")
+      .populate("listingId", "title photos");
 
     return res.status(200).json({ success: true, result });
   } catch (error) {
@@ -24,7 +26,10 @@ export const getMyNotifications = async (req, res) => {
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
-    const count = await Notification.countDocuments({ userId, read: false });
+    const count = await Notification.countDocuments({
+      recipientId: userId,
+      read: false,
+    });
     return res.status(200).json({ success: true, result: count });
   } catch (error) {
     logError(error);
@@ -41,7 +46,7 @@ export const markAsRead = async (req, res) => {
     const { id } = req.params;
 
     const updated = await Notification.findOneAndUpdate(
-      { _id: id, userId },
+      { _id: id, recipientId: userId },
       { read: true },
       { new: true },
     );
@@ -66,7 +71,10 @@ export const markAllAsRead = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    await Notification.updateMany({ userId, read: false }, { read: true });
+    await Notification.updateMany(
+      { recipientId: userId, read: false },
+      { read: true },
+    );
 
     return res
       .status(200)

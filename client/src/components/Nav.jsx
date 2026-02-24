@@ -5,17 +5,21 @@ import TEST_ID from "./Nav.testid";
 import "../styles/Nav.css";
 import { useTheme } from "../contexts/ThemeContext";
 import useUnreadCount from "../hooks/useUnreadCount";
+import useNotifications from "../hooks/useNotifications";
 import NavLinks from "./Nav/NavLinks";
 import NavProfile from "./Nav/NavProfile";
 import NavNotifications from "./Nav/NavNotifications";
+
 const Nav = () => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-  const unreadCount = useUnreadCount(user);
+  const unreadMessagesCount = useUnreadCount(user);
+  useNotifications(); // Subscribe to global notification context for reactivity
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,6 +31,7 @@ const Nav = () => {
     /* eslint-disable react-hooks/set-state-in-effect */
     setIsOpen(false);
     setIsProfileOpen(false);
+    setIsNotifOpen(false);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [location.pathname]);
 
@@ -74,7 +79,7 @@ const Nav = () => {
       {/* MIDDLE & RIGHT: Collapsible Content */}
       <div className={`navbar-collapse ${isOpen ? "show" : ""}`}>
         {/* MIDDLE: Navigation Links */}
-        <NavLinks user={user} unreadCount={unreadCount} />
+        <NavLinks user={user} unreadCount={unreadMessagesCount} />
 
         {/* RIGHT: Theme + Notifications + Profile/Auth */}
         <div className="navbar-actions">
@@ -87,8 +92,12 @@ const Nav = () => {
             {isDark ? "☀️ Light" : "🌙 Dark"}
           </button>
 
-          {/* Notifications Bell (only when logged in) */}
-          <NavNotifications user={user} />
+          <NavNotifications
+            user={user}
+            isOpen={isNotifOpen}
+            setIsOpen={setIsNotifOpen}
+            setIsProfileOpen={setIsProfileOpen}
+          />
 
           <NavProfile
             user={user}

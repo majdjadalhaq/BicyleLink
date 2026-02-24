@@ -74,14 +74,22 @@ export const toggleFavorite = async (req, res) => {
     if (ownerId && ownerId.toString() !== userId.toString()) {
       const sender = await User.findById(userId).select("name");
 
-      await Notification.create({
-        userId: ownerId,
+      const notification = await Notification.create({
+        recipientId: ownerId,
+        senderId: userId,
+        listingId: listingId,
         type: "favorite",
         title: "Added to favorites",
         body: `${sender?.name || "Someone"} added your listing to favorites`,
         link: `/listings/${listingId}`,
         read: false,
       });
+
+      // Real-time socket emission
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${ownerId}`).emit("new_notification", notification);
+      }
     }
 
     return res.status(201).json({ success: true, result: { favorited: true } });
