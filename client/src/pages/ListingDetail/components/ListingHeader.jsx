@@ -2,20 +2,28 @@ import PropTypes from "prop-types";
 
 const ListingHeader = ({ listing, isOwner }) => {
   return (
-    <div className="listing-header">
-      <div className="listing-header-top">
-        {listing.brand && <span className="brand-name">{listing.brand}</span>}
+    <div className="flex flex-col">
+      <div className="flex justify-between items-center mb-2">
+        {listing.brand && (
+          <span className="uppercase text-sm font-semibold text-emerald tracking-wide">
+            {listing.brand}
+          </span>
+        )}
         {listing.status === "sold" && (
-          <span className="status-badge sold">Sold</span>
+          <span className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+            Sold
+          </span>
         )}
       </div>
 
-      <h1 className="listing-title">{listing.title}</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight text-gray-900 dark:text-white">
+        {listing.title}
+      </h1>
 
       {isOwner && (
-        <div className="listing-analytics-bar">
+        <div className="flex flex-wrap gap-5 bg-slate-50 dark:bg-dark-input px-4 py-3 rounded-xl mb-5 border border-slate-200 dark:border-dark-border w-fit">
           <div
-            className="analytics-item"
+            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium"
             title="Unique views from potential buyers"
           >
             <svg
@@ -25,6 +33,7 @@ const ListingHeader = ({ listing, isOwner }) => {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              className="text-emerald"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -34,7 +43,7 @@ const ListingHeader = ({ listing, isOwner }) => {
             <span>{listing.views || 0} Views</span>
           </div>
           <div
-            className="analytics-item"
+            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium"
             title="Unique buyers who messaged you"
           >
             <svg
@@ -44,6 +53,7 @@ const ListingHeader = ({ listing, isOwner }) => {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              className="text-emerald"
               strokeLinecap="round"
               strokeLinejoin="round"
             >

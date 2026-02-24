@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import useFetch from "../../hooks/useFetch";
+import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import ListingForm from "../../components/ListingForm/ListingForm";
-import "../../styles/CreateListing.css"; // Reuse shared styles
 
 const EditListing = () => {
   const { id } = useParams();
@@ -12,29 +11,47 @@ const EditListing = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 1. Fetch Existing Listing Data
   const [listingData, setListingData] = useState(null);
 
   const {
+    execute: executeApi,
     isLoading: isFetching,
     error: fetchError,
-    performFetch: fetchListing,
-  } = useFetch(`/listings/${id}`, (response) => {
-    setListingData(response.result);
-  });
-
-  useEffect(() => {
-    fetchListing();
-  }, [id]);
-
-  // 2. Fetch Hook for Updating
+  } = useApi();
   const {
+    execute: executeUpdate,
     isLoading: isUpdating,
     error: updateError,
-    performFetch: performUpdate,
-  } = useFetch(
-    user?.role === "admin" ? `/admin/listings/${id}` : `/listings/${id}`,
-    () => {
+  } = useApi();
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      const response = await executeApi(`/listings/${id}`);
+      if (response?.success) {
+        setListingData(response.result);
+      }
+    };
+    fetchListing();
+  }, [id, executeApi]);
+
+  useEffect(() => {
+    if (listingData && user) {
+      const ownerId = listingData.ownerId?._id || listingData.ownerId;
+      if (ownerId && ownerId !== user._id && user.role !== "admin") {
+        navigate("/");
+      }
+    }
+  }, [listingData, user, navigate]);
+
+  const handleEditSubmit = async (formData) => {
+    const route =
+      user?.role === "admin" ? `/admin/listings/${id}` : `/listings/${id}`;
+    const data = await executeUpdate(route, {
+      method: "PATCH",
+      body: { listing: formData },
+    });
+
+    if (data?.success) {
       setSuccessMessage("Listing updated successfully!");
       setErrorMessage("");
       setTimeout(() => {
@@ -42,51 +59,51 @@ const EditListing = () => {
           user?.role === "admin" ? "/admin/listings" : `/listings/${id}`,
         );
       }, 1500);
-    },
-  );
-
-  // 3. Security Check: Redirect if not owner
-  useEffect(() => {
-    if (listingData && user) {
-      const ownerId = listingData.ownerId?._id || listingData.ownerId;
-      if (ownerId && ownerId !== user._id && user.role !== "admin") {
-        // Not owner and NOT admin -> Redirect home
-        navigate("/");
-      }
+    } else {
+      setErrorMessage(data?.msg || "Error updating listing.");
     }
-  }, [listingData, user, navigate]);
-
-  const handleEditSubmit = (formData) => {
-    // If admin, we should make sure handled appropriately by the hook's URL
-    performUpdate({
-      method: "PATCH", // Admin update uses PATCH, user uses PUT? actually user uses PUT.
-      body: JSON.stringify({ listing: formData }),
-    });
   };
 
   if (isFetching)
-    return <div className="loading-fallback">Loading Listing...</div>;
+    return (
+      <div className="text-center p-10 text-lg text-gray-900 dark:text-gray-100 font-medium">
+        Loading Listing...
+      </div>
+    );
   if (fetchError)
-    return <div className="error-fallback">Error loading listing.</div>;
+    return (
+      <div className="text-center p-10 text-lg text-red-600 dark:text-red-400 font-medium">
+        Error loading listing.
+      </div>
+    );
 
   return (
-    <div className="create-listing-page">
-      <Link to={`/listings/${id}`} className="create-listing__back">
+    <div className="max-w-4xl mx-auto py-10 px-5 animate-in slide-in-from-bottom-2 duration-300">
+      <Link
+        to={`/listings/${id}`}
+        className="inline-block mb-6 text-emerald font-semibold transition-transform hover:-translate-x-1 hover:text-emerald-hover"
+      >
         ← Back to Listing
       </Link>
 
-      <div className="create-listing-card">
-        <header className="card-header-purple">
-          <h1>Edit Listing</h1>
-          <p>Update your bike details.</p>
+      <div className="bg-white dark:bg-dark-surface rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-dark-border">
+        <header className="bg-gradient-to-r from-emerald to-teal-500 p-8 sm:p-10 text-center text-white">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 text-white drop-shadow-sm">
+            Edit Listing
+          </h1>
+          <p className="text-emerald-50 text-base sm:text-lg m-0 opacity-90 font-medium">
+            Update your bike details.
+          </p>
         </header>
 
-        <div className="card-body-content">
+        <div className="p-6 sm:p-10 lg:p-12">
           {successMessage && (
-            <div className="create-listing__success">{successMessage}</div>
+            <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-4 rounded-xl border-l-4 border-green-500 font-semibold mb-6 shadow-sm">
+              {successMessage}
+            </div>
           )}
           {(errorMessage || updateError) && (
-            <div className="create-listing__error">
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-xl border-l-4 border-red-500 font-semibold mb-6 shadow-sm">
               {errorMessage ||
                 (updateError && updateError.toString()) ||
                 "Error updating listing."}

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import "../../styles/ListingDetail.css";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
 import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
@@ -53,9 +52,17 @@ const ListingDetail = () => {
   } = useListingDetail();
 
   if (loading)
-    return <div className="listing-detail-container">Loading...</div>;
+    return (
+      <div className="max-w-6xl mx-auto p-5 text-gray-900 dark:text-gray-100">
+        Loading...
+      </div>
+    );
   if (error)
-    return <div className="listing-detail-container">Error: {error}</div>;
+    return (
+      <div className="max-w-6xl mx-auto p-5 text-gray-900 dark:text-gray-100">
+        Error: {error}
+      </div>
+    );
   if (!listing) return null;
 
   const sellerData = {
@@ -65,7 +72,7 @@ const ListingDetail = () => {
   };
 
   return (
-    <div className="listing-detail-container">
+    <div className="max-w-6xl mx-auto p-5 text-gray-900 dark:text-gray-100 pb-16">
       <Breadcrumbs
         items={[
           { label: "Listings", path: "/" },
@@ -73,18 +80,21 @@ const ListingDetail = () => {
         ]}
       />
 
-      <Link to="/" className="back-link">
+      <Link
+        to="/"
+        className="inline-block mb-6 text-emerald font-medium transition-transform hover:underline hover:-translate-x-1"
+      >
         ← Back to Marketplace
       </Link>
 
-      <div className="listing-content">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <ListingImageCarousel
           images={listing.images || []}
           title={listing.title}
           status={listing.status}
         />
 
-        <div className="details-container">
+        <div className="flex flex-col">
           <ListingHeader listing={listing} isOwner={isOwner} />
           <ListingInfo listing={listing} displayPrice={displayPrice} />
 
@@ -109,14 +119,20 @@ const ListingDetail = () => {
           <ListingSpecs listing={listing} />
 
           {listing.coordinates && listing.coordinates.coordinates && (
-            <LocationMap coordinates={listing.coordinates.coordinates} />
+            <div className="mt-4 rounded-xl overflow-hidden border border-gray-200 dark:border-dark-border shadow-sm">
+              <LocationMap coordinates={listing.coordinates.coordinates} />
+            </div>
           )}
         </div>
 
         {listing.description && (
-          <div className="description-section">
-            <h3>Description</h3>
-            <p className="description-text">{listing.description}</p>
+          <div className="md:col-span-2 bg-gray-50 dark:bg-dark-surface p-8 rounded-xl mt-4 border border-gray-100 dark:border-dark-border shadow-sm">
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              Description
+            </h3>
+            <p className="leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-line">
+              {listing.description}
+            </p>
           </div>
         )}
       </div>

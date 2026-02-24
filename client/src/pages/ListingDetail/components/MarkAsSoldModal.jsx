@@ -1,15 +1,6 @@
 /**
  * Modal for the owner to mark a listing as sold and record the buyer.
  * Co-located with ListingDetail as it is feature-specific, not globally reusable.
- *
- * @param {object} props
- * @param {boolean} props.isOpen
- * @param {Array<{_id: string, name: string, email: string}>} props.candidates
- * @param {boolean} props.isLoading
- * @param {string} props.selectedBuyerId
- * @param {function(string): void} props.onBuyerChange
- * @param {function(): void} props.onConfirm
- * @param {function(): void} props.onClose
  */
 const MarkAsSoldModal = ({
   isOpen,
@@ -23,19 +14,23 @@ const MarkAsSoldModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Mark as Sold</h3>
-        <p>Who bought this item? Select from your chats:</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+      <div className="bg-white dark:bg-dark-surface p-8 rounded-xl w-[90%] max-w-[450px] shadow-2xl">
+        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white mt-0">
+          Mark as Sold
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300">
+          Who bought this item? Select from your chats:
+        </p>
 
         {isLoading ? (
-          <div>Loading buyers...</div>
+          <div className="my-6 text-gray-500">Loading buyers...</div>
         ) : (
-          <div className="buyer-selection">
+          <div className="my-6">
             <select
               value={selectedBuyerId}
               onChange={(e) => onBuyerChange(e.target.value)}
-              className="buyer-select"
+              className="w-full p-3 border border-gray-300 dark:border-dark-border rounded-lg text-base bg-white dark:bg-dark-input text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald outline-none transition-shadow"
             >
               <option value="">-- Select Buyer --</option>
               {candidates.map((c) => (
@@ -48,12 +43,15 @@ const MarkAsSoldModal = ({
           </div>
         )}
 
-        <div className="modal-actions">
-          <button className="btn-cancel" onClick={onClose}>
+        <div className="flex justify-end gap-4 mt-8">
+          <button
+            className="bg-gray-100 dark:bg-dark-input hover:bg-gray-200 dark:hover:bg-dark-border text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-lg font-medium transition-colors"
+            onClick={onClose}
+          >
             Cancel
           </button>
           <button
-            className="btn-confirm"
+            className="bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedBuyerId && selectedBuyerId !== "other"}
             onClick={onConfirm}
           >
