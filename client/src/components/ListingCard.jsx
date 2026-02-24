@@ -13,7 +13,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const [pendingDelete, setPendingDelete] = useState(false);
   const deleteTimerRef = useRef(null);
   const { execute: executeApi } = useApi();
-  const { showToast, ToastContainer } = useToast();
+  const { showToast } = useToast();
 
   // Auto-reset pendingDelete after 3 seconds
   useEffect(() => {
@@ -83,8 +83,6 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
 
   return (
     <div className="listing-card" data-id={_id}>
-      <ToastContainer />
-
       <div className="listing-card__image-container">
         <img src={imageUrl} alt={title} className="listing-card__image" />
 

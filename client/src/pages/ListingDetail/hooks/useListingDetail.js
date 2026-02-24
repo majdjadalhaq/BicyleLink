@@ -10,7 +10,7 @@ const useListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showToast, ToastContainer } = useToast();
+  const { showToast } = useToast();
 
   const [listing, setListing] = useState(null);
   const [prevId, setPrevId] = useState(id);
@@ -216,7 +216,6 @@ const useListingDetail = () => {
     handleReportSubmit,
     navigate,
     showToast,
-    ToastContainer,
     displayPrice,
   };
 };

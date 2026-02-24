@@ -18,7 +18,7 @@ const cleanCityName = (name) => {
 const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
-  const { showToast, ToastContainer } = useToast();
+  const { showToast } = useToast();
 
   // City Search State
   const [citySearch, setCitySearch] = useState("");
@@ -206,7 +206,6 @@ const HeroFilter = ({ filters, onApply, onClear, onClearSearch, isOpen }) => {
 
   return (
     <div className="hero-filter-container">
-      <ToastContainer />
       <div className="filter-grid">
         <div className="filter-column">
           <FilterChips

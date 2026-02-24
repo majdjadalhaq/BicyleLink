@@ -45,7 +45,6 @@ const ListingDetail = () => {
     handleStatusClick,
     handleStatusUpdate,
     handleReviewSubmit,
-    ToastContainer,
     displayPrice,
     reportModalOpen,
     setReportModalOpen,
@@ -67,7 +66,6 @@ const ListingDetail = () => {
 
   return (
     <div className="listing-detail-container">
-      <ToastContainer />
       <Breadcrumbs
         items={[
           { label: "Listings", path: "/" },

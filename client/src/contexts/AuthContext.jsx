@@ -16,9 +16,13 @@ export const AuthProvider = ({ children }) => {
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
+        } else if (response.status === 404 || response.status === 401) {
+          // Expected for guest users, set user to null silently
+          setUser(null);
         }
       } catch {
-        // Session check failed, user not logged in. Silence to keep console clean.
+        // AbortError or Network error
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
