@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
 import ListingCard from "../../components/ListingCard";
+
 const MyListings = () => {
   const { user } = useAuth();
   const [listings, setListings] = useState([]);

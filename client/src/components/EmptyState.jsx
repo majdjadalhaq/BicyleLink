@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+
 const EmptyState = ({
   title = "No results found",
   message = "Try adjusting your search or filters.",
