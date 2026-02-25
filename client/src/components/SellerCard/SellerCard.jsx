@@ -22,7 +22,7 @@ const SellerCard = ({
         Seller Information
       </h3>
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-emerald text-white rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0">
+        <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0">
           {initial}
         </div>
         <div className="flex flex-col">
@@ -47,7 +47,7 @@ const SellerCard = ({
             </span>
           )}
 
-          <span className="text-sm text-emerald mt-1 font-medium">
+          <span className="text-sm text-emerald-500 mt-1 font-medium">
             Verified User
           </span>
         </div>
