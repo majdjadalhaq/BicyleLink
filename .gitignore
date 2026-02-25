@@ -49,3 +49,5 @@ cypress/screenshots
 *.sln
 *.sw?
 CHECK_LATER.md
+DATABASE_SCHEMA.md
+PR_DETAILS.md
