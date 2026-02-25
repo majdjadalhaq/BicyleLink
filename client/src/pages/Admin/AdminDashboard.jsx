@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import StatCard from "../../components/Admin/StatCard";
 import ActivityGraph from "../../components/Admin/ActivityGraph";
-import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -32,21 +31,25 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="admin-loading">
-        <div className="spinner"></div>
-        <p>Loading global statistics...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">
+          Loading global statistics...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="admin-error">
-        <h2>Dashboard Error</h2>
-        <p>{error}</p>
+      <div className="max-w-3xl mx-auto p-8 mt-8 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl text-center">
+        <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">
+          Dashboard Error
+        </h2>
+        <p className="text-red-600 dark:text-red-300 mb-6">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="btn btn--primary"
+          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
         >
           Retry
         </button>
@@ -55,24 +58,32 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="admin-dashboard">
-      <header className="admin-header">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)] space-y-8 bg-light-bg dark:bg-dark-bg">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-light-surface dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-light-border dark:border-dark-border">
         <div>
-          <h1 className="admin-header__title">Admin Command Center</h1>
-          <p className="admin-header__subtitle">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Admin Command Center
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
             Platform overview and management metrics
           </p>
         </div>
         {stats.pendingReports > 0 && (
-          <div className="admin-header__actions">
-            <Link to="/admin/reports" className="btn btn--warning">
-              {stats.pendingReports} Pending Reports
+          <div>
+            <Link
+              to="/admin/reports"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition-colors shadow-sm hover:shadow"
+            >
+              <span className="flex items-center justify-center w-5 h-5 bg-white text-amber-500 rounded-full text-xs font-bold">
+                {stats.pendingReports}
+              </span>
+              Pending Reports
             </Link>
           </div>
         )}
       </header>
 
-      <div className="admin-stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
@@ -139,17 +150,20 @@ const AdminDashboard = () => {
         />
       </div>
 
-      <div className="admin-main-content">
+      <div>
         <ActivityGraph data={stats.recentListings} />
       </div>
 
-      <div className="admin-action-cards">
-        <Link to="/admin/users" className="admin-action-card">
-          <div className="admin-action-card__icon">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link
+          to="/admin/users"
+          className="group bg-light-surface dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border hover:border-emerald-500 dark:hover:border-emerald-500 transition-all hover:shadow-md flex flex-col"
+        >
+          <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -163,19 +177,26 @@ const AdminDashboard = () => {
               <line x1="22" y1="11" x2="16" y2="11" />
             </svg>
           </div>
-          <div className="admin-action-card__content">
-            <h3>Manage Users</h3>
-            <p>View, block, or assign admin privileges to community members.</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Manage Users
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 flex-1">
+            View, block, or assign admin privileges to community members.
+          </p>
+          <div className="mt-4 text-emerald-500 font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
+            Go to Users <span aria-hidden="true">&rarr;</span>
           </div>
-          <div className="admin-action-card__arrow">→</div>
         </Link>
 
-        <Link to="/admin/listings" className="admin-action-card">
-          <div className="admin-action-card__icon">
+        <Link
+          to="/admin/listings"
+          className="group bg-light-surface dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:shadow-md flex flex-col"
+        >
+          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -188,19 +209,26 @@ const AdminDashboard = () => {
               <line x1="9" y1="15" x2="15" y2="15" />
             </svg>
           </div>
-          <div className="admin-action-card__content">
-            <h3>Moderate Listings</h3>
-            <p>Review all active bikes, promote listings, or remove content.</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Moderate Listings
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 flex-1">
+            Review all active bikes, promote listings, or remove content.
+          </p>
+          <div className="mt-4 text-blue-500 font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
+            Go to Listings <span aria-hidden="true">&rarr;</span>
           </div>
-          <div className="admin-action-card__arrow">→</div>
         </Link>
 
-        <Link to="/admin/reports" className="admin-action-card">
-          <div className="admin-action-card__icon">
+        <Link
+          to="/admin/reports"
+          className="group bg-light-surface dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border hover:border-amber-500 dark:hover:border-amber-500 transition-all hover:shadow-md flex flex-col"
+        >
+          <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -212,13 +240,15 @@ const AdminDashboard = () => {
               <line x1="4" y1="22" x2="4" y2="15" />
             </svg>
           </div>
-          <div className="admin-action-card__content">
-            <h3>Review Reports</h3>
-            <p>
-              Handle flagged content and user reports to keep the platform safe.
-            </p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Review Reports
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 flex-1">
+            Handle flagged content and user reports to keep the platform safe.
+          </p>
+          <div className="mt-4 text-amber-500 font-medium group-hover:translate-x-1 transition-transform flex items-center gap-1">
+            Go to Reports <span aria-hidden="true">&rarr;</span>
           </div>
-          <div className="admin-action-card__arrow">→</div>
         </Link>
       </div>
     </div>

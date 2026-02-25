@@ -8,12 +8,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import PropTypes from "prop-types";
-import "./ActivityGraph.css";
 
 const ActivityGraph = ({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="activity-graph activity-graph--empty">
+      <div className="bg-light-surface dark:bg-dark-surface p-8 rounded-2xl border border-light-border dark:border-dark-border flex items-center justify-center min-h-[300px] text-gray-500 dark:text-gray-400">
         <p>No activity data available for the last 7 days.</p>
       </div>
     );
@@ -32,83 +31,61 @@ const ActivityGraph = ({ data }) => {
   });
 
   return (
-    <div className="activity-graph">
-      <h3 className="activity-graph__title">Listing Activity (Last 7 Days)</h3>
-      <div className="activity-graph__container">
-        <ResponsiveContainer width="100%" height={300}>
+    <div className="bg-light-surface dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border shadow-sm">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
+        Listing Activity (Last 7 Days)
+      </h3>
+      <div className="h-[300px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
               <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--primary-color, #6b21a8)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--primary-color, #6b21a8)"
-                  stopOpacity={0}
-                />
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke="rgba(0,0,0,0.05)"
+              stroke="rgba(156, 163, 175, 0.2)"
             />
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "var(--text-light, #6b7280)",
-                fontSize: 13,
-                fontWeight: 500,
+                fill: "#6b7280",
+                fontSize: 12,
               }}
-              dy={15}
-              height={50}
-              label={{
-                value: "Date",
-                position: "insideBottom",
-                fill: "var(--text-light, #6b7280)",
-                fontSize: 13,
-                fontWeight: 600,
-                offset: -5,
-              }}
+              dy={10}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "var(--text-light, #6b7280)",
-                fontSize: 13,
-                fontWeight: 500,
+                fill: "#6b7280",
+                fontSize: 12,
               }}
               allowDecimals={false}
-              dx={-10}
-              width={60}
-              label={{
-                value: "New Listings",
-                angle: -90,
-                position: "insideLeft",
-                fill: "var(--text-light, #6b7280)",
-                fontSize: 13,
-                fontWeight: 600,
-              }}
             />
             <Tooltip
               contentStyle={{
-                borderRadius: "12px",
-                border: "none",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                fontWeight: 600,
+                backgroundColor: "var(--light-surface, #ffffff)",
+                borderColor: "var(--light-border, #e5e7eb)",
+                borderRadius: "0.5rem",
+                boxShadow:
+                  "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                 color: "var(--text-dark, #111827)",
               }}
+              itemStyle={{
+                color: "#10b981",
+                fontWeight: 600,
+              }}
               cursor={{
-                stroke: "rgba(107, 33, 168, 0.2)",
+                stroke: "rgba(16, 185, 129, 0.4)",
                 strokeWidth: 2,
                 strokeDasharray: "4 4",
               }}
@@ -116,14 +93,14 @@ const ActivityGraph = ({ data }) => {
             <Area
               type="monotone"
               dataKey="Listings"
-              stroke="var(--primary-color, #6b21a8)"
-              strokeWidth={4}
+              stroke="#10b981"
+              strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorListings)"
               activeDot={{
                 r: 6,
                 strokeWidth: 0,
-                fill: "var(--primary-color, #6b21a8)",
+                fill: "#10b981",
               }}
             />
           </AreaChart>

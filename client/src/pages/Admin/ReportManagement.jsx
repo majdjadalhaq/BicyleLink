@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import useApi from "../../hooks/useApi";
-import "./ReportManagement.css";
 
 const ReportManagement = () => {
   const [reports, setReports] = useState([]);
@@ -51,7 +50,6 @@ const ReportManagement = () => {
           data?.message || data?.msg || "Failed to update report status",
           "error",
         );
-        // Refetch reports to ensure UI is consistent with server state if an error occurred during update
         fetchReports();
       }
     } catch {
@@ -66,68 +64,96 @@ const ReportManagement = () => {
 
   if (loading)
     return (
-      <div className="admin-loading">
-        <div className="spinner"></div>
-        <p>Loading reports...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">
+          Loading reports...
+        </p>
       </div>
     );
 
   if (error)
     return (
-      <div className="admin-error">
-        <h2>Error</h2>
-        <p>{error}</p>
+      <div className="max-w-3xl mx-auto p-8 mt-8 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-2xl text-center">
+        <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">
+          Error
+        </h2>
+        <p className="text-red-600 dark:text-red-300">{error}</p>
       </div>
     );
 
   return (
-    <div className="report-management">
-      <nav className="admin-breadcrumbs">
-        <Link to="/admin">Dashboard</Link>
-        <span className="separator">/</span>
-        <span className="current">Report Moderation</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)] space-y-6 bg-light-bg dark:bg-dark-bg">
+      <nav className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-2">
+        <Link to="/admin" className="hover:text-amber-500 transition-colors">
+          Dashboard
+        </Link>
+        <span>/</span>
+        <span className="text-gray-900 dark:text-gray-200">
+          Report Moderation
+        </span>
       </nav>
 
-      <header className="admin-header">
-        <div className="admin-header__left">
-          <h1 className="admin-header__title">Community Flags</h1>
-          <p className="admin-header__subtitle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-light-border dark:border-dark-border">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Community Flags
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
             Review and resolve reports to maintain platform safety
           </p>
         </div>
-        <div className="admin-header__right">
-          <div className="report-stats">
-            <div className="stat-pill">
-              <span className="stat-label">Total Reports:</span>
-              <span className="stat-value">{reports.length}</span>
-            </div>
+        <div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl shadow-sm">
+            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+              Total Reports:
+            </span>
+            <span className="text-lg font-bold text-amber-500">
+              {reports.length}
+            </span>
           </div>
         </div>
       </header>
 
-      <div className="admin-controls">
-        <div className="filter-group-glass">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide py-2">
+        <div className="flex bg-gray-100 dark:bg-dark-surface p-1 rounded-xl shadow-inner border border-gray-200 dark:border-dark-border min-w-max">
           <button
-            className={`filter-btn-pill ${statusFilter === "pending" ? "active" : ""}`}
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === "pending"
+                ? "bg-amber-500 text-white shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            }`}
             onClick={() => setStatusFilter("pending")}
           >
             Pending
           </button>
           <button
-            className={`filter-btn-pill ${statusFilter === "resolved" ? "active" : ""}`}
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === "resolved"
+                ? "bg-emerald-500 text-white shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            }`}
             onClick={() => setStatusFilter("resolved")}
           >
             Resolved
           </button>
           <button
-            className={`filter-btn-pill ${statusFilter === "dismissed" ? "active" : ""}`}
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === "dismissed"
+                ? "bg-gray-500 text-white shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            }`}
             onClick={() => setStatusFilter("dismissed")}
           >
             Dismissed
           </button>
-          <div className="divider"></div>
+          <div className="w-px bg-gray-300 dark:bg-gray-700 mx-2 my-1"></div>
           <button
-            className={`filter-btn-pill ${statusFilter === "all" ? "active" : ""}`}
+            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              statusFilter === "all"
+                ? "bg-blue-500 text-white shadow"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            }`}
             onClick={() => setStatusFilter("all")}
           >
             All Reports
@@ -135,24 +161,30 @@ const ReportManagement = () => {
         </div>
       </div>
 
-      <div className="admin-table-wrapper-premium">
-        <table className="admin-table-modern">
-          <thead>
-            <tr>
-              <th className="col-reporter">Reporter</th>
-              <th className="col-target">Flagged Content</th>
-              <th className="col-reason">Reason & Context</th>
-              <th className="col-status">Status</th>
-              <th className="col-date">Submitted</th>
-              <th className="col-actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReports.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="empty-table-cell">
-                  <div className="empty-state-content">
-                    <div className="empty-icon">
+      <div className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-dark-input/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-light-border dark:border-dark-border">
+                <th className="px-6 py-4 font-semibold w-52">Reporter</th>
+                <th className="px-6 py-4 font-semibold w-48">
+                  Flagged Content
+                </th>
+                <th className="px-6 py-4 font-semibold min-w-[200px]">
+                  Reason & Context
+                </th>
+                <th className="px-6 py-4 font-semibold w-32">Status</th>
+                <th className="px-6 py-4 font-semibold w-32">Submitted</th>
+                <th className="px-6 py-4 font-semibold w-40 text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-light-border dark:divide-dark-border">
+              {filteredReports.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-24 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 space-y-4">
                       <svg
                         width="48"
                         height="48"
@@ -164,132 +196,160 @@ const ReportManagement = () => {
                         <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
                         <line x1="4" y1="22" x2="4" y2="15" />
                       </svg>
-                    </div>
-                    <h3>No reports found</h3>
-                    <p>
-                      Great job! The platform is looking clean under the &quot;
-                      {statusFilter}&quot; filter.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              filteredReports.map((report) => (
-                <tr key={report._id} className="report-row">
-                  <td className="col-reporter">
-                    <div className="reporter-info">
-                      <div className="reporter-avatar">
-                        {report.reporterId?.name?.charAt(0) || "U"}
-                      </div>
-                      <div className="reporter-details">
-                        <span className="reporter-name">
-                          {report.reporterId?.name || "Deleted User"}
-                        </span>
-                        <span className="reporter-email">
-                          {report.reporterId?.email}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="col-target">
-                    <div className="target-info">
-                      <span
-                        className={`type-badge-mini type--${report.targetType.toLowerCase()}`}
-                      >
-                        {report.targetType}
-                      </span>
-                      {report.target ? (
-                        <Link
-                          to={
-                            report.targetType === "Listing"
-                              ? `/listings/${report.targetId}`
-                              : `/profile/${report.targetId}`
-                          }
-                          className="target-link-modern"
-                        >
-                          {report.targetType === "Listing"
-                            ? report.target.title
-                            : report.target.name}
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                          </svg>
-                        </Link>
-                      ) : (
-                        <span className="deleted-target-modern">
-                          Deleted {report.targetType}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="col-reason">
-                    <div className="reason-container">
-                      <div className="reason-text" title={report.reason}>
-                        {report.reason}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="col-status">
-                    <span className={`status-pill status--${report.status}`}>
-                      <span className="dot"></span>
-                      {report.status}
-                    </span>
-                  </td>
-                  <td className="col-date">
-                    <span className="date-display">
-                      {new Date(report.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )}
-                    </span>
-                  </td>
-                  <td className="col-actions">
-                    <div className="action-button-group">
-                      {report.status === "pending" ? (
-                        <>
-                          <button
-                            onClick={() =>
-                              handleUpdateStatus(report._id, "resolved")
-                            }
-                            className="btn-action-modern btn-resolve-modern"
-                            title="Mark as Resolved"
-                          >
-                            Resolve
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleUpdateStatus(report._id, "dismissed")
-                            }
-                            className="btn-action-modern btn-dismiss-modern"
-                            title="Dismiss Report"
-                          >
-                            Dismiss
-                          </button>
-                        </>
-                      ) : (
-                        <span className="action-completed-text">
-                          No actions
-                        </span>
-                      )}
+                      <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300">
+                        No reports found
+                      </h3>
+                      <p className="text-sm">
+                        Great job! The platform is looking clean under the
+                        &quot;{statusFilter}&quot; filter.
+                      </p>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredReports.map((report) => (
+                  <tr
+                    key={report._id}
+                    className="hover:bg-gray-50 dark:hover:bg-dark-surface-hover transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold flex flex-shrink-0 items-center justify-center text-sm shadow-sm border border-amber-200 dark:border-amber-500/30">
+                          {report.reporterId?.name?.charAt(0) || "U"}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {report.reporterId?.name || "Deleted User"}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {report.reporterId?.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col items-start gap-1">
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
+                            report.targetType === "Listing"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
+                              : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400"
+                          }`}
+                        >
+                          {report.targetType}
+                        </span>
+                        {report.target ? (
+                          <Link
+                            to={
+                              report.targetType === "Listing"
+                                ? `/listings/${report.targetId}`
+                                : `/profile/${report.targetId}`
+                            }
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-200 hover:text-amber-500 dark:hover:text-amber-400 transition-colors inline-flex items-center gap-1 group/link truncate max-w-[160px]"
+                          >
+                            <span className="truncate">
+                              {report.targetType === "Listing"
+                                ? report.target.title
+                                : report.target.name}
+                            </span>
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              className="opacity-0 group-hover/link:opacity-100 flex-shrink-0 -translate-x-1 group-hover/link:translate-x-0 transition-all"
+                            >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                          </Link>
+                        ) : (
+                          <span className="text-sm italic text-gray-400 dark:text-gray-500">
+                            Deleted {report.targetType}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="bg-gray-50 dark:bg-dark-input/50 border border-gray-100 dark:border-gray-800 rounded-lg p-3 max-h-[80px] overflow-y-auto custom-scrollbar">
+                        <p
+                          className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                          title={report.reason}
+                        >
+                          {report.reason}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                          report.status === "pending"
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
+                            : report.status === "resolved"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
+                              : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            report.status === "pending"
+                              ? "bg-amber-500 animate-pulse"
+                              : report.status === "resolved"
+                                ? "bg-emerald-500"
+                                : "bg-gray-500"
+                          }`}
+                        ></span>
+                        {report.status.charAt(0).toUpperCase() +
+                          report.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {new Date(report.createdAt).toLocaleDateString(
+                          undefined,
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {report.status === "pending" ? (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleUpdateStatus(report._id, "resolved")
+                              }
+                              className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white rounded-lg text-xs font-bold transition-colors"
+                              title="Mark as Resolved"
+                            >
+                              Resolve
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleUpdateStatus(report._id, "dismissed")
+                              }
+                              className="px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-500 hover:text-white dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white rounded-lg text-xs font-bold transition-colors"
+                              title="Dismiss Report"
+                            >
+                              Dismiss
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 italic px-2">
+                            No actions
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
