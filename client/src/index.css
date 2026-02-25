@@ -12,7 +12,7 @@
   }
 
   body.theme-dark {
-    @apply bg-[#1a1a1a] text-white border-dark-border;
+    @apply bg-dark-bg text-white border-dark-border;
   }
 
   h1,
@@ -32,29 +32,87 @@
 }
 
 @layer components {
-  /* Reusable Emerald UI Components */
+  /* ─── Buttons ─── */
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-emerald-glow hover:shadow-emerald-glow-strong transform hover:-translate-y-1;
+    @apply bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-emerald-glow hover:shadow-emerald-glow-strong transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
 
   .btn-secondary {
-    @apply bg-transparent border-2 border-primary text-primary hover:bg-primary/10 rounded-full font-bold px-6 py-3 transition-all duration-300;
+    @apply bg-transparent border-2 border-emerald-500 text-emerald-500 hover:bg-emerald-500/10 rounded-full font-bold px-6 py-3 transition-all duration-300;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full font-medium px-4 py-2 transition-all duration-200;
+  }
+
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full bg-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200;
   }
 
   .btn-destructive {
-    @apply bg-red-500 hover:bg-red-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply bg-danger hover:bg-red-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-md hover:shadow-lg;
   }
 
+  /* ─── Inputs ─── */
   .input-emerald {
-    @apply w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:shadow-emerald-glow transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500;
+    @apply w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:shadow-emerald-glow transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500;
   }
 
+  /* ─── Cards ─── */
   .card-emerald {
-    @apply bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border shadow-sm overflow-hidden;
+    @apply bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-card-hover dark:hover:shadow-card-hover-dark;
   }
 
+  .card-flat {
+    @apply bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden;
+  }
+
+  /* ─── Glass Panels ─── */
   .glass-panel {
     @apply bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .glass-panel-strong {
+    @apply bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border border-white/30 dark:border-white/10 shadow-lg;
+  }
+
+  /* ─── Badges ─── */
+  .badge-emerald {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20;
+  }
+
+  .badge-status {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge-status bg-success/10 text-success border border-success/20;
+  }
+
+  .badge-danger {
+    @apply badge-status bg-danger/10 text-danger border border-danger/20;
+  }
+
+  .badge-warning {
+    @apply badge-status bg-warning/10 text-warning border border-warning/20;
+  }
+
+  .badge-info {
+    @apply badge-status bg-info/10 text-info border border-info/20;
+  }
+
+  /* ─── Section Dividers ─── */
+  .divider-emerald {
+    @apply border-t border-light-border dark:border-dark-border;
+  }
+
+  /* ─── Overlays ─── */
+  .overlay-backdrop {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn;
+  }
+
+  .overlay-panel {
+    @apply bg-light-surface dark:bg-dark-surface rounded-2xl shadow-2xl border border-light-border dark:border-dark-border animate-scaleIn;
   }
 }
 
@@ -63,7 +121,7 @@
 }
 
 .app-container {
-  @apply flex-1 flex flex-col w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  @apply flex-1 flex flex-col w-full;
 }
 
 .main-content {
