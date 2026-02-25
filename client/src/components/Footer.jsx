@@ -1,6 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Footer = () => {
+  const location = useLocation();
+  const isAuthPage = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(location.pathname);
+  if (isAuthPage) return null;
+
   const year = new Date().getFullYear();
 
   return (

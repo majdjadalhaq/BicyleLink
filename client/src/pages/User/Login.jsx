@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import useApi from "../../hooks/useApi";
-import InputField from "../../components/form/InputField";
-import SubmitButton from "../../components/form/SubmitButton";
 import { useAuth } from "../../hooks/useAuth";
 
 const GOOGLE_CLIENT_ID =
@@ -35,7 +33,7 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
   return (
     <button
       type="button"
-      className="btn-secondary w-full flex items-center justify-center gap-3"
+      className="w-full flex items-center justify-center gap-3 py-2.5 mb-4 border border-[#333333] rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
       onClick={() => login()}
       disabled={isLoading}
     >
@@ -52,7 +50,6 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   const navigate = useNavigate();
@@ -93,7 +90,7 @@ const Login = () => {
       body: {
         email,
         password,
-        rememberMe,
+        rememberMe: false, // Removed from UI to match exact mock
       },
     });
 
@@ -105,7 +102,7 @@ const Login = () => {
   let statusComponents = null;
   if (validationError) {
     statusComponents = (
-      <div className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400 text-center flex items-center justify-center gap-2">
+      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center flex items-center justify-center gap-2">
         <svg
           className="w-5 h-5"
           fill="none"
@@ -124,108 +121,113 @@ const Login = () => {
     );
   } else if (error != null) {
     statusComponents = (
-      <div className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400 text-center">
+      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
         {error.toString()}
-      </div>
-    );
-  } else if (isLoading) {
-    statusComponents = (
-      <div className="mt-4 text-center text-sm text-primary flex items-center justify-center gap-2">
-        <svg
-          className="animate-spin -ml-1 mr-3 h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        Logging in...
       </div>
     );
   }
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="min-h-[calc(100vh-140px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full card-emerald p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h1 className="text-3xl font-bold text-center mb-8 tracking-tight">
-            Welcome Back
-          </h1>
+      {/* Full screen wrapper that hides any standard layouts visually, enforcing exact dark mode */}
+      <div className="fixed inset-0 z-[100] bg-[#1a1a1a] flex flex-col items-center justify-center w-full min-h-screen overflow-y-auto">
+        <div className="w-full h-full flex items-center justify-center p-4">
+          {/* Main Card Container */}
+          <div className="w-full max-w-[1000px] h-auto min-h-[640px] flex flex-row rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(16,185,129,0.15)] bg-[#222222]">
+            {/* Left Side: Landscape Image */}
+            <div className="hidden md:block md:w-1/2 relative">
+              <img
+                // Unsplash beautiful mountain road
+                src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
+                alt="Mountain road"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/10"></div>
+            </div>
 
-          <GoogleLoginButton
-            onSuccess={onSuccess}
-            onError={setValidationError}
-          />
+            {/* Right Side: Login Form */}
+            <div className="w-full md:w-1/2 p-8 sm:p-14 flex flex-col justify-center relative bg-[#222222]">
+              <h1 className="text-3xl font-bold text-white mb-10 text-center tracking-tight">
+                Welcome Back
+              </h1>
 
-          <div className="flex items-center text-center text-sm text-gray-500 dark:text-gray-400 my-6 before:flex-1 before:border-t before:border-gray-200 dark:before:border-dark-border before:mr-4 after:flex-1 after:border-t after:border-gray-200 dark:after:border-dark-border after:ml-4">
-            or
-          </div>
+              <GoogleLoginButton
+                onSuccess={onSuccess}
+                onError={setValidationError}
+              />
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            <InputField
-              name="email"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="Email"
-              autoComplete="username"
-            />
-            <InputField
-              name="password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              placeholder="Password"
-              autoComplete="current-password"
-            />
-
-            <div className="flex items-center justify-between text-sm mt-2">
-              <label className="flex items-center gap-2 block text-gray-600 dark:text-gray-400 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-dark-input dark:focus:ring-offset-dark-surface"
-                />
-                Remember Me
-              </label>
-              <Link
-                to="/forgot-password"
-                className="font-medium text-primary hover:text-primary-dark transition-colors"
+              {/* Apple Button UI Dummy */}
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-3 py-2.5 mb-10 border border-[#333333] rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
               >
-                Forgot Password?
-              </Link>
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                </svg>
+                Continue with Apple
+              </button>
+
+              <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium ml-1 transition-colors"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                    autoComplete="username"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium ml-1 transition-colors"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                    autoComplete="current-password"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg font-bold transition-colors text-base"
+                  >
+                    {isLoading ? "Logging in..." : "Log In"}
+                  </button>
+                </div>
+              </form>
+
+              {statusComponents}
+
+              <p className="mt-8 text-center text-sm text-gray-300">
+                Don&apos;t have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="font-medium text-[#10B981] hover:text-[#34D399] transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </p>
             </div>
-
-            <div className="pt-2">
-              <SubmitButton isLoading={isLoading} className="w-full">
-                Log in
-              </SubmitButton>
-            </div>
-          </form>
-
-          {statusComponents}
-
-          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Don&apos;t have an account?{" "}
-            <Link
-              to="/signup"
-              className="font-medium text-primary hover:text-primary-dark transition-colors"
-            >
-              Sign Up
-            </Link>
-          </p>
+          </div>
         </div>
       </div>
     </GoogleOAuthProvider>

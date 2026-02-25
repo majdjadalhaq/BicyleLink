@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import "../styles/Breadcrumbs.css";
 
@@ -7,6 +7,15 @@ import "../styles/Breadcrumbs.css";
  * Each item should have a label and a path.
  */
 const Breadcrumbs = ({ items = [] }) => {
+  const location = useLocation();
+  const isAuthPage = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(location.pathname);
+  if (isAuthPage) return null;
+
   return (
     <nav aria-label="breadcrumb" className="breadcrumb-nav">
       <div className="breadcrumb-container">
