@@ -7,6 +7,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { SocketProvider } from "./contexts/SocketProvider.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { LoadingState } from "./components/ui";
 
 import Favorites from "./pages/Favorites/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -55,20 +56,7 @@ const App = () => {
 
                 <main className="main-content">
                   <ErrorBoundary>
-                    <Suspense
-                      fallback={
-                        <div
-                          className="global-loader-container"
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            padding: "3rem",
-                          }}
-                        >
-                          <div className="spinner"></div>
-                        </div>
-                      }
-                    >
+                    <Suspense fallback={<LoadingState />}>
                       <Routes>
                         {/* Public routes */}
                         <Route path="/" element={<Home />} />

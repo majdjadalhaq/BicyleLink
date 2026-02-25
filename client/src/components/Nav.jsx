@@ -8,6 +8,7 @@ import useNotifications from "../hooks/useNotifications";
 import NavLinks from "./Nav/NavLinks";
 import NavProfile from "./Nav/NavProfile";
 import NavNotifications from "./Nav/NavNotifications";
+import { ThemeToggle } from "./ui";
 
 const Nav = () => {
   const { user, logout } = useAuth();
@@ -17,14 +18,13 @@ const Nav = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const unreadMessagesCount = useUnreadCount(user);
-  useNotifications(); // Subscribe to global notification context for reactivity
+  useNotifications();
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const profileRef = useRef(null);
 
-  // Close menus when route changes
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
     setIsOpen(false);
@@ -33,7 +33,6 @@ const Nav = () => {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [location.pathname]);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -56,7 +55,7 @@ const Nav = () => {
 
   return (
     <nav
-      className="sticky top-0 z-50 w-full bg-[#1a1a1a] transition-colors duration-300"
+      className="sticky top-0 z-50 w-full bg-light-surface/90 dark:bg-dark-bg/90 backdrop-blur-lg border-b border-light-border dark:border-dark-border transition-colors duration-300"
       data-testid={TEST_ID.container}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,7 +64,7 @@ const Nav = () => {
           <div className="flex-shrink-0 flex items-center">
             <Link
               to="/"
-              className="text-2xl font-bold text-[#10B981] hover:text-[#34D399] transition-colors flex items-center gap-2"
+              className="text-2xl font-bold text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-2"
               data-testid={TEST_ID.linkToHome}
             >
               🚲 BiCycleL
@@ -77,7 +76,7 @@ const Nav = () => {
             <button
               onClick={toggleMenu}
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-[#10B981] hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#10B981] transition-colors"
+              className="btn-icon text-gray-500 dark:text-gray-400 hover:text-emerald-500"
               aria-label="Toggle navigation"
             >
               <svg
@@ -106,14 +105,16 @@ const Nav = () => {
           </div>
 
           {/* MIDDLE & RIGHT: Desktop Layout */}
-          <div className="hidden md:flex md:items-center md:space-x-8 md:flex-1 md:justify-end border-none">
+          <div className="hidden md:flex md:items-center md:space-x-6 md:flex-1 md:justify-end">
             {/* Nav Links */}
             <div className="flex items-center space-x-6">
               <NavLinks user={user} unreadCount={unreadMessagesCount} />
             </div>
 
-            {/* Actions (Notif, Profile) */}
-            <div className="flex items-center space-x-4 pl-6 border-l border-[#333333]">
+            {/* Actions (Theme, Notif, Profile) */}
+            <div className="flex items-center space-x-2 pl-6 border-l border-light-border dark:border-dark-border">
+              <ThemeToggle />
+
               <NavNotifications
                 user={user}
                 isOpen={isNotifOpen}
@@ -135,16 +136,16 @@ const Nav = () => {
 
       {/* Mobile Menu Collapse */}
       <div
-        className={`md:hidden ${isOpen ? "block" : "hidden"} border-t border-[#333333] bg-[#1a1a1a]`}
+        className={`md:hidden ${isOpen ? "block animate-slideDown" : "hidden"} border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-bg`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <NavLinks user={user} unreadCount={unreadMessagesCount} isMobile />
         </div>
 
-        <div className="pt-4 pb-3 border-t border-[#333333]">
+        <div className="pt-4 pb-3 border-t border-light-border dark:border-dark-border">
           <div className="flex items-center px-5 justify-between">
             <div className="flex items-center space-x-3">
-              {/* Theme toggle removed for exact dark mode consistency */}
+              <ThemeToggle />
             </div>
             {user && (
               <NavNotifications
@@ -159,7 +160,7 @@ const Nav = () => {
           <div className="mt-3 px-2 space-y-1">
             <NavProfile
               user={user}
-              isProfileOpen={true} // Always open inline for mobile
+              isProfileOpen={true}
               setIsProfileOpen={() => {}}
               handleLogout={handleLogout}
               profileRef={profileRef}
