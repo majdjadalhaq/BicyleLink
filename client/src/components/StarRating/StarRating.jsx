@@ -10,7 +10,7 @@ const StarRating = ({ rating = 0, count }) => {
 
   return (
     <div
-      className="star-rating"
+      className="inline-flex items-center gap-0.5"
       aria-label={`Rating: ${clampedRating.toFixed(1)} out of 5`}
     >
       {[1, 2, 3, 4, 5].map((star) => {
@@ -23,22 +23,17 @@ const StarRating = ({ rating = 0, count }) => {
         return (
           <span
             key={star}
-            className="star-rating__star"
+            className="relative inline-block text-base"
             aria-hidden="true"
-            style={{ position: "relative", display: "inline-block" }}
           >
             {/* Background (empty) star */}
-            <span style={{ color: "#ddd" }}>★</span>
+            <span className="text-gray-300 dark:text-gray-600">★</span>
 
             {/* Foreground (filled/partial) star */}
             <span
+              className="absolute top-0 left-0 overflow-hidden text-amber-400"
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                overflow: "hidden",
                 width: filled ? "100%" : `${fillPercent}%`,
-                color: "#f5a623",
               }}
             >
               ★
@@ -48,7 +43,9 @@ const StarRating = ({ rating = 0, count }) => {
       })}
 
       {count !== undefined && (
-        <span className="star-rating__count">({count})</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 font-medium">
+          ({count})
+        </span>
       )}
     </div>
   );
