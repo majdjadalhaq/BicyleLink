@@ -13,7 +13,6 @@ const toastIcons = {
   error: "✕",
   info: "ℹ",
 };
-
 /**
  * Toast notification UI component.
  */
