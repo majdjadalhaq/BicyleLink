@@ -1,7 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
-import "../styles/Breadcrumbs.css";
-
 /**
  * Breadcrumbs component that accepts a list of items for navigation.
  * Each item should have a label and a path.

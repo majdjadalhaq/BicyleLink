@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
-import InputField from "../../components/form/InputField";
-import SubmitButton from "../../components/form/SubmitButton";
 import PasswordStrengthMeter from "../../components/PasswordStrengthMeter";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
@@ -37,7 +35,7 @@ const GoogleSignupButton = ({ onSuccess, onError }) => {
   return (
     <button
       type="button"
-      className="btn-secondary w-full flex items-center justify-center gap-3"
+      className="w-full flex items-center justify-center gap-3 py-2.5 mb-4 border border-[#333333] rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
       onClick={() => login()}
       disabled={isLoading}
     >
@@ -158,10 +156,10 @@ const CreateUser = () => {
     statusComponents = (
       <div
         data-testid={TEST_ID.validationErrorContainer}
-        className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400 text-center flex items-center justify-center gap-2"
+        className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center flex items-center justify-center gap-2"
       >
         <svg
-          className="w-5 h-5"
+          className="w-5 h-5 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -180,7 +178,7 @@ const CreateUser = () => {
     statusComponents = (
       <div
         data-testid={TEST_ID.errorContainer}
-        className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400 text-center flex items-center justify-center gap-2"
+        className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center flex items-center justify-center gap-2"
       >
         <svg
           className="w-5 h-5 flex-shrink-0"
@@ -204,112 +202,174 @@ const CreateUser = () => {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div
         data-testid={TEST_ID.container}
-        className="min-h-[calc(100vh-140px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+        className="flex flex-col items-center justify-center w-full min-h-[calc(100vh-64px)] py-10 px-4 bg-[#1a1a1a]"
       >
-        <div className="max-w-md w-full card-emerald p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-8 tracking-tight">
-            Create an Account
-          </h1>
-
-          <GoogleSignupButton
-            onSuccess={handleSuccess}
-            onError={setValidationError}
-          />
-
-          <div className="flex items-center text-center text-sm text-gray-500 dark:text-gray-400 my-6 before:flex-1 before:border-t before:border-gray-200 dark:before:border-dark-border before:mr-4 after:flex-1 after:border-t after:border-gray-200 dark:after:border-dark-border after:ml-4">
-            or sign up with email
+        {/* Main Card Container */}
+        <div className="w-full max-w-[1000px] h-auto min-h-[640px] flex flex-row rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(16,185,129,0.15)] bg-[#222222]">
+          {/* Left Side: Landscape Image */}
+          <div className="hidden md:block md:w-1/2 relative">
+            <img
+              // Bicycle-themed image
+              src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?q=80&w=2070&auto=format&fit=crop"
+              alt="Bicycle leaning against wall"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10"></div>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            <InputField
-              name="username"
-              value={username}
-              onChange={setUsername}
-              placeholder="Username (3-30 alphanumeric)"
-              dataTestId={TEST_ID.usernameInput}
-              autoComplete="username"
-            />
-            <InputField
-              name="email"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="Email"
-              dataTestId={TEST_ID.emailInput}
-              autoComplete="email"
-            />
-            <InputField
-              name="password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              placeholder="Password (min 8 chars, mixed, number, symbol)"
-              dataTestId={TEST_ID.passwordInput}
-              autoComplete="new-password"
+          {/* Right Side: Signup Form */}
+          <div className="w-full md:w-1/2 p-8 sm:p-14 flex flex-col justify-center relative bg-[#222222]">
+            <h1 className="text-3xl font-bold text-white mb-6 text-center tracking-tight">
+              Create an Account
+            </h1>
+
+            <GoogleSignupButton
+              onSuccess={handleSuccess}
+              onError={setValidationError}
             />
 
-            <div className="-mt-2 mb-2">
-              <PasswordStrengthMeter password={password} />
-            </div>
-
-            <InputField
-              name="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              placeholder="Confirm Password"
-              dataTestId={TEST_ID.confirmPasswordInput}
-              autoComplete="new-password"
-            />
-
-            <div className="flex items-start gap-3 mt-4 mb-2">
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
-                data-testid={TEST_ID.agreedToTermsInput}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald focus:ring-emerald dark:border-gray-600 dark:bg-dark-input dark:focus:ring-offset-dark-surface cursor-pointer"
-              />
-              <span className="text-sm text-gray-600 dark:text-gray-400 leading-snug">
-                I agree to the{" "}
-                <Link
-                  to="/terms"
-                  className="text-emerald hover:text-emerald-hover transition-colors font-medium"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  to="/privacy"
-                  className="text-emerald hover:text-emerald-hover transition-colors font-medium"
-                >
-                  Privacy Policy
-                </Link>
-              </span>
-            </div>
-
-            <div className="pt-2">
-              <SubmitButton
-                isLoading={isLoading}
-                dataTestId={TEST_ID.submitButton}
-                className="w-full"
-              >
-                {isLoading ? "Creating account..." : "Sign Up"}
-              </SubmitButton>
-            </div>
-          </form>
-
-          {statusComponents}
-
-          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="font-medium text-emerald hover:text-emerald-hover transition-colors"
+            {/* Apple Button UI Dummy */}
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-3 py-2.5 mb-6 border border-[#333333] rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
             >
-              Login
-            </Link>
-          </p>
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512">
+                <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+              </svg>
+              Continue with Apple
+            </button>
+
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                <label
+                  htmlFor="username"
+                  className="text-sm font-medium ml-1 transition-colors"
+                >
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username (3-30 alphanumeric)"
+                  data-testid={TEST_ID.usernameInput}
+                  className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                  autoComplete="username"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium ml-1 transition-colors"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  data-testid={TEST_ID.emailInput}
+                  className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium ml-1 transition-colors"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  data-testid={TEST_ID.passwordInput}
+                  className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="-mt-1 mb-2">
+                <PasswordStrengthMeter password={password} />
+              </div>
+
+              <div className="flex flex-col gap-1.5 focus-within:text-[#10B981] text-gray-400">
+                <label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium ml-1 transition-colors"
+                >
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  data-testid={TEST_ID.confirmPasswordInput}
+                  className="w-full bg-[#1e1e1e] border border-[#10B981]/40 focus:border-[#10B981] rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-[#10B981]"
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="flex items-start gap-3 mt-4 mb-2">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  data-testid={TEST_ID.agreedToTermsInput}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald focus:ring-emerald dark:border-gray-600 dark:bg-[#1e1e1e] dark:focus:ring-offset-[#222222] cursor-pointer"
+                />
+                <span className="text-sm text-gray-400 leading-snug">
+                  I agree to the{" "}
+                  <Link
+                    to="/terms"
+                    className="text-[#10B981] hover:text-[#34D399] transition-colors font-medium"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    to="/privacy"
+                    className="text-[#10B981] hover:text-[#34D399] transition-colors font-medium"
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  data-testid={TEST_ID.submitButton}
+                  className="w-full py-3.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg font-bold transition-colors text-base"
+                >
+                  {isLoading ? "Creating account..." : "Sign Up"}
+                </button>
+              </div>
+            </form>
+
+            {statusComponents}
+
+            <p className="mt-8 text-center text-sm text-gray-300">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="font-medium text-[#10B981] hover:text-[#34D399] transition-colors"
+              >
+                Login
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </GoogleOAuthProvider>

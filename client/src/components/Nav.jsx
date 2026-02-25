@@ -55,15 +55,6 @@ const Nav = () => {
     setIsOpen((prev) => !prev);
   };
 
-  // Hide global navigation on auth pages to match standalone modal design
-  const isAuthPage = [
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
-  ].includes(location.pathname);
-  if (isAuthPage) return null;
-
   return (
     <nav
       className="sticky top-0 z-50 w-full glass-panel shadow-sm transition-colors duration-300"
