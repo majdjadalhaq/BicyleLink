@@ -86,7 +86,7 @@ const ResetPassword = () => {
               e.preventDefault();
               navigate("/forgot-password");
             }}
-            className="text-emerald hover:text-emerald-hover font-medium transition-colors"
+            className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
           >
             Go to Forgot Password
           </button>
@@ -101,7 +101,7 @@ const ResetPassword = () => {
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40 mb-4">
             <svg
-              className="h-8 w-8 text-emerald dark:text-emerald-light"
+              className="h-8 w-8 text-emerald-500 dark:text-emerald-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -166,7 +166,7 @@ const ResetPassword = () => {
           <div className="pt-2">
             <SubmitButton
               isLoading={isLoading}
-              className="w-full py-3 px-4 bg-emerald hover:bg-emerald-hover text-white font-semibold rounded-xl tracking-wide transition-colors shadow-md shadow-emerald/20 focus:outline-none focus:ring-2 focus:ring-emerald focus:ring-offset-2 dark:focus:ring-offset-dark-surface"
+              className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl tracking-wide transition-colors shadow-md shadow-emerald-500/20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-dark-surface"
             >
               Reset Password
             </SubmitButton>
