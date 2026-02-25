@@ -251,7 +251,7 @@ export const googleLogin = async (req, res) => {
     } else {
       // Update existing user with googleId if it doesn't have one
       if (!user.googleId) {
-        // user.googleId = googleId;
+        user.googleId = googleId;
         // We aren't strictly enforcing googleId in schema, but we mark them verified.
         if (!user.isVerified) {
           user.isVerified = true;

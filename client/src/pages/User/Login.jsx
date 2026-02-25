@@ -10,6 +10,8 @@ const GOOGLE_CLIENT_ID =
 
 const GoogleLoginButton = ({ onSuccess, onError }) => {
   const { execute: executeGoogleLogin, isLoading } = useApi();
+  const isClientIdPlaceholder =
+    GOOGLE_CLIENT_ID === "placeholder-client-id.apps.googleusercontent.com";
 
   const handleGoogleSuccess = async (tokenResponse) => {
     try {
@@ -31,19 +33,27 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
   });
 
   return (
-    <button
-      type="button"
-      className="w-full flex items-center justify-center gap-3 py-2.5 mb-4 border border-light-border dark:border-dark-border rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
-      onClick={() => login()}
-      disabled={isLoading}
-    >
-      <img
-        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-        alt="Google logo"
-        className="w-5 h-5 bg-white rounded-full p-0.5"
-      />
-      {isLoading ? "Signing in..." : "Continue with Google"}
-    </button>
+    <div className="w-full">
+      {isClientIdPlaceholder && (
+        <div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-xs text-yellow-500 text-center">
+          Google Login is not configured. Please add VITE_GOOGLE_CLIENT_ID to
+          your .env file.
+        </div>
+      )}
+      <button
+        type="button"
+        className="w-full flex items-center justify-center gap-3 py-2.5 mb-4 border border-light-border dark:border-dark-border rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => login()}
+        disabled={isLoading || isClientIdPlaceholder}
+      >
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          alt="Google logo"
+          className="w-5 h-5 bg-white rounded-full p-0.5"
+        />
+        {isLoading ? "Signing in..." : "Continue with Google"}
+      </button>
+    </div>
   );
 };
 

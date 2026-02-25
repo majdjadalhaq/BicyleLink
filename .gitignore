@@ -11,6 +11,8 @@ coverage
 
 # Never push our environment variables
 .env
+.env.*
+!.env.example
 
 # Cypress videos from our headless runs should not be pushed to github
 cypress/videos
@@ -25,8 +27,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+combined.log
+error.log
 
+# Build and Test Artifacts
+dist
 dist-ssr
+coverage
+cypress/videos
+cypress/screenshots
 *.local
 
 # Editor directories and files

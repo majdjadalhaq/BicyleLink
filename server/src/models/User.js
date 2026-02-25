@@ -45,6 +45,13 @@ const userSchema = new mongoose.Schema(
     // Rating System Fields
     ratingSum: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
+    // OAuth Fields
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    googleId: { type: String, unique: true, sparse: true },
   },
   { timestamps: true },
 );
