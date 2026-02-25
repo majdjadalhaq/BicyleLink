@@ -19,11 +19,23 @@ const PasswordStrengthMeter = ({ password }) => {
     return "Strong";
   };
 
-  const getStrengthColor = (strength) => {
-    if (strength <= 2) return "#ef4444"; // Red
-    if (strength <= 3) return "#f59e0b"; // Orange
-    if (strength <= 4) return "#eab308"; // Yellow
-    return "#22c55e"; // Green
+  const strengthColors = {
+    bar: [
+      "bg-gray-300 dark:bg-dark-border",
+      "bg-red-500",
+      "bg-red-500",
+      "bg-amber-500",
+      "bg-yellow-500",
+      "bg-emerald-500",
+    ],
+    text: [
+      "text-gray-400",
+      "text-red-500",
+      "text-red-500",
+      "text-amber-500",
+      "text-yellow-500",
+      "text-emerald-500",
+    ],
   };
 
   const getStrengthWidth = (strength) => {
@@ -34,19 +46,13 @@ const PasswordStrengthMeter = ({ password }) => {
 
   return (
     <div className="-mt-1 mb-4">
-      <div className="h-1 w-full bg-slate-200 dark:bg-dark-border rounded-sm overflow-hidden mb-1.5">
+      <div className="h-1.5 w-full bg-gray-200 dark:bg-dark-border rounded-full overflow-hidden mb-1.5">
         <div
-          className="h-full transition-all duration-300 ease-in-out"
-          style={{
-            width: getStrengthWidth(strength),
-            backgroundColor: getStrengthColor(strength),
-          }}
+          className={`h-full rounded-full transition-all duration-300 ease-in-out ${strengthColors.bar[strength]}`}
+          style={{ width: getStrengthWidth(strength) }}
         />
       </div>
-      <span
-        className="text-xs font-medium"
-        style={{ color: getStrengthColor(strength) }}
-      >
+      <span className={`text-xs font-medium ${strengthColors.text[strength]}`}>
         Password Strength: {getStrengthText(strength)}
       </span>
     </div>

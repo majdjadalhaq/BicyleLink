@@ -9,7 +9,7 @@ const SubmitButton = ({
     type="submit"
     disabled={disabled || isLoading}
     data-testid={dataTestId}
-    className={`w-full flex justify-center items-center font-bold text-white btn-primary outline-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald dark:focus:ring-offset-dark-bg transition-colors disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:hover:shadow-none ${className || ""}`}
+    className={`w-full flex justify-center items-center font-bold text-white btn-primary outline-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 dark:focus:ring-offset-dark-bg transition-colors disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:hover:shadow-none ${className || ""}`}
   >
     {isLoading ? (
       <>

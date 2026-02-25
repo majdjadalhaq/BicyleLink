@@ -105,7 +105,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
             </span>
           )}
           {condition && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md w-fit bg-emerald dark:bg-emerald-dark capitalize">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md w-fit bg-emerald-500 dark:bg-emerald-600 capitalize">
               {condition}
             </span>
           )}
@@ -116,7 +116,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
         <div className="mb-2">
           <div className="flex justify-between items-center mb-1.5">
             {brand && (
-              <span className="text-xs font-bold text-emerald uppercase tracking-wider truncate mr-2">
+              <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider truncate mr-2">
                 {brand}
               </span>
             )}
@@ -131,7 +131,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
           </h3>
         </div>
 
-        <div className="text-xl font-extrabold text-emerald mb-3">
+        <div className="text-xl font-extrabold text-emerald-500 mb-3">
           €{displayPrice}
         </div>
 
@@ -164,7 +164,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-emerald"
+              className="text-emerald-500"
             >
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -217,7 +217,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
         ) : (
           <Link
             to={`/listings/${_id}`}
-            className="mt-auto block w-full py-2.5 text-center font-bold text-emerald border-2 border-emerald rounded-xl hover:bg-emerald hover:text-white transition-all"
+            className="mt-auto block w-full py-2.5 text-center font-bold text-emerald-500 border-2 border-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all"
           >
             View Details
           </Link>
