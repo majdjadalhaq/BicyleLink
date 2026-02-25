@@ -47,9 +47,10 @@ app.use(
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },
   }),
 );
-app.use(morgan("dev"));
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(globalLimiter);
 
 // Standard Middleware
@@ -58,7 +59,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://bicyclel.nl",
+      "https://www.bicyclel.nl",
+    ],
     credentials: true,
   }),
 );
