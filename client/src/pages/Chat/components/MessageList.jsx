@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import styles from "../Chat.module.css";
 import MessageItem from "./MessageItem";
 
 const MessageList = ({
@@ -22,14 +21,23 @@ const MessageList = ({
   }, [messages]);
 
   return (
-    <div className={styles.messagesContainer} onScroll={onScroll}>
+    <div
+      className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-light-bg dark:bg-dark-bg"
+      onScroll={onScroll}
+    >
       {isFetchingMore && (
-        <div className={styles.loadingMore}>Loading history...</div>
+        <div className="text-center text-sm text-emerald-500 animate-pulse py-2">
+          Loading history...
+        </div>
       )}
       {isLoadingHistory ? (
-        <div className={styles.loading}>Loading conversation...</div>
+        <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+          Loading conversation...
+        </div>
       ) : messages.length === 0 ? (
-        <div className={styles.empty}>No messages yet. Say hello!</div>
+        <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
+          No messages yet. Say hello! 👋
+        </div>
       ) : (
         messages.map((msg, index) => (
           <MessageItem
@@ -44,7 +52,9 @@ const MessageList = ({
         ))
       )}
       {isOtherTyping && (
-        <div className={styles.typingIndicator}>Someone is typing...</div>
+        <div className="text-sm text-gray-400 dark:text-gray-500 italic animate-pulse pl-2">
+          Someone is typing...
+        </div>
       )}
       <div ref={messagesEndRef} />
     </div>

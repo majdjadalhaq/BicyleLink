@@ -1,6 +1,5 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import styles from "./Chat.module.css";
 
 // Subcomponents
 import ChatHeader from "./components/ChatHeader";
@@ -46,15 +45,19 @@ const Chat = () => {
 
   if (!user) {
     return (
-      <div className={styles.chatError}>
-        <p>Please log in to chat.</p>
-        <button onClick={() => navigate("/login")}>Go to Login</button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <p className="text-gray-500 dark:text-gray-400 text-lg">
+          Please log in to chat.
+        </p>
+        <button onClick={() => navigate("/login")} className="btn-primary">
+          Go to Login
+        </button>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col h-[calc(100vh-64px)] max-w-4xl mx-auto w-full bg-light-surface dark:bg-dark-surface border-x border-light-border dark:border-dark-border">
       <ChatHeader
         onBack={() => navigate("/inbox")}
         listing={listing}
@@ -75,9 +78,9 @@ const Chat = () => {
       />
 
       {isUploading && (
-        <div className={styles.progressContainer}>
+        <div className="h-1 w-full bg-gray-200 dark:bg-dark-border">
           <div
-            className={styles.progressBar}
+            className="h-full bg-emerald-500 transition-all duration-300"
             style={{ width: `${uploadProgress}%` }}
           ></div>
         </div>
@@ -100,21 +103,25 @@ const Chat = () => {
 
       {selectedImageUrl && (
         <div
-          className={styles.modalOverlay}
+          className="overlay-backdrop flex items-center justify-center"
           onClick={() => setSelectedImageUrl(null)}
         >
           <button
-            className={styles.modalCloseBtn}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center text-xl hover:bg-black/80 transition-colors"
             onClick={() => setSelectedImageUrl(null)}
             aria-label="Close preview"
           >
             ✕
           </button>
           <div
-            className={styles.modalContent}
+            className="max-w-[90vw] max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <img src={selectedImageUrl} alt="Full size preview" />
+            <img
+              src={selectedImageUrl}
+              alt="Full size preview"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
           </div>
         </div>
       )}

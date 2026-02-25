@@ -5,30 +5,23 @@ import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
 import { useSocket } from "../../hooks/useSocket";
 import Skeleton from "../../components/Skeleton/Skeleton.jsx";
-import styles from "./Inbox.module.css";
 
-/**
- * Inbox component displays a list of all active conversations for the logged-in user.
- * It shows the latest message and details about the listing and the other participant.
- */
 const Inbox = () => {
   const [conversations, setConversations] = useState([]);
-  const [view, setView] = useState("active"); // 'active' or 'archived'
+  const [view, setView] = useState("active");
   const [onlineStatuses, setOnlineStatuses] = useState({});
-  const [typingRooms, setTypingRooms] = useState({}); // room -> bool
+  const [typingRooms, setTypingRooms] = useState({});
   const navigate = useNavigate();
   const { user } = useAuth();
   const { execute: executeApi } = useApi();
   const socket = useSocket();
 
-  // Fetch inbox data from the API
   const { isLoading, error, performFetch, cancelFetch } = useFetch(
     `/messages/inbox?archived=${view === "archived"}`,
     (response) => {
       const convs = response.result || [];
       setConversations(convs);
 
-      // Request initial online status for all contacts
       if (socket) {
         convs.forEach((c) => {
           if (c.otherUser?._id) {
@@ -44,7 +37,6 @@ const Inbox = () => {
     return () => cancelFetch();
   }, [view]);
 
-  // Join personal room for Inbox notifications
   useEffect(() => {
     if (!socket || !user) return;
 
@@ -61,7 +53,6 @@ const Inbox = () => {
     });
 
     socket.on("receive_message", () => {
-      // Re-fetch inbox so new messages immediately bubble to the top
       performFetch();
     });
 
@@ -122,9 +113,11 @@ const Inbox = () => {
 
   if (isLoading) {
     return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>My Conversations</h1>
-        <div className={styles.list}>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          My Conversations
+        </h1>
+        <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} type="inbox" />
           ))}
@@ -133,30 +126,38 @@ const Inbox = () => {
     );
   }
   if (error)
-    return <div className={styles.container}>Error loading chats: {error}</div>;
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 text-red-500">
+        Error loading chats: {error}
+      </div>
+    );
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>My Conversations</h1>
+    <div className="max-w-3xl mx-auto px-4 py-8 bg-light-bg dark:bg-dark-bg min-h-[calc(100vh-64px)]">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+        My Conversations
+      </h1>
 
-      <div className={styles.tabs}>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 p-1 bg-gray-100 dark:bg-dark-surface rounded-xl w-fit">
         <button
-          className={`${styles.tab} ${view === "active" ? styles.activeTab : ""}`}
+          className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${view === "active" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"}`}
           onClick={() => setView("active")}
         >
           Active
         </button>
         <button
-          className={`${styles.tab} ${view === "archived" ? styles.activeTab : ""}`}
+          className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${view === "archived" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"}`}
           onClick={() => setView("archived")}
         >
           Archived
         </button>
       </div>
 
-      <div className={styles.list}>
+      {/* Conversations List */}
+      <div className="space-y-3">
         {conversations.length === 0 ? (
-          <div className={styles.empty}>
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500">
             {view === "active"
               ? "No active conversations yet"
               : "No archived conversations"}
@@ -167,7 +168,7 @@ const Inbox = () => {
             return (
               <div
                 key={conv.room}
-                className={`${styles.card} ${conv.unreadCount > 0 ? styles.unreadCard : ""}`}
+                className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${conv.unreadCount > 0 ? "bg-emerald-500/5 border-emerald-500/20 dark:bg-emerald-500/10" : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"}`}
                 onClick={() => {
                   const isWarning = conv.room.startsWith("admin-warning");
                   const listingParam = isWarning
@@ -178,23 +179,19 @@ const Inbox = () => {
                   navigate(chatUrl);
                 }}
               >
-                <div className={styles.cardHeader}>
-                  <div className={styles.listingInfo}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     {conv.unreadCount > 0 && (
-                      <div className={styles.unreadDot} title="Unread" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
                     )}
-                    <div className={styles.imageWrapper}>
+                    <div className="relative flex-shrink-0">
                       <img
                         src={conv.listing?.images?.[0] || "/placeholder.png"}
                         alt={conv.listing?.title || "Listing"}
-                        className={styles.listingImage}
+                        className="w-12 h-12 rounded-xl object-cover"
                       />
                       <div
-                        className={`${styles.presenceDot} ${
-                          onlineStatuses[conv.otherUser?._id]
-                            ? styles.online
-                            : styles.offline
-                        }`}
+                        className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-light-surface dark:border-dark-surface ${onlineStatuses[conv.otherUser?._id] ? "bg-emerald-500" : "bg-gray-400"}`}
                         title={
                           onlineStatuses[conv.otherUser?._id]
                             ? "Online"
@@ -202,25 +199,25 @@ const Inbox = () => {
                         }
                       />
                     </div>
-                    <div className={styles.userInfo}>
-                      <h3 className={styles.otherUserName}>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
                         {conv.otherUser?.name || "Unknown User"}
                       </h3>
-                      <p className={styles.listingTitle}>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {conv.listing?.title || "Untitled Listing"}
                       </p>
                     </div>
                   </div>
-                  <div className={styles.cardActions}>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      className={styles.unreadButton}
+                      className="btn-icon w-8 h-8 text-sm"
                       onClick={(e) => handleMarkUnread(e, conv.room)}
                       title="Mark as Unread"
                     >
                       🔵
                     </button>
                     <button
-                      className={styles.archiveButton}
+                      className="btn-icon w-8 h-8 text-sm"
                       onClick={(e) =>
                         handleArchive(e, conv.room, view === "archived")
                       }
@@ -235,19 +232,21 @@ const Inbox = () => {
                   </div>
                 </div>
 
-                <div className={styles.lastMessage}>
+                <div className="flex items-center justify-between mt-2 pl-2">
                   {isTyping ? (
-                    <p className={styles.typingText}>Typing...</p>
+                    <p className="text-xs text-emerald-500 italic animate-pulse">
+                      Typing...
+                    </p>
                   ) : (
                     <>
-                      <p className={styles.messagePreview}>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1 mr-2">
                         {conv.lastMessage?.mediaType === "image"
                           ? "🖼️ Image"
                           : conv.lastMessage?.mediaType === "location"
                             ? "📍 Location"
                             : conv.lastMessage?.content || "No message content"}
                       </p>
-                      <span className={styles.timeStamp}>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0">
                         {conv.lastMessage?.createdAt
                           ? new Date(
                               conv.lastMessage.createdAt,

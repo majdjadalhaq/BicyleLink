@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import PropTypes from "prop-types";
-import styles from "../Chat.module.css";
 
 const ChatInput = ({
   newMessage,
@@ -22,31 +21,34 @@ const ChatInput = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.inputForm}>
-      <div style={{ position: "relative", display: "flex" }}>
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2 px-3 py-3 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex-shrink-0"
+    >
+      <div className="relative">
         <button
           type="button"
-          className={styles.attachmentButton}
+          className="btn-icon text-gray-500 hover:text-emerald-500"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           title="Attach Media"
         >
           📎
         </button>
         {isMenuOpen && (
-          <div className={styles.attachmentMenu}>
+          <div className="absolute bottom-12 left-0 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl shadow-lg py-1 min-w-[160px] animate-slideUp z-10">
             <button
               type="button"
-              className={styles.menuItem}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface-hover transition-colors flex items-center gap-2"
               onClick={() => fileInputRef.current?.click()}
             >
-              <span className={styles.menuIcon}>🖼️</span> Send Image
+              <span>🖼️</span> Send Image
             </button>
             <button
               type="button"
-              className={styles.menuItem}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-surface-hover transition-colors flex items-center gap-2"
               onClick={onSendLocation}
             >
-              <span className={styles.menuIcon}>📍</span> Send Location
+              <span>📍</span> Send Location
             </button>
           </div>
         )}
@@ -62,7 +64,7 @@ const ChatInput = ({
 
       <input
         type="text"
-        className={styles.input}
+        className="flex-1 input-emerald py-2.5 text-sm"
         value={newMessage}
         onChange={(e) => {
           setNewMessage(e.target.value);
@@ -80,7 +82,7 @@ const ChatInput = ({
       />
       <button
         type="submit"
-        className={styles.sendButton}
+        className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         disabled={!newMessage.trim() || isUploading || isLocationLoading}
       >
         Send

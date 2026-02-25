@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import styles from "../Chat.module.css";
 
 const ChatHeader = ({ onBack, listing, isOnline }) => {
   let displayPrice = listing?.price;
@@ -12,19 +11,37 @@ const ChatHeader = ({ onBack, listing, isOnline }) => {
   }
 
   return (
-    <header className={styles.chatHeader}>
-      <button className={styles.backButton} onClick={onBack}>
-        ←
+    <header className="flex items-center gap-3 px-4 py-3 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex-shrink-0">
+      <button
+        className="btn-icon text-gray-500 dark:text-gray-400 hover:text-emerald-500"
+        onClick={onBack}
+        aria-label="Back to inbox"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
       </button>
-      <div className={styles.headerInfo}>
-        <h2 className={styles.chatTitle}>
+      <div className="flex-1 min-w-0">
+        <h2 className="text-base font-bold text-gray-900 dark:text-white truncate flex items-center gap-2">
           {listing?.title || "Chat"}
           <span
-            className={isOnline ? styles.onlineDot : styles.offlineDot}
+            className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" : "bg-gray-400"}`}
           ></span>
         </h2>
         {displayPrice && (
-          <span className={styles.listingPrice}>€{displayPrice}</span>
+          <span className="text-sm font-semibold text-emerald-500">
+            €{displayPrice}
+          </span>
         )}
       </div>
     </header>
