@@ -77,7 +77,7 @@ if (process.env.NODE_ENV === "production") {
   });
 
   // Catch-all handler
-  app.get("/:path*", (req, res) => {
+  app.get("/*path", (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
