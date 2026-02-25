@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
 import ListingCard from "../../components/ListingCard";
-import "../../styles/MyListings.css"; // We will create this
 
 const MyListings = () => {
   const { user } = useAuth();

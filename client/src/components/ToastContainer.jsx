@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import "../styles/Toast.css";
 
 /**
  * Toast notification UI component.
