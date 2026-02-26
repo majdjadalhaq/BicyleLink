@@ -39,25 +39,30 @@ export const NotificationProvider = ({ children }) => {
   }, [user, execute]);
 
   // Initial load
+  // Fixed: always call fetchNotifications safely
   useEffect(() => {
+    if (!user) {
+      Promise.resolve().then(() => {
+        setItems([]);
+        setUnread(0);
+      });
+      return;
+    }
+
     let isMounted = true;
 
-    async function loadData() {
-      if (user && isMounted) {
-        await fetchNotifications();
-        await fetchUnread();
-      }
-    }
+    const loadData = async () => {
+      if (!isMounted) return;
+      await fetchNotifications();
+      await fetchUnread();
+    };
 
-    if (user) {
-      loadData();
-    }
+    loadData();
 
     return () => {
       isMounted = false;
     };
   }, [user, fetchNotifications, fetchUnread]);
-
   // Handle logout/reset
   useEffect(() => {
     if (!user) {
