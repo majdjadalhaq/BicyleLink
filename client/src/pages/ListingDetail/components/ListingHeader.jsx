@@ -2,64 +2,95 @@ import PropTypes from "prop-types";
 
 const ListingHeader = ({ listing, isOwner }) => {
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-between items-center mb-2">
-        {listing.brand && (
-          <span className="uppercase text-sm font-semibold text-emerald-500 tracking-wide">
-            {listing.brand}
+    <div className="flex flex-col gap-4">
+      {/* Status Badge */}
+      {listing.status === "sold" && (
+        <div className="flex items-center gap-2 w-fit px-3 py-1.5 bg-red-500/10 dark:bg-red-500/20 rounded-full border border-red-500/20">
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">
+            Sold Out
           </span>
-        )}
-        {listing.status === "sold" && (
-          <span className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
-            Sold
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <h1 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight text-gray-900 dark:text-white">
+      {/* Title */}
+      <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight text-gray-900 dark:text-white">
         {listing.title}
       </h1>
 
+      {/* Location */}
+      {listing.location && (
+        <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-emerald-500 flex-shrink-0"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span className="text-sm font-semibold">{listing.location}</span>
+        </div>
+      )}
+
+      {/* Owner Analytics Strip */}
       {isOwner && (
-        <div className="flex flex-wrap gap-5 bg-slate-50 dark:bg-dark-input px-4 py-3 rounded-xl mb-5 border border-slate-200 dark:border-dark-border w-fit">
+        <div className="flex items-center gap-4 px-5 py-3 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 w-fit">
           <div
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium"
-            title="Unique views from potential buyers"
+            className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400"
+            title="Views from potential buyers"
           >
             <svg
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
-              className="text-emerald-500"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="text-emerald-500"
             >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
-            <span>{listing.views || 0} Views</span>
+            <span className="text-gray-900 dark:text-white font-black">
+              {listing.views || 0}
+            </span>
+            <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+              Views
+            </span>
           </div>
+          <div className="w-px h-5 bg-gray-200 dark:bg-white/10" />
           <div
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium"
-            title="Unique buyers who messaged you"
+            className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400"
+            title="Buyers who contacted you"
           >
             <svg
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
-              className="text-emerald-500"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="text-emerald-500"
             >
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
             </svg>
-            <span>{listing.inquiries || 0} Inquiries</span>
+            <span className="text-gray-900 dark:text-white font-black">
+              {listing.inquiries || 0}
+            </span>
+            <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+              Inquiries
+            </span>
           </div>
         </div>
       )}

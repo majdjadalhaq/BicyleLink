@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import useApi from "../../hooks/useApi";
 import ListingForm from "../../components/ListingForm/ListingForm";
 import TEST_ID from "./CreateListing.testid";
@@ -38,13 +38,6 @@ const CreateListing = () => {
       className="max-w-4xl mx-auto py-10 px-5 animate-in slide-in-from-bottom-2 duration-300"
       data-testid={TEST_ID.container}
     >
-      <Link
-        to="/"
-        className="inline-block mb-6 text-emerald-500 font-semibold transition-transform hover:-translate-x-1 hover:text-emerald-400"
-      >
-        ← Back to Marketplace
-      </Link>
-
       <div className="bg-white dark:bg-dark-surface rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-dark-border">
         <header className="bg-gradient-to-r from-emerald to-teal-500 p-8 sm:p-10 text-center text-white">
           <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 text-white drop-shadow-sm">

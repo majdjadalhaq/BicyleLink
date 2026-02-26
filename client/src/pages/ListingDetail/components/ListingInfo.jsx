@@ -3,29 +3,44 @@ import PropTypes from "prop-types";
 
 const ListingInfo = ({ listing, displayPrice }) => {
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-3xl font-bold text-gray-900 dark:text-white">
-          €{displayPrice}
-        </span>
-        <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-          Posted {formatDistanceToNow(new Date(listing.createdAt))} ago
-        </span>
-      </div>
+    <div className="flex flex-col gap-4">
+      {/* Price Block */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-1">
+            Asking Price
+          </span>
+          <span className="text-5xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+            €{displayPrice}
+          </span>
+        </div>
 
-      <div className="flex flex-wrap gap-3 mb-8">
+        {/* Condition pill */}
         {listing.condition && (
-          <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-500 text-white">
+          <span className="mt-2 px-4 py-2 rounded-2xl text-xs font-black bg-emerald-500 text-white uppercase tracking-widest shadow-lg shadow-emerald-500/20 border border-emerald-400/30 flex-shrink-0">
             {listing.condition}
           </span>
         )}
-        {listing.location && (
-          <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-dark-input text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
-            {listing.location}
-          </span>
-        )}
       </div>
-    </>
+
+      {/* Posted time */}
+      <p className="text-xs text-gray-400 dark:text-gray-500 font-medium flex items-center gap-1.5">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        Listed {formatDistanceToNow(new Date(listing.createdAt))} ago
+      </p>
+    </div>
   );
 };
 
