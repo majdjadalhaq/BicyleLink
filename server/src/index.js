@@ -80,8 +80,8 @@ if (process.env.NODE_ENV === "production") {
     });
   });
 
-  // Catch-all handler
-  app.get("/*path", (req, res) => {
+  // Catch-all handler for SPA
+  app.get("*", (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
