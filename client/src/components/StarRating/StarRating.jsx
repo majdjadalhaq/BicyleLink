@@ -23,21 +23,29 @@ const StarRating = ({ rating = 0, count }) => {
         return (
           <span
             key={star}
-            className="relative inline-block text-base"
+            className="relative inline-block w-4 h-4"
             aria-hidden="true"
           >
             {/* Background (empty) star */}
-            <span className="text-gray-300 dark:text-gray-600">★</span>
+            <svg
+              className="text-gray-300 dark:text-gray-600 w-full h-full"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
 
             {/* Foreground (filled/partial) star */}
-            <span
-              className="absolute top-0 left-0 overflow-hidden text-amber-400"
+            <div
+              className="absolute top-0 left-0 overflow-hidden text-amber-400 h-full"
               style={{
                 width: filled ? "100%" : `${fillPercent}%`,
               }}
             >
-              ★
-            </span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            </div>
           </span>
         );
       })}
