@@ -2,17 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
+  :root {
+    --color-emerald: #10b981;
+    --color-emerald-light: #34d399;
+    --color-emerald-dark: #059669;
+    --color-glow: rgba(16, 185, 129, 0.3);
+    --color-glow-strong: rgba(16, 185, 129, 0.5);
+  }
+
   body {
-    @apply transition-colors duration-300 antialiased font-sans;
+    @apply antialiased font-sans transition-colors duration-300;
+    overflow-x: hidden;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
+  html {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* ─── Light Mode (warm, inviting, cycling-lifestyle feel) ─── */
   body.theme-light {
-    @apply bg-light-bg text-gray-900 border-light-border;
+    @apply bg-[#FAFAF8] text-gray-900;
   }
 
+  /* ─── Dark Mode (comfortable, Material-style, not pure black) ─── */
   body.theme-dark {
-    @apply bg-dark-bg text-white border-dark-border;
+    @apply bg-[#121212] text-gray-100;
   }
 
   h1,
@@ -21,24 +60,18 @@
   h4,
   h5,
   h6 {
-    @apply text-gray-900 dark:text-white font-bold;
-  }
-
-  p,
-  span,
-  label {
-    @apply text-gray-600 dark:text-muted;
+    @apply font-bold;
   }
 }
 
 @layer components {
   /* ─── Buttons ─── */
   .btn-primary {
-    @apply bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-emerald-glow hover:shadow-emerald-glow-strong transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    @apply bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
 
   .btn-secondary {
-    @apply bg-transparent border-2 border-emerald-500 text-emerald-500 hover:bg-emerald-500/10 rounded-full font-bold px-6 py-3 transition-all duration-300;
+    @apply bg-transparent border-2 border-emerald-600 dark:border-emerald-500 text-emerald-600 dark:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-full font-bold px-6 py-3 transition-all duration-300;
   }
 
   .btn-ghost {
@@ -50,35 +83,35 @@
   }
 
   .btn-destructive {
-    @apply bg-danger hover:bg-red-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply bg-red-500 hover:bg-red-600 text-white rounded-full font-bold px-6 py-3 transition-all duration-300 shadow-md hover:shadow-lg;
   }
 
   /* ─── Inputs ─── */
   .input-emerald {
-    @apply w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:shadow-emerald-glow transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500;
+    @apply w-full bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500;
   }
 
   /* ─── Cards ─── */
   .card-emerald {
-    @apply bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-card-hover dark:hover:shadow-card-hover-dark;
+    @apply bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-[#2a2a2a] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md dark:hover:shadow-lg;
   }
 
   .card-flat {
-    @apply bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden;
+    @apply bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-[#2a2a2a] overflow-hidden;
   }
 
   /* ─── Glass Panels ─── */
   .glass-panel {
-    @apply bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-200/50 dark:border-white/10;
   }
 
   .glass-panel-strong {
-    @apply bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border border-white/30 dark:border-white/10 shadow-lg;
+    @apply bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-lg border border-gray-200 dark:border-white/10 shadow-lg;
   }
 
   /* ─── Badges ─── */
   .badge-emerald {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20;
   }
 
   .badge-status {
@@ -86,33 +119,33 @@
   }
 
   .badge-success {
-    @apply badge-status bg-success/10 text-success border border-success/20;
+    @apply badge-status bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20;
   }
 
   .badge-danger {
-    @apply badge-status bg-danger/10 text-danger border border-danger/20;
+    @apply badge-status bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20;
   }
 
   .badge-warning {
-    @apply badge-status bg-warning/10 text-warning border border-warning/20;
+    @apply badge-status bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20;
   }
 
   .badge-info {
-    @apply badge-status bg-info/10 text-info border border-info/20;
+    @apply badge-status bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20;
   }
 
   /* ─── Section Dividers ─── */
   .divider-emerald {
-    @apply border-t border-light-border dark:border-dark-border;
+    @apply border-t border-gray-200 dark:border-[#2a2a2a];
   }
 
   /* ─── Overlays ─── */
   .overlay-backdrop {
-    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn;
+    @apply fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm z-50 animate-fadeIn overflow-y-auto overflow-x-hidden p-4 sm:p-6 flex items-center justify-center;
   }
 
   .overlay-panel {
-    @apply bg-light-surface dark:bg-dark-surface rounded-2xl shadow-2xl border border-light-border dark:border-dark-border animate-scaleIn;
+    @apply bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#333] animate-scaleIn w-full max-h-[90vh] overflow-y-auto relative;
   }
 }
 
@@ -126,4 +159,47 @@
 
 .main-content {
   @apply flex-1 w-full;
+}
+
+/* ─── Custom Animations ─── */
+@keyframes bike-pedal {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes wheel-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-pedal {
+  animation: bike-pedal 0.6s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: wheel-spin 1.5s linear infinite;
+}
+
+@keyframes road-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.animate-shimmer {
+  animation: road-shimmer 1s infinite linear;
 }

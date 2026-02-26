@@ -29,11 +29,11 @@ export default {
         // Dark Mode Surfaces
         dark: {
           bg: "#121212",
-          surface: "#1E1E1E",
-          "surface-hover": "#2A2A2A",
-          border: "#333333",
-          input: "#2A2A2A",
-          card: "#1A1A1A",
+          surface: "#1a1a1a",
+          "surface-hover": "#242424",
+          border: "#2a2a2a",
+          input: "#1e1e1e",
+          card: "#1a1a1a",
         },
         // Light Mode Surfaces
         light: {
@@ -92,6 +92,10 @@ export default {
           "50%": { transform: "scale(0.95)" },
           "75%": { transform: "scale(1.1)" },
         },
+        pedal: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-2px)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.3s ease-out",
@@ -100,6 +104,8 @@ export default {
         scaleIn: "scaleIn 0.2s ease-out",
         shimmer: "shimmer 2s linear infinite",
         heartBeat: "heartBeat 0.4s ease-out",
+        "spin-slow": "spin 3s linear infinite",
+        pedal: "pedal 0.6s ease-in-out infinite",
       },
       transitionDuration: {
         DEFAULT: "200ms",
