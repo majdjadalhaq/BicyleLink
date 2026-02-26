@@ -97,6 +97,22 @@ const NavNotifications = ({ user, isOpen, setIsOpen }) => {
                       navigate(n.link || "/inbox");
                     }}
                   >
+                    onClick=
+                    {async () => {
+                      if (!n.read) await markAsRead(n._id);
+                      setIsOpen(false);
+
+                      switch (n.type) {
+                        case "review_permission":
+                          navigate(`/listings/${n.listingId}/review`);
+                          break;
+                        case "new_review":
+                          navigate(`/listings/${n.listingId}`); //
+                          break;
+                        default:
+                          navigate(n.link || "/inbox");
+                      }
+                    }}
                     <div
                       className={`text-sm ${n.read ? "font-medium text-gray-700 dark:text-gray-300" : "font-semibold text-gray-900 dark:text-white"}`}
                     >
