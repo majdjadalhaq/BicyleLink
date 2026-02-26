@@ -13,11 +13,10 @@ export const AuthProvider = ({ children }) => {
         const response = await fetch("/api/users/me", {
           credentials: "include",
         });
-        if (response.ok) {
-          const data = await response.json();
+        const data = await response.json();
+        if (response.ok && data.success) {
           setUser(data.user);
-        } else if (response.status === 404 || response.status === 401) {
-          // Expected for guest users, set user to null silently
+        } else {
           setUser(null);
         }
       } catch {

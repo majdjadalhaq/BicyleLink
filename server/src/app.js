@@ -28,6 +28,8 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": ["'self'", "https://accounts.google.com/gsi/client"],
+        "frame-src": ["'self'", "https://accounts.google.com/gsi/"],
         "img-src": [
           "'self'",
           "data:",
@@ -38,11 +40,16 @@ app.use(
           "https://via.placeholder.com",
           "https://static-maps.yandex.ru",
           "https://*.tile.openstreetmap.org",
+          "https://www.gstatic.com",
+          "https://i.pravatar.cc",
+          "https://*.googleusercontent.com",
         ],
         "connect-src": [
           "'self'",
           "https://api.cloudinary.com",
           "https://nominatim.openstreetmap.org",
+          "https://accounts.google.com/gsi/",
+          "https://c54b.hyf.dev",
         ],
       },
     },

@@ -568,12 +568,12 @@ export const getMe = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ success: false, msg: "Not authenticated" });
+      return res.status(200).json({ success: false, msg: "Not authenticated" });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return res.status(401).json({ success: false, msg: "Invalid token" });
+      return res.status(200).json({ success: false, msg: "Invalid token" });
     }
 
     const user = await User.findById(decoded.id).select(

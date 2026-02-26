@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import useFetch from "../hooks/useFetch";
+import { useAuth } from "../hooks/useAuth";
 
 const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
+  const { user } = useAuth();
   const [isFav, setIsFav] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -24,13 +26,15 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
   );
 
   useEffect(() => {
-    fetchIds({ method: "GET", credentials: "include" });
+    if (user) {
+      fetchIds({ method: "GET", credentials: "include" });
+    }
 
     return () => {
       cancelIds();
       cancelToggle();
     };
-  }, [listingId]);
+  }, [listingId, user]);
 
   const handleToggle = async () => {
     if (loading) return;

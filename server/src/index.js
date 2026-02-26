@@ -21,6 +21,7 @@ const io = new Server(server, {
       "http://localhost:5173",
       "https://bicyclel.nl",
       "https://www.bicyclel.nl",
+      "https://c54b.hyf.dev",
     ],
     credentials: true,
   },
