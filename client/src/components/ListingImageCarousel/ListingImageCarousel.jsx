@@ -52,10 +52,23 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
         {displayImages.length > 1 && (
           <button
             type="button"
-            className="absolute top-1/2 -translate-y-1/2 left-4 bg-white/80 dark:bg-dark-surface/80 border border-gray-200 dark:border-dark-border rounded-full w-10 h-10 flex items-center justify-center text-2xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 pb-1 hover:bg-white dark:hover:bg-dark-surface hover:shadow-md opacity-0 group-hover:opacity-100"
+            className="absolute top-1/2 -translate-y-1/2 left-4 bg-white/90 dark:bg-[#1a1a1a]/90 border border-gray-200 dark:border-[#2a2a2a] rounded-full w-12 h-12 flex items-center justify-center text-3xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-[#1a1a1a] hover:text-emerald-600 dark:hover:text-emerald-500 hover:shadow-xl opacity-0 group-hover:opacity-100 active:scale-90"
             onClick={prev}
+            title="Previous Image"
+            aria-label="Previous Image"
           >
-            ‹
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
         )}
 
@@ -69,16 +82,29 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
         {displayImages.length > 1 && (
           <button
             type="button"
-            className="absolute top-1/2 -translate-y-1/2 right-4 bg-white/80 dark:bg-dark-surface/80 border border-gray-200 dark:border-dark-border rounded-full w-10 h-10 flex items-center justify-center text-2xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 pb-1 hover:bg-white dark:hover:bg-dark-surface hover:shadow-md opacity-0 group-hover:opacity-100"
+            className="absolute top-1/2 -translate-y-1/2 right-4 bg-white/90 dark:bg-[#1a1a1a]/90 border border-gray-200 dark:border-[#2a2a2a] rounded-full w-12 h-12 flex items-center justify-center text-3xl cursor-pointer z-[2] transition-all text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-[#1a1a1a] hover:text-emerald-600 dark:hover:text-emerald-500 hover:shadow-xl opacity-0 group-hover:opacity-100 active:scale-90"
             onClick={next}
+            title="Next Image"
+            aria-label="Next Image"
           >
-            ›
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </button>
         )}
 
         {status === "sold" && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[15deg] bg-red-600/90 text-white px-8 py-4 text-4xl sm:text-5xl font-black border-4 border-white rounded-xl pointer-events-none z-[2] shadow-lg drop-shadow-md">
-            SOLD
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[12deg] bg-red-600 dark:bg-red-500 text-white px-10 py-5 text-4xl sm:text-5xl font-black border-4 border-white dark:border-gray-900 rounded-2xl pointer-events-none z-[10] shadow-2xl scale-110 drop-shadow-2xl">
+            SOLD OUT
           </div>
         )}
       </div>
@@ -91,9 +117,22 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
           <button
             className="absolute top-5 right-5 bg-transparent border-none text-white text-5xl cursor-pointer z-[2001] leading-none transition-transform hover:scale-110"
             onClick={() => setIsLightboxOpen(false)}
-            aria-label="Close lightbox"
+            aria-label="Close Lightbox"
+            title="Close Lightbox"
           >
-            ×
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
           <div
             className="relative max-w-[90%] max-h-[90%]"
@@ -108,8 +147,21 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
                     e.stopPropagation();
                     prev();
                   }}
+                  title="Previous Image"
+                  aria-label="Previous Image"
                 >
-                  ‹
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
                 </button>
                 <button
                   type="button"
@@ -118,8 +170,21 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
                     e.stopPropagation();
                     next();
                   }}
+                  title="Next Image"
+                  aria-label="Next Image"
                 >
-                  ›
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                 </button>
               </>
             )}
@@ -145,8 +210,10 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
             <button
               type="button"
               key={index}
-              className={`w-20 h-16 rounded-lg overflow-hidden cursor-pointer border-2 p-0 bg-transparent flex-shrink-0 transition-opacity duration-200 ${index === activeIndex ? "opacity-100 border-emerald" : "opacity-50 hover:opacity-80 border-transparent"}`}
+              className={`w-20 h-16 rounded-xl overflow-hidden cursor-pointer border-2 p-0 bg-transparent flex-shrink-0 transition-all duration-300 ${index === activeIndex ? "opacity-100 border-emerald-600 dark:border-emerald-500 scale-105 shadow-md" : "opacity-40 hover:opacity-70 border-transparent hover:scale-105"}`}
               onClick={() => setActiveIndex(index)}
+              title={`View Image ${index + 1}`}
+              aria-label={`View Image ${index + 1}`}
             >
               <img
                 src={img}

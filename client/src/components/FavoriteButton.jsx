@@ -52,15 +52,34 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
     return (
       <button
         type="button"
-        className="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-gray-700 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-500"
+        className="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-gray-700 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-500 shadow-sm active:scale-95"
         onClick={handleToggle}
         disabled={loading}
+        title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+        aria-label={isFav ? "Remove from Favorites" : "Add to Favorites"}
       >
-        {loading
-          ? "Please wait..."
-          : isFav
-            ? "💚 Remove from Favorites"
-            : "🤍 Add to Favorites"}
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+            Syncing...
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill={isFav ? "#10b981" : "none"}
+              stroke={isFav ? "#10b981" : "currentColor"}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            {isFav ? "Favorited" : "Add to Favorites"}
+          </div>
+        )}
       </button>
     );
   }
@@ -71,10 +90,22 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
         type="button"
         onClick={handleToggle}
         disabled={loading}
-        className="text-xl transition-transform duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
-        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+        className="text-xl transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
+        aria-label={isFav ? "Remove from Favorites" : "Add to Favorites"}
+        title={isFav ? "Remove from Favorites" : "Add to Favorites"}
       >
-        {isFav ? "❤️" : "🤍"}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill={isFav ? "#ef4444" : "none"}
+          stroke={isFav ? "#ef4444" : "currentColor"}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
       </button>
     );
   }
@@ -85,10 +116,22 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
       type="button"
       onClick={handleToggle}
       disabled={loading}
-      className={`w-9 h-9 flex items-center justify-center rounded-full text-lg transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 ${isFav ? "bg-red-500/10 animate-heartBeat" : "bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-sm"}`}
-      aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+      className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 ${isFav ? "bg-red-500/10 animate-heartBeat" : "bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm shadow-sm"}`}
+      aria-label={isFav ? "Remove from Favorites" : "Add to Favorites"}
+      title={isFav ? "Remove from Favorites" : "Add to Favorites"}
     >
-      {isFav ? "❤️" : "🤍"}
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill={isFav ? "#ef4444" : "none"}
+        stroke={isFav ? "#ef4444" : "currentColor"}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
     </button>
   );
 };

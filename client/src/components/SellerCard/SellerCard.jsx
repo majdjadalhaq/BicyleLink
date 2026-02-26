@@ -1,4 +1,5 @@
 import StarRating from "../StarRating/StarRating";
+import PropTypes from "prop-types";
 
 /**
  * Seller information card displayed on a listing detail page.
@@ -17,22 +18,48 @@ const SellerCard = ({
   const initial = name?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-5 mb-8">
-      <h3 className="text-base font-semibold mb-3 text-slate-700 dark:text-slate-300">
-        Seller Information
-      </h3>
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0">
-          {initial}
+    <div className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-[2rem] p-6 mb-8 shadow-sm transition-all hover:shadow-xl hover:shadow-emerald-500/5 group">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+          Seller Dossier
+        </h3>
+        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-wider border border-emerald-500/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Verified
+        </span>
+      </div>
+
+      <div className="flex items-start gap-5">
+        <div className="relative">
+          <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/20 border-4 border-white dark:border-[#1a1a1a] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+            {initial}
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-[#2a2a2a] rounded-lg shadow-md flex items-center justify-center border border-gray-100 dark:border-white/10">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-emerald-500"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+
+        <div className="flex-1 min-w-0">
+          <h4 className="text-lg font-black text-gray-900 dark:text-white truncate mb-1">
             {name || "Unknown Seller"}
-          </span>
+          </h4>
 
           {canViewReviews ? (
             <div
-              className="flex items-center gap-2 cursor-pointer px-1 py-0.5 -ml-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-dark-input mt-0.5 group"
+              className="flex flex-col gap-1 cursor-pointer group/rating"
               onClick={onViewReviews}
               role="button"
               tabIndex={0}
@@ -40,35 +67,70 @@ const SellerCard = ({
               title="Click to view all reviews"
             >
               <StarRating rating={averageRating} count={reviewCount} />
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tight group-hover/rating:text-emerald-500 transition-colors">
+                View Performance History
+              </span>
             </div>
           ) : (
-            <span className="text-sm text-gray-400 italic mt-0.5">
-              No reviews yet
+            <span className="text-xs text-gray-400 italic font-medium">
+              New across the platform
             </span>
           )}
-
-          <span className="text-sm text-emerald-500 mt-1 font-medium">
-            Verified User
-          </span>
         </div>
       </div>
 
-      {canRate && (
-        <button
-          className="w-full mt-4 bg-yellow-400 text-yellow-900 border-none px-4 py-2.5 rounded-lg font-semibold cursor-pointer transition-transform hover:-translate-y-0.5 hover:bg-yellow-500 shadow-sm"
-          onClick={onRate}
-        >
-          ⭐ Rate Seller
-        </button>
-      )}
+      <div className="mt-8 flex flex-col gap-3">
+        {canRate && (
+          <button
+            className="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.15em] transition-all shadow-lg shadow-amber-500/20 active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
+            onClick={onRate}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="group-hover/btn:scale-125 transition-transform"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            Submit Feedback
+          </button>
+        )}
 
-      {isSold && !canRate && (
-        <span className="inline-block mt-4 text-xs font-bold uppercase bg-gray-100 text-gray-500 px-3 py-1 rounded">
-          Sold Item
-        </span>
-      )}
+        {isSold && !canRate && (
+          <div className="w-full py-3 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Transaction Complete
+          </div>
+        )}
+      </div>
     </div>
   );
+};
+
+SellerCard.propTypes = {
+  seller: PropTypes.shape({
+    name: PropTypes.string,
+    averageRating: PropTypes.number,
+    reviewCount: PropTypes.number,
+  }).isRequired,
+  canRate: PropTypes.bool,
+  canViewReviews: PropTypes.bool,
+  isSold: PropTypes.bool,
+  onRate: PropTypes.func,
+  onViewReviews: PropTypes.func,
 };
 
 export default SellerCard;
