@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Country, City } from "country-state-city";
-
-import { FaUserCircle } from "react-icons/fa";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
@@ -36,15 +34,12 @@ const ProfileSetup = () => {
 
   const onSuccess = (data) => {
     if (data?.user) {
-      login(data.user); // Update global auth state
+      login(data.user);
     }
-    navigate("/"); // Send to Home after setup
+    navigate("/");
   };
 
-  const { isLoading, error, performFetch } = useFetch(
-    "/users/profile",
-    onSuccess,
-  );
+  const { isLoading, performFetch } = useFetch("/users/profile", onSuccess);
 
   const countries = Country.getAllCountries();
   const cities = selectedCountryCode
@@ -58,9 +53,42 @@ const ProfileSetup = () => {
     setCity("");
   };
 
-  const validateForm = () => {
-    setValidationError("");
-    return true;
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setValidationError("Geolocation is not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+        );
+        const data = await response.json();
+        if (data.address) {
+          const countryName = data.address.country;
+          const cityName =
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            data.address.state;
+          if (countryName) {
+            const countryObj = countries.find(
+              (c) =>
+                c.name === countryName ||
+                (countryName === "United Kingdom" && c.isoCode === "GB") ||
+                (countryName === "United States" && c.isoCode === "US"),
+            );
+            if (countryObj) {
+              handleCountryChange(countryObj.isoCode);
+              if (cityName) setCity(cityName);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Geolocation error:", err);
+      }
+    });
   };
 
   const handleFileChange = (e) => {
@@ -104,7 +132,7 @@ const ProfileSetup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    setValidationError("");
 
     let avatarUrl = user?.avatarUrl;
 
@@ -112,9 +140,10 @@ const ProfileSetup = () => {
       setIsUploadingImage(true);
       try {
         avatarUrl = await uploadImageToCloudinary(avatarFile);
-      } catch {
+      } catch (err) {
+        console.error(err);
         setIsUploadingImage(false);
-        setValidationError("Failed to upload image to Cloudinary.");
+        setValidationError("Failed to upload image. Please try again.");
         return;
       }
       setIsUploadingImage(false);
@@ -122,20 +151,9 @@ const ProfileSetup = () => {
 
     performFetch({
       method: "PUT",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        country,
-        city,
-        bio,
-        avatarUrl,
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ country, city, bio, avatarUrl }),
     });
-  };
-
-  const handleSkip = () => {
-    navigate("/");
   };
 
   const countryOptions = countries.map((c) => ({
@@ -149,101 +167,192 @@ const ProfileSetup = () => {
   }));
 
   return (
-    <div className="max-w-[500px] mx-auto py-10 px-6 sm:px-8 animate-in slide-in-from-bottom-2 duration-300">
-      {showCropper && (
-        <ImageCropper
-          image={tempImage}
-          onCropComplete={handleCropComplete}
-          onCancel={handleCropCancel}
-        />
-      )}
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
-        Complete Your Profile
-      </h1>
-      <p className="text-center text-gray-500 dark:text-gray-400 mb-8 text-base">
-        Help others know you better by filling out these details.
-      </p>
-
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-5 p-6 sm:p-8 border border-gray-200 dark:border-dark-border rounded-xl bg-white dark:bg-dark-surface shadow-md"
-      >
-        {/* Avatar Upload Section */}
-        <div className="flex justify-center mb-6">
-          <label
-            htmlFor="avatar-upload"
-            className="cursor-pointer rounded-full overflow-hidden w-32 h-32 flex items-center justify-center bg-gray-50 dark:bg-dark-input border-2 border-dashed border-gray-300 dark:border-gray-600 transition-colors hover:border-gray-400 hover:bg-gray-100 dark:hover:bg-dark-border"
-          >
-            {avatarPreview ? (
-              <img
-                src={avatarPreview}
-                alt="Avatar preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 text-sm font-medium">
-                <FaUserCircle size={80} color="#cbd5e1" />
-                <span>Upload Photo</span>
-              </div>
-            )}
-          </label>
-          <input
-            type="file"
-            id="avatar-upload"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#121212] transition-colors duration-300">
+      <div className="max-w-xl w-full">
+        {showCropper && (
+          <ImageCropper
+            image={tempImage}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
           />
-        </div>
-
-        <SelectField
-          name="country"
-          value={selectedCountryCode}
-          onChange={handleCountryChange}
-          options={countryOptions}
-          placeholder="Select Country"
-        />
-        <SelectField
-          name="city"
-          value={city}
-          onChange={setCity}
-          options={cityOptions}
-          placeholder="Select City"
-          disabled={!selectedCountryCode}
-        />
-        <TextAreaField
-          name="bio"
-          value={bio}
-          onChange={setBio}
-          placeholder="Tell us a little about yourself (optional)"
-          rows={4}
-        />
-
-        {validationError && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
-            {validationError}
-          </div>
-        )}
-        {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm text-center">
-            {error.toString()}
-          </div>
         )}
 
-        <div className="flex justify-between items-center mt-3">
-          <button
-            type="button"
-            onClick={handleSkip}
-            className="bg-transparent border-none text-gray-500 font-medium cursor-pointer py-2 px-4 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-dark-input hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || isUploadingImage}
-          >
-            Skip for Now
-          </button>
-          <SubmitButton isLoading={isLoading || isUploadingImage}>
-            Save Profile
-          </SubmitButton>
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-500/20 text-white mb-6">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-4">
+            Welcome to BiCycleL
+          </h1>
+          <p className="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-sm mx-auto">
+            Let&apos;s finish setting up your profile so you can start trading.
+          </p>
         </div>
-      </form>
+
+        {/* Form Card */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-dark-surface rounded-3xl border border-gray-100 dark:border-white/5 shadow-2xl shadow-black/5 p-8 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center mb-10">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-emerald-500/10 transition-all group-hover:ring-emerald-500/30">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                      <path
+                        d="M12 11v4M10 13h4"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <label
+                htmlFor="avatar-upload"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer text-white font-bold text-xs"
+              >
+                Change Photo
+              </label>
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            <p className="mt-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Profile Picture
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mt-4 -mb-4">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">
+                Location
+              </label>
+              <button
+                type="button"
+                onClick={handleDetectLocation}
+                className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                Detect
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">
+                  Country
+                </label>
+                <SelectField
+                  name="country"
+                  value={selectedCountryCode}
+                  onChange={handleCountryChange}
+                  options={countryOptions}
+                  placeholder="Select..."
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 focus-within:opacity-100 transition-opacity">
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-1">
+                  City
+                </label>
+                <SelectField
+                  name="city"
+                  value={city}
+                  onChange={setCity}
+                  options={cityOptions}
+                  placeholder="Select..."
+                  disabled={!selectedCountryCode}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">
+                About You
+              </label>
+              <TextAreaField
+                name="bio"
+                value={bio}
+                onChange={setBio}
+                placeholder="Share your passion for cycling..."
+                rows={4}
+              />
+            </div>
+          </div>
+
+          {validationError && (
+            <div className="mt-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl text-red-600 dark:text-red-400 text-sm font-medium text-center">
+              {validationError}
+            </div>
+          )}
+
+          <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="w-full sm:w-auto px-8 py-3.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+              disabled={isLoading || isUploadingImage}
+            >
+              Skip
+            </button>
+            <div className="flex-1 w-full">
+              <SubmitButton
+                isLoading={isLoading || isUploadingImage}
+                className="w-full py-3.5 font-black uppercase tracking-widest text-sm"
+              >
+                Complete Setup
+              </SubmitButton>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

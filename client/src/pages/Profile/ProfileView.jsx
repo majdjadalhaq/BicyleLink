@@ -1,267 +1,527 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
-import {
-  FaUserCircle,
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaStar,
-} from "react-icons/fa";
 
+const ListingCard = lazy(() => import("../../components/ListingCard"));
+
+/* ─── Helpers ────────────────────────────────────────────────── */
+const formatDate = (dateStr) => {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const StarRow = ({ rating = 0, size = 14 }) => {
+  const filled = Math.round(rating);
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg
+          key={i}
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill={i <= filled ? "#f59e0b" : "none"}
+          stroke={i <= filled ? "#f59e0b" : "#4b5563"}
+          strokeWidth="2"
+        >
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+    </div>
+  );
+};
+
+const UserAvatar = ({ user, className }) =>
+  user?.avatarUrl ? (
+    <img
+      src={user.avatarUrl}
+      alt={user.name || "User"}
+      className={`object-cover ${className}`}
+    />
+  ) : (
+    <div
+      className={`bg-emerald-500/20 flex items-center justify-center ${className}`}
+    >
+      <svg
+        className="w-1/2 h-1/2 text-emerald-500/60"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+      </svg>
+    </div>
+  );
+
+/* ─── Main Component ─────────────────────────────────────────── */
 const ProfileView = () => {
-  const { id } = useParams();
+  const { username, id } = useParams();
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [profileData, setProfileData] = useState(null);
 
-  const profileId = id || currentUser?._id || currentUser?.id;
+  const profileIdentifier =
+    username || id || currentUser?.name || currentUser?._id;
 
   const { isLoading, error, performFetch } = useFetch(
-    profileId ? `/users/${profileId}/profile` : null,
+    profileIdentifier ? `/users/${profileIdentifier}/profile` : null,
     (data) => setProfileData(data),
   );
 
   useEffect(() => {
-    if (profileId) {
-      performFetch();
+    if (profileIdentifier) performFetch();
+  }, [profileIdentifier]);
+
+  useEffect(() => {
+    if (profileData?.user?.name) {
+      const urlParam = username || id;
+      if (urlParam && urlParam !== profileData.user.name) {
+        navigate(`/profile/${encodeURIComponent(profileData.user.name)}`, {
+          replace: true,
+        });
+      }
     }
-  }, [profileId]);
+  }, [profileData, username, id, navigate]);
 
   if (isLoading)
     return (
-      <div className="text-center p-10 text-lg text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen flex items-center justify-center text-gray-400 dark:text-gray-500">
         Loading profile...
       </div>
     );
   if (error)
     return (
-      <div className="text-center p-10 text-lg text-red-600 dark:text-red-400">
+      <div className="max-w-5xl mx-auto p-10 text-red-500 dark:text-red-400 text-center">
         Error: {error.toString()}
       </div>
     );
   if (!profileData) return null;
 
   const { user, listings, reviewsReceived, reviewsGiven } = profileData;
+  const isOwnProfile =
+    currentUser &&
+    (currentUser._id === user._id || currentUser.id === user._id);
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-5 animate-in slide-in-from-bottom-2 duration-300">
-      {/* Profile Header */}
-      <header className="flex flex-wrap items-center gap-8 bg-white dark:bg-dark-surface p-8 sm:p-10 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border mb-8">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-gray-50 dark:border-dark-border flex-shrink-0">
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <FaUserCircle className="w-full h-full text-slate-300 dark:text-slate-600" />
-          )}
-        </div>
-        <div className="flex-1 min-w-[250px]">
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
-            {user.name}
-          </h1>
-          <div className="flex flex-wrap gap-4 sm:gap-6 text-gray-500 dark:text-gray-400 text-sm font-medium mb-4">
-            {user.city && user.country && (
-              <span className="flex items-center gap-1.5">
-                <FaMapMarkerAlt className="text-emerald-500" /> {user.city},{" "}
-                {user.country}
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <FaCalendarAlt className="text-emerald-500" /> Joined{" "}
-              {user.createdAt
-                ? new Date(user.createdAt).toLocaleDateString()
-                : "Invalid Date"}
-            </span>
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#121212] transition-colors duration-300 pb-20">
+      {/* ── FULL-BLEED Banner ── */}
+      <div className="w-full h-36 sm:h-48 relative overflow-hidden bg-emerald-600 dark:bg-emerald-950/40">
+        {/* Bicycle Pattern Background */}
+        <div
+          className="absolute inset-0 opacity-[0.08] dark:opacity-[0.05]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 32.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM22.5 32.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM19 21.5h-6a3 3 0 0 0-3 3l.5 3.5m9-6.5a3 3 0 0 1 3 3l-.5 3.5M16 21.5v-3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: "60px 60px",
+          }}
+        />
+        {/* Decorative mask */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
+      </div>
+
+      {/* ── Constrained content ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        {/* Avatar row overlapping banner */}
+        <div className="relative -mt-14 sm:-mt-16 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="flex items-end gap-4">
+              {/* Avatar */}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white dark:border-[#121212] shadow-xl overflow-hidden flex-shrink-0">
+                <UserAvatar
+                  user={user}
+                  className="w-full h-full rounded-full"
+                />
+              </div>
+
+              {/* Name + meta */}
+              <div className="mb-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl font-black text-gray-900 dark:text-white leading-none">
+                    {user.name}
+                  </h1>
+                  {user.isVerified && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                      <svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Verified
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1 mt-1">
+                  <StarRow rating={user.averageRating || 0} size={13} />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold ml-1">
+                    {(user.averageRating || 0).toFixed(1)}
+                    {reviewsReceived.length > 0 &&
+                      ` (${reviewsReceived.length})`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400 dark:text-gray-500 flex-wrap">
+                  {user.city && user.country && (
+                    <span className="flex items-center gap-1">
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-emerald-500"
+                      >
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {user.city}, {user.country}
+                    </span>
+                  )}
+                  {user.createdAt && (
+                    <span className="flex items-center gap-1">
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-emerald-500"
+                      >
+                        <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                        />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      Member since {formatDate(user.createdAt)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2 sm:mb-1">
+              {!isOwnProfile && (
+                <Link
+                  to={`/inbox?contact=${encodeURIComponent(user.name)}`}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  Message
+                </Link>
+              )}
+              {isOwnProfile && (
+                <Link
+                  to="/profile/edit"
+                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-xl hover:border-emerald-500/30 hover:text-emerald-500 transition-all"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Edit Profile
+                </Link>
+              )}
+            </div>
           </div>
+
+          {/* Bio */}
           {user.bio && (
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl">
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl">
               {user.bio}
             </p>
           )}
-        </div>
-        <div className="flex gap-4 sm:gap-6 flex-wrap mt-4 sm:mt-0 lg:ml-auto w-full lg:w-auto overflow-hidden">
-          <div className="flex flex-col flex-1 lg:flex-none items-center justify-center bg-gray-50 dark:bg-dark-input p-4 rounded-xl min-w-[100px] border border-gray-100 dark:border-dark-border">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
-              {user.averageRating || 0}
-            </span>
-            <span className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-1 uppercase tracking-wide">
-              <FaStar color="#f59e0b" /> Rating
-            </span>
-          </div>
-          <div className="flex flex-col flex-1 lg:flex-none items-center justify-center bg-gray-50 dark:bg-dark-input p-4 rounded-xl min-w-[100px] border border-gray-100 dark:border-dark-border">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
-              {listings.length}
-            </span>
-            <span className="text-xs text-gray-500 font-medium mt-1 uppercase tracking-wide">
-              Listings
-            </span>
-          </div>
-        </div>
-        {currentUser &&
-          (currentUser._id === user._id || currentUser.id === user._id) && (
-            <div className="w-full flex justify-end mt-2">
-              <Link
-                to="/profile/edit"
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors text-sm shadow-sm inline-flex items-center gap-2"
-              >
-                Edit Profile
-              </Link>
-            </div>
-          )}
-      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-8">
-        {/* Listings History */}
-        <section className="bg-white dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border h-fit">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            Listing History
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {listings.length > 0 ? (
-              listings.map((listing) => (
-                <Link
-                  to={`/listings/${listing._id}`}
-                  key={listing._id}
-                  className="group border border-gray-200 dark:border-dark-border rounded-xl overflow-hidden text-decoration-none transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald/50 bg-white dark:bg-dark-input flex flex-col"
+          {/* Stat pills */}
+          <div className="flex gap-3 mt-4 flex-wrap">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 shadow-sm">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-emerald-500"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              {listings.length} Listing{listings.length !== 1 ? "s" : ""}
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 shadow-sm">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-amber-400"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              {(user.averageRating || 0).toFixed(1)} Rating
+            </div>
+            {user.isVerified && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-sm">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <div className="h-36 sm:h-40 overflow-hidden bg-gray-100 dark:bg-dark-surface">
-                    {listing.images?.[0] ? (
-                      <img
-                        src={listing.images[0]}
-                        alt={listing.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1 truncate">
-                      {listing.title}
-                    </h3>
-                    <p className="font-bold text-emerald-500 mb-4">
-                      €{listing.price}
-                    </p>
-                    <div className="mt-auto">
-                      <span
-                        className={`text-xs uppercase font-bold px-2.5 py-1 rounded-full ${listing.status === "active" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"}`}
-                      >
-                        {listing.status}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <p className="col-span-1 sm:col-span-2 text-gray-400 italic text-sm py-4">
-                No listings found.
-              </p>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Verified Seller
+              </div>
             )}
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Reviews Section */}
-        <div className="flex flex-col gap-8">
-          <section className="bg-white dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Reviews Received ({reviewsReceived.length})
+      {/* ── MAIN CONTENT ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
+          {/* Left: Listings */}
+          <section>
+            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-emerald-500"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              Listings
+              <span className="text-sm font-bold text-gray-400">
+                ({listings.length})
+              </span>
             </h2>
-            <div className="flex flex-col gap-4">
-              {reviewsReceived.length > 0 ? (
-                reviewsReceived.map((review) => (
-                  <div
-                    key={review._id}
-                    className="p-5 bg-gray-50 dark:bg-dark-input rounded-xl border border-gray-100 dark:border-dark-border"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      {review.reviewerId?.avatarUrl ? (
-                        <img
-                          src={review.reviewerId.avatarUrl}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-dark-border"
-                        />
-                      ) : (
-                        <FaUserCircle className="w-10 h-10 text-gray-300 dark:text-gray-600" />
-                      )}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white m-0 leading-tight">
-                          {review.reviewerId?.name}
-                        </h4>
-                        <div className="flex gap-0.5 mt-1 text-[10px] sm:text-xs">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar
-                              key={i}
-                              color={i < review.rating ? "#f59e0b" : "#e5e7eb"}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 m-0 leading-relaxed">
-                      {review.comment}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400 italic text-sm">
-                  No reviews received yet.
+            {listings.length > 0 ? (
+              <div
+                className="grid gap-5"
+                style={{
+                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                }}
+              >
+                <Suspense
+                  fallback={
+                    <div className="col-span-full h-32 animate-pulse bg-gray-100 dark:bg-white/5 rounded-2xl" />
+                  }
+                >
+                  {listings.map((l) => (
+                    <ListingCard key={l._id} listing={l} />
+                  ))}
+                </Suspense>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-300 dark:text-gray-700 mb-3"
+                >
+                  <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                  <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                  <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
+                  <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
+                  <path d="M12 6V3" />
+                </svg>
+                <p className="text-gray-400 text-sm font-medium">
+                  No listings yet
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </section>
 
-          <section className="bg-white dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Reviews Given ({reviewsGiven.length})
-            </h2>
-            <div className="flex flex-col gap-4">
-              {reviewsGiven.length > 0 ? (
-                reviewsGiven.map((review) => (
-                  <div
-                    key={review._id}
-                    className="p-5 bg-gray-50 dark:bg-dark-input rounded-xl border border-gray-100 dark:border-dark-border"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      {review.targetId?.avatarUrl ? (
-                        <img
-                          src={review.targetId.avatarUrl}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-dark-border"
-                        />
-                      ) : (
-                        <FaUserCircle className="w-10 h-10 text-gray-300 dark:text-gray-600" />
-                      )}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white m-0 leading-tight">
-                          Review for {review.targetId?.name}
-                        </h4>
-                        <div className="flex gap-0.5 mt-1 text-[10px] sm:text-xs">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar
-                              key={i}
-                              color={i < review.rating ? "#f59e0b" : "#e5e7eb"}
-                            />
-                          ))}
+          {/* Right: Reviews */}
+          <div className="flex flex-col gap-6">
+            {/* Reviews Received */}
+            <section className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+              <h2 className="text-base font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-amber-400"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                Reviews ({reviewsReceived.length})
+              </h2>
+              <div className="flex flex-col gap-4 max-h-[480px] overflow-y-auto pr-1">
+                {reviewsReceived.length > 0 ? (
+                  reviewsReceived.map((review) => (
+                    <div
+                      key={review._id}
+                      className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                          <UserAvatar
+                            user={review.reviewerId}
+                            className="w-full h-full rounded-full"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+                            {review.reviewerId?.name || "Anonymous"}
+                          </p>
+                          <StarRow rating={review.rating} size={11} />
                         </div>
                       </div>
+                      {review.comment && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                          {review.comment}
+                        </p>
+                      )}
+                      {review.listingId && (
+                        <Link
+                          to={`/listings/${typeof review.listingId === "object" ? review.listingId._id : review.listingId}`}
+                          className="inline-flex items-center gap-1 mt-2 text-[10px] text-emerald-500 hover:text-emerald-600 font-bold uppercase tracking-widest"
+                        >
+                          <svg
+                            width="8"
+                            height="8"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                          {typeof review.listingId === "object"
+                            ? review.listingId.title || "View listing"
+                            : "View listing"}
+                        </Link>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 m-0 leading-relaxed">
-                      {review.comment}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400 italic text-sm">
-                  No reviews given yet.
-                </p>
-              )}
-            </div>
-          </section>
+                  ))
+                ) : (
+                  <p className="text-gray-400 dark:text-gray-500 text-sm italic">
+                    No reviews yet.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            {/* Reviews Given */}
+            <section className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+              <h2 className="text-base font-black text-gray-900 dark:text-white mb-4">
+                Reviews Given ({reviewsGiven.length})
+              </h2>
+              <div className="flex flex-col gap-4 max-h-[320px] overflow-y-auto pr-1">
+                {reviewsGiven.length > 0 ? (
+                  reviewsGiven.map((review) => (
+                    <div
+                      key={review._id}
+                      className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                          <UserAvatar
+                            user={review.targetId}
+                            className="w-full h-full rounded-full"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+                            {review.targetId?.name}
+                          </p>
+                          <StarRow rating={review.rating} size={11} />
+                        </div>
+                      </div>
+                      {review.comment && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                          {review.comment}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400 dark:text-gray-500 text-sm italic">
+                    No reviews given yet.
+                  </p>
+                )}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
