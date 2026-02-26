@@ -35,14 +35,13 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
   return (
     <div className="w-full">
       {isClientIdPlaceholder && (
-        <div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-xs text-yellow-500 text-center">
-          Google Login is not configured. Please add VITE_GOOGLE_CLIENT_ID to
-          your .env file.
+        <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-400 text-center">
+          Google Login not configured — add VITE_GOOGLE_CLIENT_ID to .env
         </div>
       )}
       <button
         type="button"
-        className="w-full flex items-center justify-center gap-3 py-2.5 mb-4 border border-light-border dark:border-dark-border rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         onClick={() => login()}
         disabled={isLoading || isClientIdPlaceholder}
       >
@@ -97,11 +96,7 @@ const Login = () => {
 
     const data = await executeLogin("/users/login", {
       method: "POST",
-      body: {
-        email,
-        password,
-        rememberMe: false, // Removed from UI to match exact mock
-      },
+      body: { email, password, rememberMe: false },
     });
 
     if (data?.success) {
@@ -109,132 +104,295 @@ const Login = () => {
     }
   };
 
-  let statusComponents = null;
-  if (validationError) {
-    statusComponents = (
-      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center flex items-center justify-center gap-2">
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        {validationError}
-      </div>
-    );
-  } else if (error != null) {
-    statusComponents = (
-      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 text-center">
-        {error.toString()}
-      </div>
-    );
-  }
+  const displayError = validationError || (error ? error.toString() : "");
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      {/* Full screen wrapper that enforces exact dark mode */}
-      <div className="flex flex-col items-center justify-center w-full min-h-[calc(100vh-64px)] bg-light-bg dark:bg-dark-bg">
-        {/* Main Edge-to-Edge Container */}
-        <div className="w-full h-full min-h-[calc(100vh-64px)] flex flex-row overflow-hidden bg-light-surface dark:bg-dark-surface">
-          {/* Left Side: Landscape Image */}
-          <div className="hidden md:block md:w-1/2 relative">
+      <div className="flex w-full min-h-[calc(100vh-64px)] bg-white dark:bg-[#0a0a0a] overflow-hidden">
+        {/* Left: Interactive Visual Section */}
+        <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-20 overflow-hidden">
+          {/* Background Image with sophisticated mask */}
+          <div className="absolute inset-0 z-0">
             <img
-              // Unsplash beautiful mountain road
-              src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
-              alt="Mountain road"
-              className="w-full h-full object-cover"
+              src="https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?q=80&w=2070&auto=format&fit=crop"
+              alt="Elite Cycling"
+              className="w-full h-full object-cover scale-105"
             />
-            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/40 via-black/60 to-black z-10" />
+            <div className="absolute inset-0 backdrop-blur-[2px] z-20" />
           </div>
 
-          {/* Right Side: Login Form */}
-          <div className="w-full md:w-1/2 p-10 sm:p-16 lg:px-24 flex flex-col justify-center relative bg-light-surface dark:bg-dark-surface">
-            <h1 className="text-3xl font-bold text-white mb-10 text-center tracking-tight">
-              Welcome Back
-            </h1>
+          <div className="relative z-30 space-y-8 max-w-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                Global Marketplace Active
+              </span>
+            </div>
 
-            <GoogleLoginButton
-              onSuccess={onSuccess}
-              onError={setValidationError}
-            />
+            <h2 className="text-6xl font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl">
+              Elevate Your <br />
+              <span className="text-emerald-400">Ride.</span>
+            </h2>
 
-            {/* Apple Button UI Dummy */}
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 py-2.5 mb-10 border border-light-border dark:border-dark-border rounded-lg text-white hover:bg-white/5 transition-colors text-sm font-medium"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 384 512">
-                <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-              </svg>
-              Continue with Apple
-            </button>
+            <p className="text-xl text-gray-300 font-medium leading-relaxed">
+              Join the elite circle of cyclists. Buy, sell, and discover premium
+              machinery from around the globe.
+            </p>
 
-            <form onSubmit={handleSubmit} noValidate className="space-y-5">
-              <div className="flex flex-col gap-1.5 focus-within:text-emerald-500 text-gray-400">
+            <div className="pt-8 border-t border-white/10 flex items-center gap-6">
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="w-12 h-12 rounded-full border-2 border-black bg-gray-800 flex items-center justify-center overflow-hidden"
+                  >
+                    <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm font-bold text-white tracking-tight">
+                <span className="text-emerald-400">12.4k+</span> active riders{" "}
+                <br />
+                <span className="text-gray-400 text-xs font-medium uppercase tracking-widest">
+                  In your local sector
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Abstract Decorations */}
+          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+        </div>
+
+        {/* Right: Authentication Interface */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
+          <div className="w-full max-w-md relative z-10">
+            <header className="mb-10">
+              <div
+                className="flex items-center gap-3 mb-8 group cursor-pointer"
+                onClick={() => navigate("/")}
+              >
+                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-500">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                    <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                    <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
+                    <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
+                    <path d="M12 6V3" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
+                    BiCycleL
+                  </h3>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">
+                    Premium Bike Marketplace
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-gray-900 dark:bg-emerald-500/10 text-white dark:text-emerald-500 flex items-center justify-center border border-transparent dark:border-emerald-500/20">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
+                    Login
+                  </h1>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                    Secure Authentication Gateway
+                  </p>
+                </div>
+              </div>
+            </header>
+
+            {/* Google Integration */}
+            <div className="mb-8">
+              <GoogleLoginButton
+                onSuccess={onSuccess}
+                onError={setValidationError}
+              />
+            </div>
+
+            {/* Terminal Divider */}
+            <div className="relative flex items-center gap-4 mb-8">
+              <div className="flex-1 h-px bg-gray-100 dark:bg-white/5" />
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] whitespace-nowrap">
+                Login with Email
+              </span>
+              <div className="flex-1 h-px bg-gray-100 dark:bg-white/5" />
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} noValidate className="space-y-6">
+              <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium ml-1 transition-colors"
+                  className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1"
                 >
-                  Email
+                  Email Address
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  className="w-full bg-light-input dark:bg-dark-input border border-emerald-500/40 focus:border-emerald-500 rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-emerald-500"
-                  autoComplete="username"
-                />
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    autoComplete="username"
+                  />
+                </div>
               </div>
 
-              <div className="flex flex-col gap-1.5 focus-within:text-emerald-500 text-gray-400">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium ml-1 transition-colors"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full bg-light-input dark:bg-dark-input border border-emerald-500/40 focus:border-emerald-500 rounded-lg px-4 py-3 text-white text-base outline-none transition-colors placeholder:text-gray-600 focus:ring-1 focus:ring-emerald-500"
-                  autoComplete="current-password"
-                />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between ml-1">
+                  <label
+                    htmlFor="password"
+                    className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest"
+                  >
+                    Password
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    title="Initialize Recovery"
+                    className="text-[10px] font-black text-emerald-500 hover:text-emerald-600 uppercase tracking-widest transition-colors"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778z" />
+                      <path d="M12 2l3 3m-3-3l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    autoComplete="current-password"
+                  />
+                </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition-colors text-base"
-                >
-                  {isLoading ? "Logging in..." : "Log In"}
-                </button>
-              </div>
+              {displayError && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-500 flex items-center gap-3 animate-shake">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {displayError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative w-full py-4 bg-gray-900 dark:bg-emerald-500 hover:bg-black dark:hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing in...
+                  </span>
+                ) : (
+                  "Login"
+                )}
+              </button>
             </form>
 
-            {statusComponents}
+            <footer className="mt-12 text-center">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                New here?{" "}
+                <Link
+                  to="/signup"
+                  className="text-emerald-500 font-black hover:text-emerald-600 transition-colors uppercase tracking-widest ml-1"
+                >
+                  Create Account
+                </Link>
+              </p>
+            </footer>
+          </div>
 
-            <p className="mt-8 text-center text-sm text-gray-300">
-              Don&apos;t have an account?{" "}
-              <Link
-                to="/signup"
-                className="font-medium text-emerald-500 hover:text-emerald-400 transition-colors"
-              >
-                Sign Up
-              </Link>
-            </p>
+          <div className="absolute top-0 right-0 p-8 flex flex-col items-end opacity-20 pointer-events-none">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] mt-2">
+              Welcome Back
+            </span>
           </div>
         </div>
       </div>

@@ -51,7 +51,7 @@ const VerifyCode = () => {
     if (data?.user) {
       login(data.user);
     }
-    navigate("/");
+    navigate("/profile/setup");
   };
 
   const { isLoading, error, performFetch } = useFetch(
