@@ -26,8 +26,14 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect socket to the origin
-    const s = io(window.location.origin);
+    // Connect socket to the origin with explicit reconnection backoff logic
+    const s = io(window.location.origin, {
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+    });
     socketRef.current = s;
 
     // Asynchronously setting state to avoid "cannot update while rendering" warnings

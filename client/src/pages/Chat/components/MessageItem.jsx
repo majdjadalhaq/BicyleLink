@@ -14,8 +14,22 @@ const MessageItem = ({
   if (isAdminWarning) {
     return (
       <div className="mx-auto max-w-sm bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 text-center">
-        <div className="text-sm font-bold text-amber-700 dark:text-amber-400 mb-1">
-          <span className="mr-1">⚠️</span> Administrator Warning
+        <div className="text-sm font-black text-amber-700 dark:text-amber-400 mb-1 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          System Warning
         </div>
         <div className="text-sm text-amber-600 dark:text-amber-300">
           {msg.content}
@@ -92,22 +106,48 @@ const MessageItem = ({
               <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
                 {msg.location.address || "Live Location"}
               </p>
-              <div className="flex gap-2 mt-1.5">
+              <div className="flex gap-4 mt-2">
                 <a
                   href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] font-semibold text-emerald-500 hover:text-emerald-400"
+                  className="text-[10px] font-black text-emerald-500 hover:text-emerald-400 flex items-center gap-1 uppercase tracking-widest"
                 >
-                  📍 Open Maps
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Maps
                 </a>
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${msg.location.lat},${msg.location.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] font-semibold text-emerald-500 hover:text-emerald-400"
+                  className="text-[10px] font-black text-emerald-500 hover:text-emerald-400 flex items-center gap-1 uppercase tracking-widest"
                 >
-                  🚗 Directions
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Directions
                 </a>
               </div>
             </div>

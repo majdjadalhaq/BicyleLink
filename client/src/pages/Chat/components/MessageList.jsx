@@ -36,7 +36,21 @@ const MessageList = ({
         </div>
       ) : messages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
-          No messages yet. Say hello! 👋
+          <div className="flex flex-col items-center gap-4 text-emerald-500/50">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            No messages yet. Say hello!
+          </div>
         </div>
       ) : (
         messages.map((msg, index) => (
@@ -52,7 +66,21 @@ const MessageList = ({
         ))
       )}
       {isOtherTyping && (
-        <div className="text-sm text-gray-400 dark:text-gray-500 italic animate-pulse pl-2">
+        <div className="flex items-center gap-2 px-4 py-2 text-xs text-gray-400 dark:text-gray-500 italic">
+          <div className="flex gap-1">
+            <span
+              className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <span
+              className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <span
+              className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
+          </div>
           Someone is typing...
         </div>
       )}
