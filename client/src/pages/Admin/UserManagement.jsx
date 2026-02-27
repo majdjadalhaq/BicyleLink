@@ -62,24 +62,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleVerify = async (userId) => {
-    try {
-      const res = await execute(`/api/admin/users/${userId}/verify`, {
-        method: "PATCH",
-      });
-      if (res.success === false) throw new Error(res.message);
-
-      setUsers(users.map((u) => (u._id === userId ? res.user : u)));
-      showToast(
-        "success",
-        `User ${res.user.isVerified ? "verified" : "unverified"} successfully`,
-      );
-    } catch (err) {
-      console.error("Error toggling verification state:", err);
-      showToast("error", err.message || "Failed to verify/unverify user");
-    }
-  };
-
   const handleToggleRole = async (userId) => {
     if (
       window.confirm(
@@ -221,275 +203,399 @@ const UserManagement = () => {
         </div>
       </header>
 
-      <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-100 dark:border-[#2a2a2a] overflow-hidden shadow-2xl relative">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1100px]">
-            <thead>
-              <tr className="bg-gray-50/50 dark:bg-black/20 text-gray-400 dark:text-gray-500 text-[10px] uppercase font-black tracking-[0.2em] border-b border-gray-100 dark:border-white/5">
-                <th className="px-8 py-5 w-72">Identity</th>
-                <th className="px-8 py-5 w-64">Credentials</th>
-                <th className="px-8 py-5 w-32 text-center">Protocol</th>
-                <th className="px-8 py-5 w-32 text-center">Lifecycle</th>
-                <th className="px-8 py-5 w-32 text-center">Auth Status</th>
-                <th className="px-8 py-5 text-right pr-12">Operations</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-              {users.map((user) => (
-                <tr
-                  key={user._id}
-                  className={`transition-all hover:bg-gray-50 dark:hover:bg-white/[0.02] group ${
-                    user.isBlocked ? "opacity-60 saturate-50" : ""
-                  }`}
-                >
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <img
-                          src={
-                            user.profilePicture ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`
+      <div className="space-y-6">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-100 dark:border-[#2a2a2a] overflow-hidden shadow-2xl relative">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1100px]">
+              <thead>
+                <tr className="bg-gray-50/50 dark:bg-black/20 text-gray-400 dark:text-gray-500 text-[10px] uppercase font-black tracking-[0.2em] border-b border-gray-100 dark:border-white/5">
+                  <th className="px-8 py-5 w-72">User</th>
+                  <th className="px-8 py-5 w-64">Email</th>
+                  <th className="px-8 py-5 w-32 text-center">Role</th>
+                  <th className="px-8 py-5 w-32 text-center">Status</th>
+                  <th className="px-8 py-5 text-right pr-12">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                {users.map((user) => (
+                  <tr
+                    key={user._id}
+                    className={`transition-all hover:bg-gray-50 dark:hover:bg-white/[0.02] group ${
+                      user.isBlocked ? "opacity-60 saturate-50" : ""
+                    }`}
+                  >
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <img
+                            src={
+                              user.profilePicture ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`
+                            }
+                            alt=""
+                            className="w-12 h-12 rounded-2xl object-cover border-2 border-white dark:border-[#2a2a2a] shadow-md group-hover:scale-110 transition-transform"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            to={`/profile/${user._id}`}
+                            className="font-black text-gray-900 dark:text-white hover:text-emerald-500 transition-colors truncate block text-base"
+                          >
+                            {user.name}
+                          </Link>
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1 block">
+                            {user._id.slice(-6)}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
+                          {user.email}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-center">
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                          user.role === "admin"
+                            ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-sm"
+                            : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-center">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                          user.isBlocked
+                            ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/10"
+                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${user.isBlocked ? "bg-red-500" : "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"}`}
+                        ></span>
+                        {user.isBlocked ? "Blocked" : "Active"}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-right pr-12">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleBlock(user._id)}
+                          disabled={user._id === currentUser._id}
+                          className={`relative flex items-center h-10 px-3 rounded-xl transition-all duration-300 disabled:opacity-20 group/op ${
+                            user.isBlocked
+                              ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+                              : "bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white"
+                          }`}
+                          title={
+                            user.isBlocked
+                              ? "Unblock Agent"
+                              : "Deactivate Agent"
                           }
-                          alt=""
-                          className="w-12 h-12 rounded-2xl object-cover border-2 border-white dark:border-[#2a2a2a] shadow-md group-hover:scale-110 transition-transform"
-                        />
-                        {user.isVerified && (
-                          <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-0.5 rounded-lg border-2 border-white dark:border-[#1a1a1a] shadow-lg">
+                        >
+                          <span className="flex-shrink-0">
                             <svg
-                              width="10"
-                              height="10"
+                              width="18"
+                              height="18"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
-                              strokeWidth="4"
+                              strokeWidth="2.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
-                              <polyline points="20 6 9 17 4 12" />
+                              {user.isBlocked ? (
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                              ) : (
+                                <>
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line
+                                    x1="4.93"
+                                    y1="4.93"
+                                    x2="19.07"
+                                    y2="19.07"
+                                  />
+                                </>
+                              )}
                             </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <Link
-                          to={`/profile/${user._id}`}
-                          className="font-black text-gray-900 dark:text-white hover:text-emerald-500 transition-colors truncate block text-base"
+                          </span>
+                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                            {user.isBlocked ? "Unblock" : "Block"}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => setSelectedUserForWarning(user)}
+                          disabled={user._id === currentUser._id}
+                          className="relative flex items-center h-10 px-3 bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-20 group/op"
+                          title="Transmit Warning"
                         >
-                          {user.name}
-                        </Link>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1 block">
-                          ID: {user._id.slice(-6)}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
-                        {user.email}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <span
-                      className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                        user.role === "admin"
-                          ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-sm"
-                          : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                        user.isBlocked
-                          ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/10"
-                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10"
-                      }`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${user.isBlocked ? "bg-red-500" : "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"}`}
-                      ></span>
-                      {user.isBlocked ? "Blocked" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <span
-                      className={`inline-flex px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                        user.isVerified
-                          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/10"
-                          : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500"
-                      }`}
-                    >
-                      {user.isVerified ? "Verified" : "Level 1"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right pr-12">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleToggleBlock(user._id)}
-                        disabled={user._id === currentUser._id}
-                        className={`group/btn w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                          user.isBlocked
-                            ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
-                            : "bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white"
-                        } disabled:opacity-20`}
-                        title={
-                          user.isBlocked ? "Unblock Agent" : "Deactivate Agent"
-                        }
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                          <span className="flex-shrink-0">
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                              <line x1="12" y1="9" x2="12" y2="13" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                          </span>
+                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                            Warn
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => handleViewWarnings(user)}
+                          disabled={user._id === currentUser._id}
+                          className="relative flex items-center h-10 px-3 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl transition-all duration-300 disabled:opacity-20 group/op"
+                          title="Dossier History"
                         >
-                          {user.isBlocked ? (
-                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                          ) : (
-                            <>
+                          <span className="flex-shrink-0">
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
                               <circle cx="12" cy="12" r="10" />
-                              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                            </>
-                          )}
-                        </svg>
-                      </button>
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                          </span>
+                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                            History
+                          </span>
+                        </button>
 
-                      <button
-                        onClick={() => setSelectedUserForWarning(user)}
-                        disabled={user._id === currentUser._id}
-                        className="w-10 h-10 bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-20"
-                        title="Transmit Warning"
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                        <div className="w-px h-8 bg-gray-100 dark:bg-white/10 mx-1" />
+
+                        <button
+                          onClick={() => handleToggleRole(user._id)}
+                          disabled={user._id === currentUser._id}
+                          className={`relative flex items-center h-10 px-3 rounded-xl transition-all duration-300 disabled:opacity-20 group/op ${
+                            user.role === "admin"
+                              ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                              : "bg-purple-600/10 text-purple-600 hover:bg-purple-600 hover:text-white"
+                          }`}
+                          title={
+                            user.role === "admin"
+                              ? "Demote Specialist"
+                              : "Promote to Admin"
+                          }
                         >
-                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                          <line x1="12" y1="9" x2="12" y2="13" />
-                          <line x1="12" y1="17" x2="12.01" y2="17" />
-                        </svg>
-                      </button>
-
-                      <button
-                        onClick={() => handleViewWarnings(user)}
-                        disabled={user._id === currentUser._id}
-                        className="w-10 h-10 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl flex items-center justify-center transition-all disabled:opacity-20"
-                        title="Dossier History"
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                      </button>
-
-                      <div className="w-px h-8 bg-gray-100 dark:bg-white/10 mx-1" />
-
-                      <button
-                        onClick={() => handleToggleVerify(user._id)}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                          user.isVerified
-                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
-                            : "bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white"
-                        }`}
-                        title={
-                          user.isVerified
-                            ? "Revoke Verification"
-                            : "Authorize Verification"
-                        }
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                          <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
-                      </button>
-
-                      <button
-                        onClick={() => handleToggleRole(user._id)}
-                        disabled={user._id === currentUser._id}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                          user.role === "admin"
-                            ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                            : "bg-purple-600/10 text-purple-600 hover:bg-purple-600 hover:text-white"
-                        } disabled:opacity-20`}
-                        title={
-                          user.role === "admin"
-                            ? "Demote Specialist"
-                            : "Promote to Admin"
-                        }
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {users.length === 0 && (
-            <div className="py-32 text-center text-gray-400 dark:text-gray-500 flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-6">
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <line x1="19" y1="8" x2="19" y2="14" />
-                  <line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-              </div>
-              <p className="font-black uppercase tracking-[0.2em] text-xs">
-                Zero Agents Detected
-              </p>
-            </div>
-          )}
+                          <span className="flex-shrink-0">
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          </span>
+                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                            {user.role === "admin" ? "Demote" : "Promote"}
+                          </span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+          {users.map((user) => (
+            <div
+              key={user._id}
+              className={`bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-[#2a2a2a] p-6 shadow-sm relative overflow-hidden transition-all hover:shadow-xl ${
+                user.isBlocked ? "opacity-60 saturate-50" : ""
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img
+                      src={
+                        user.profilePicture ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`
+                      }
+                      alt=""
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-[#2a2a2a] shadow-md"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <Link
+                      to={`/profile/${user._id}`}
+                      className="font-black text-gray-900 dark:text-white hover:text-emerald-500 transition-colors truncate block text-lg"
+                    >
+                      {user.name}
+                    </Link>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1 block">
+                      ID: {user._id.slice(-6)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                      user.role === "admin"
+                        ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                        : "bg-gray-100 dark:bg-white/5 text-gray-400 border-gray-200 dark:border-white/5"
+                    }`}
+                  >
+                    {user.role}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                      user.isBlocked
+                        ? "bg-red-500/10 text-red-600 border-red-500/10"
+                        : "bg-emerald-500/10 text-emerald-600 border-emerald-500/10"
+                    }`}
+                  >
+                    {user.isBlocked ? "Blocked" : "Active"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50/50 dark:bg-black/20 rounded-2xl mb-6">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">
+                  Credentials
+                </span>
+                <p className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate">
+                  {user.email}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                <button
+                  onClick={() => handleToggleBlock(user._id)}
+                  disabled={user._id === currentUser._id}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
+                    user.isBlocked
+                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                      : "bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white"
+                  } disabled:opacity-20`}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    {user.isBlocked ? (
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    ) : (
+                      <>
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                      </>
+                    )}
+                  </svg>
+                  <span>{user.isBlocked ? "Unblock" : "Block"}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedUserForWarning(user)}
+                  disabled={user._id === currentUser._id}
+                  className="flex items-center justify-center gap-2 py-3 bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-20"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span>Warn</span>
+                </button>
+
+                <button
+                  onClick={() => handleToggleRole(user._id)}
+                  disabled={user._id === currentUser._id}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
+                    user.role === "admin"
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                      : "bg-purple-600/10 text-purple-600 hover:bg-purple-600 hover:text-white"
+                  } disabled:opacity-20`}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span>{user.role === "admin" ? "Demote" : "Promote"}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {users.length === 0 && (
+          <div className="py-32 text-center text-gray-400 dark:text-gray-500 flex flex-col items-center justify-center bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-100 dark:border-[#2a2a2a] shadow-sm">
+            <div className="w-20 h-20 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-6">
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            </div>
+            <p className="font-black uppercase tracking-[0.2em] text-xs">
+              Zero Agents Detected
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Warning Modal */}
