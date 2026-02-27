@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
   const backendProxyTarget = env.VITE_BACKEND_URL ?? "http://localhost:3000";
   return {
@@ -29,22 +29,10 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     build: {
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('react') || id.includes('react-dom')) {
-                return 'vendor-react';
-              }
-              if (id.includes('react-router-dom') || id.includes('@remix-run')) {
-                return 'vendor-router';
-              }
-              if (id.includes('lucide-react')) {
-                return 'vendor-ui';
-              }
-              return 'vendor'; // Fallback for all other NM dependencies
-            }
-          },
+          // Removing manualChunks to avoid circular dependencies that cause blank pages
         },
       },
     },

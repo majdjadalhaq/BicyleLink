@@ -28,7 +28,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        "script-src": ["'self'", "https://accounts.google.com/gsi/client"],
+        "script-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://accounts.google.com/gsi/client",
+        ],
         "frame-src": ["'self'", "https://accounts.google.com/gsi/"],
         "img-src": [
           "'self'",
@@ -44,6 +48,12 @@ app.use(
           "https://i.pravatar.cc",
           "https://*.googleusercontent.com",
         ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+        ],
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
         "connect-src": [
           "'self'",
           "https://api.cloudinary.com",
