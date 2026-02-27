@@ -1,3 +1,4 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 const MessageItem = ({
@@ -7,7 +8,22 @@ const MessageItem = ({
   onImageClick,
   copyFeedback,
   isAdminWarning,
+  onEdit,
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(msg.content || "");
+
+  const handleSave = () => {
+    if (editContent.trim() !== msg.content) {
+      onEdit(msg._id, editContent);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditContent(msg.content);
+    setIsEditing(false);
+  };
   const isSender = (msg.senderId._id || msg.senderId) === user._id;
   const senderName = msg.senderId.name || "User";
 
@@ -156,13 +172,72 @@ const MessageItem = ({
         {msg.content &&
           msg.content !== "[Image]" &&
           !msg.content.startsWith("[Location:") && (
-            <div className="text-sm leading-relaxed">{msg.content}</div>
+            <div className="text-sm leading-relaxed">
+              {isEditing ? (
+                <div className="flex flex-col gap-2 min-w-[200px]">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40"
+                    rows={2}
+                    autoFocus
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={handleCancel}
+                      className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      className="px-2 py-1 bg-white text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {msg.content}
+                  {msg.isEdited && (
+                    <span className="text-[9px] opacity-70 italic mt-0.5">
+                      (edited)
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           )}
       </div>
 
       <div
-        className={`text-[10px] mt-1 ${isSender ? "text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
+        className={`text-[10px] mt-1 flex items-center gap-2 ${isSender ? "text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
       >
+        {isSender &&
+          !isEditing &&
+          msg.content !== "[Image]" &&
+          !msg.content?.startsWith("[Location:") && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="hover:text-emerald-500 transition-colors"
+              title="Edit message"
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+          )}
         {new Date(msg.createdAt).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -179,6 +254,7 @@ MessageItem.propTypes = {
   onImageClick: PropTypes.func.isRequired,
   copyFeedback: PropTypes.string,
   isAdminWarning: PropTypes.bool,
+  onEdit: PropTypes.func.isRequired,
 };
 
 export default MessageItem;

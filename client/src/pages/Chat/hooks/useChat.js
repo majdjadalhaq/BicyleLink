@@ -70,6 +70,9 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     socketRef.current.emit("join_room", { room, userId: user._id });
     socketRef.current.emit("check_online_status", sellerId);
 
+    // Sync 'mark as read' state app-wide instantly on entry
+    socketRef.current.emit("read_room", { room, userId: user._id });
+
     socketRef.current.on("receive_message", (message) => {
       if (message.room === room) {
         setMessages((prev) => [...prev, message]);
@@ -88,6 +91,14 @@ const useChat = (listingId, user, receiverId, roomParam) => {
 
     socketRef.current.on("online_status_result", (data) => {
       if (data.userId === sellerId) setIsOnline(data.isOnline);
+    });
+
+    socketRef.current.on("message_updated", (updatedMessage) => {
+      if (updatedMessage.room === room) {
+        setMessages((prev) =>
+          prev.map((m) => (m._id === updatedMessage._id ? updatedMessage : m)),
+        );
+      }
     });
 
     return () => {
@@ -127,9 +138,11 @@ const useChat = (listingId, user, receiverId, roomParam) => {
   );
 
   const handleScroll = useCallback(() => {
-    if (isFetchingMore || !hasMore) return;
-    setIsFetchingMore(true);
+    if (isFetchingMore || !hasMore || messages.length === 0) return;
     const oldestMessageTime = messages[0]?.createdAt;
+    if (!oldestMessageTime) return;
+
+    setIsFetchingMore(true);
     fetch(`/api/messages/${room}?before=${oldestMessageTime}`)
       .then((res) => res.json())
       .then((data) => {
@@ -171,6 +184,27 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  const handleEditMessage = async (messageId, newContent) => {
+    if (!newContent.trim()) return;
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) =>
+          prev.map((m) => (m._id === messageId ? data.result : m)),
+        );
+        // Emit socket event for real-time update
+        socketRef.current.emit("edit_message", data.result);
+      }
+    } catch (err) {
+      console.error("Failed to edit message:", err);
     }
   };
 
@@ -238,6 +272,7 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     selectedImageUrl,
     setSelectedImageUrl,
     isAdminWarning,
+    handleEditMessage,
   };
 };
 
