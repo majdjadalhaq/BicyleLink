@@ -77,6 +77,8 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
           alt={`${title} - View ${activeIndex + 1}`}
           className="w-full h-full object-cover cursor-zoom-in"
           onClick={() => setIsLightboxOpen(true)}
+          fetchPriority={activeIndex === 0 ? "high" : "auto"}
+          loading={activeIndex === 0 ? "eager" : "lazy"}
         />
 
         {displayImages.length > 1 && (
@@ -103,8 +105,11 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
         )}
 
         {status === "sold" && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[12deg] bg-red-600 dark:bg-red-500 text-white px-10 py-5 text-4xl sm:text-5xl font-black border-4 border-white dark:border-gray-900 rounded-2xl pointer-events-none z-[10] shadow-2xl scale-110 drop-shadow-2xl">
-            SOLD OUT
+          <div className="absolute inset-0 z-[10] flex items-center justify-center p-6 pointer-events-none">
+            <div className="absolute inset-0 bg-red-600/20 dark:bg-red-500/20 backdrop-blur-sm" />
+            <div className="relative -rotate-12 px-10 py-5 bg-red-600 text-white text-4xl sm:text-5xl font-black rounded-2xl shadow-[0_20px_50px_rgba(220,38,38,0.5)] border-4 border-white/30 scale-110">
+              SOLD OUT
+            </div>
           </div>
         )}
       </div>
@@ -219,6 +224,7 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
                 src={img}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </button>
           ))}

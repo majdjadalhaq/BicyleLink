@@ -11,7 +11,7 @@ const StarRating = ({ rating = 0, count }) => {
   return (
     <div
       className="inline-flex items-center gap-0.5"
-      aria-label={`Rating: ${clampedRating.toFixed(1)} out of 5`}
+      aria-label={`Rating: ${Number(clampedRating || 0).toFixed(1)} out of 5`}
     >
       {[1, 2, 3, 4, 5].map((star) => {
         const filled = clampedRating >= star;

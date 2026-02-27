@@ -111,8 +111,8 @@ const CardCarousel = ({ images, title }) => {
               />
             ))}
           </div>
-          <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {idx + 1}/{imageUrls.length}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-2 py-[3px] rounded-full bg-black/40 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300 border border-white/10">
+            {idx + 1} / {imageUrls.length}
           </div>
         </>
       )}
@@ -184,7 +184,7 @@ const ListingCard = ({
 
   return (
     <div
-      className="listing-card group relative flex flex-col h-full bg-white dark:bg-[#1a1a1a] rounded-[2rem] overflow-hidden border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1"
+      className="listing-card group relative flex flex-col h-full bg-white dark:bg-[#10221C]/50 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-[#10B77F]/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-500 hover:shadow-glow hover:border-[#10B77F]/20 hover:-translate-y-1.5"
       data-id={_id}
     >
       {/* ── Image Section ── */}
@@ -220,13 +220,13 @@ const ListingCard = ({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none">
           {listing.status === "sold" && (
-            <div className="px-2.5 py-1 rounded-full text-[10px] font-black text-white bg-red-500/90 backdrop-blur-md uppercase tracking-widest flex items-center gap-1 border border-white/20 shadow-lg">
+            <div className="w-fit px-2 py-1 rounded-full text-[9px] sm:text-[10px] font-black text-white bg-red-500/90 backdrop-blur-md uppercase tracking-widest flex items-center gap-1 border border-white/20 shadow-lg">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Sold Out
             </div>
           )}
           {listing.isFeatured && (
-            <div className="px-2.5 py-1 rounded-full text-[10px] font-black text-white bg-amber-500/90 backdrop-blur-md uppercase tracking-widest flex items-center gap-1 border border-white/20 shadow-lg">
+            <div className="w-fit px-2 py-1 rounded-full text-[9px] sm:text-[10px] font-black text-white bg-amber-500/90 backdrop-blur-md uppercase tracking-widest flex items-center gap-1 border border-white/20 shadow-lg">
               <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
@@ -234,7 +234,7 @@ const ListingCard = ({
             </div>
           )}
           {condition && (
-            <div className="px-2.5 py-1 rounded-full text-[10px] font-black text-white bg-emerald-500/80 backdrop-blur-md uppercase tracking-widest border border-white/20 shadow-lg">
+            <div className="w-fit px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black text-white bg-[#10B77F]/90 backdrop-blur-md uppercase tracking-[0.15em] border border-white/20 shadow-glow">
               {condition}
             </div>
           )}
@@ -276,7 +276,7 @@ const ListingCard = ({
       {/* ── Content Section ── */}
       <div className="p-4 sm:p-5 flex flex-col flex-grow">
         {/* Row 1: Title */}
-        <h3 className="text-[17px] font-black text-gray-900 dark:text-white leading-snug tracking-tight line-clamp-2 group-hover:text-emerald-500 transition-colors duration-300 mb-2">
+        <h3 className="text-[17px] font-black text-gray-900 dark:text-white leading-snug tracking-tight line-clamp-2 group-hover:text-[#10B77F] transition-colors duration-300 mb-2">
           {title}
         </h3>
 
@@ -296,7 +296,7 @@ const ListingCard = ({
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-emerald-500 flex-shrink-0"
+                className="text-[#10B77F] flex-shrink-0"
               >
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
@@ -319,7 +319,7 @@ const ListingCard = ({
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-emerald-500"
+                className="text-[#10B77F]"
               >
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
@@ -336,7 +336,7 @@ const ListingCard = ({
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-emerald-500"
+                className="text-[#10B77F]"
               >
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
               </svg>
@@ -345,7 +345,7 @@ const ListingCard = ({
           </div>
           {listing.ownerId?.name && (
             <span className="truncate font-medium text-gray-500 dark:text-gray-500">
-              by {listing.ownerId.name}
+              {listing.ownerId.name}
             </span>
           )}
         </div>
@@ -355,7 +355,7 @@ const ListingCard = ({
           <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
             <Link
               to={`/listings/${_id}/edit`}
-              className="flex-1 h-9 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/30"
+              className="flex-1 h-9 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-[#10B77F] hover:bg-[#10B77F]/5 dark:hover:bg-[#10B77F]/10 transition-all border border-transparent hover:border-[#10B77F]/30"
               title="Edit Listing"
               aria-label="Edit Listing"
             >
@@ -376,7 +376,7 @@ const ListingCard = ({
             <button
               onClick={handleStatusToggle}
               disabled={isUpdating}
-              className="flex-1 h-9 flex items-center justify-center rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600"
+              className="flex-1 h-9 flex items-center justify-center rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-[#10B77F] text-white shadow-lg shadow-[#10B77F]/20 hover:bg-[#0EA572]"
               title={listing.status === "sold" ? "Relist Item" : "Mark as Sold"}
               aria-label={
                 listing.status === "sold" ? "Relist Item" : "Mark as Sold"
