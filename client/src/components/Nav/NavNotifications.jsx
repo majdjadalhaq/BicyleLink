@@ -139,13 +139,15 @@ const NavNotifications = ({ user, isOpen, setIsOpen }) => {
                     onMouseDown={(e) => {
                       // Prevent default to avoid focus issues
                       e.preventDefault();
-                      const targetLink = n.link || "/inbox";
-                      // removed individual markAsRead since it's handled on open
-
-                      // Navigate immediately
-                      navigate(targetLink);
-
-                      // Close the dropdown
+                      if (
+                        (n.type === "review_permission" ||
+                          n.type === "review") &&
+                        n.listingId
+                      ) {
+                        navigate(`/listings/${n.listingId}`);
+                      } else {
+                        navigate(n.link || "/inbox");
+                      }
                       setIsOpen(false);
                     }}
                   >
