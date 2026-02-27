@@ -14,8 +14,19 @@ export default function useNotifications() {
     };
   }
 
+  const itemsWithLink = context.notifications.map((n) => {
+    if (n.type === "review_permission" && n.listingId) {
+      return { ...n, link: `/listings/${n.listingId}/review` };
+    }
+
+    if (n.type === "new_review" && n.listingId) {
+      return { ...n, link: `/listings/${n.listingId}` };
+    }
+
+    return n;
+  });
   return {
-    items: context.notifications,
+    items: itemsWithLink,
     unread: context.unreadCount,
     markAsRead: context.markAsRead,
     markAllAsRead: context.markAllAsRead,
