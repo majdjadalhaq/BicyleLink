@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { NotificationContext } from "./NotificationContextRegistry";
 import useApi from "../hooks/useApi";
@@ -38,6 +38,8 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [user, execute]);
 
+  const initialLoadRef = useRef(false);
+
   // Initial load
   // Fixed: always call fetchNotifications safely
   useEffect(() => {
@@ -51,11 +53,13 @@ export const NotificationProvider = ({ children }) => {
 
     let isMounted = true;
 
-    const loadData = async () => {
-      if (!isMounted) return;
-      await fetchNotifications();
-      await fetchUnread();
-    };
+    async function loadData() {
+      if (user && isMounted && !initialLoadRef.current) {
+        initialLoadRef.current = true;
+        await fetchNotifications();
+        await fetchUnread();
+      }
+    }
 
     loadData();
 
@@ -81,7 +85,6 @@ export const NotificationProvider = ({ children }) => {
       setItems((prev) => [notification, ...prev]);
       if (!notification.read) {
         setUnread((prev) => prev + 1);
-        showToast(notification.title, "info");
       }
     };
 
@@ -95,16 +98,19 @@ export const NotificationProvider = ({ children }) => {
   }, [socket, user, showToast]);
 
   const markAsRead = useCallback(
-    async (id) => {
-      const data = await execute(`/api/notifications/${id}/read`, {
+    (id) => {
+      // Optimistic update
+      setItems((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
+      );
+      setUnread((prev) => Math.max(prev - 1, 0));
+
+      // Fire and forget API call
+      execute(`/api/notifications/${id}/read`, {
         method: "PATCH",
+      }).catch(() => {
+        // Handle failure if needed, though rare
       });
-      if (data?.success) {
-        setItems((prev) =>
-          prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
-        );
-        setUnread((prev) => Math.max(prev - 1, 0));
-      }
     },
     [execute],
   );

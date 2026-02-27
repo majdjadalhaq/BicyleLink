@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { AuthContext } from "./AuthContextProvider";
 
@@ -6,8 +6,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const hasCheckedRef = useRef(false);
   // Check session on mount
   useEffect(() => {
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
     const checkSession = async () => {
       try {
         const response = await fetch("/api/users/me", {
