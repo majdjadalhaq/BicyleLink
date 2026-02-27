@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 
 import useUnreadCount from "../hooks/useUnreadCount";
 import useNotifications from "../hooks/useNotifications";
 import useKeyboardFocus from "../hooks/useKeyboardFocus";
-import { DesktopNavLinks, MobileNavLinks } from "./Nav/NavLinks";
+import { Icons, DesktopNavLinks, MobileNavLinks } from "./Nav/NavLinks";
 import NavNotifications from "./Nav/NavNotifications";
 import { ThemeToggle } from "./ui";
 
 /* ─── Inline SVG helpers ─────────────────────────────────────────────── */
+
 const LogoutIcon = () => (
   <svg
     width="17"
@@ -44,21 +45,6 @@ const SettingsIcon = () => (
   </svg>
 );
 
-const InboxIcon = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-  </svg>
-);
-
 const ProfileIcon = () => (
   <svg
     width="17"
@@ -82,9 +68,8 @@ const UserAvatarIcon = () => (
 );
 
 const Nav = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
   const isKeyboardOpen = useKeyboardFocus();
@@ -95,29 +80,20 @@ const Nav = () => {
   const location = useLocation();
   const settingsRef = useRef(null);
 
-  const isChatRoute = location.pathname.startsWith("/chat");
-  const isMinimalNav = isChatRoute;
+  const isMinimalNav = false; // Restoring full nav branding as per user request
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
     setIsNotifOpen(false);
-    setIsSettingsOpen(false);
     setIsMobileSettingsOpen(false);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [location.pathname]);
 
   useEffect(() => {
-    const handler = (e) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-        setIsSettingsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    // No-op handler for settingsRef if needed, but the click-outside logic for click-based states is removed
   }, []);
 
   const handleLogout = async () => {
-    setIsSettingsOpen(false);
     setIsMobileSettingsOpen(false);
     await logout();
     navigate("/login");
@@ -127,8 +103,6 @@ const Nav = () => {
     ? `/profile/${encodeURIComponent(user.name || user._id || user.id)}`
     : "/login";
 
-  const isSettingsActive = location.pathname === "/account-settings";
-
   return (
     <>
       <nav
@@ -136,34 +110,44 @@ const Nav = () => {
         data-testid={TEST_ID.container}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-14 gap-4">
+          <div className="flex items-center h-16 gap-4">
             {/* LEFT: Logo */}
             <div className="flex-shrink-0">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-xl font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                className="group flex items-center transition-all duration-500"
               >
-                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
-                    <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
-                    <path d="M12 6V3" />
-                  </svg>
+                {/* Logo Icon (Mechanical B) */}
+                <img
+                  src="/favicon.png"
+                  alt="BiCycleL"
+                  className="h-9 w-9 md:h-10 md:w-10 object-contain relative z-10 transition-all duration-500 ease-out group-hover:scale-110 drop-shadow-glow"
+                />
+
+                {/* Brand Text & Link icon - Hidden on Mobile, Shows on large screens, Expands on hover (Medium screens) */}
+                <div className="hidden md:flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] max-w-0 lg:max-w-[150px] opacity-0 lg:opacity-100 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-1.5">
+                  <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-gray-100 transition-colors group-hover:text-[#10B77F]">
+                    iCycle
+                  </span>
+
+                  <div className="flex items-center text-emerald-500">
+                    {/* The 'L' which is actually a Link icon */}
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="flex-shrink-0 md:w-5 md:h-5 text-[#10B77F]"
+                    >
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </div>
                 </div>
-                <span className="hidden sm:inline tracking-tight">
-                  BiCycleL
-                </span>
               </Link>
             </div>
 
@@ -184,118 +168,245 @@ const Nav = () => {
               {/* Theme Toggle */}
               <ThemeToggle />
 
-              {/* Mobile: Notifications Top-Bar */}
-              {!isMinimalNav && user && (
-                <div className="md:hidden">
-                  <NavNotifications
-                    user={user}
-                    isOpen={isNotifOpen}
-                    setIsOpen={setIsNotifOpen}
-                  />
+              {/* Sell Button (PC Right Zone for regular users) */}
+              {!isMinimalNav && user?.role !== "admin" && (
+                <Link
+                  to="/listing/create"
+                  aria-label="Create new listing"
+                  className="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  {Icons.sell(18)}
+                  <span>Sell</span>
+                </Link>
+              )}
+
+              {/* Admin Dashboard consolidated menu (Desktop Right Zone) */}
+              {!isMinimalNav && user?.role === "admin" && (
+                <div className="hidden md:block relative group/adminmenu">
+                  <button
+                    className="flex items-center gap-2 h-10 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-violet-500 dark:text-violet-400 transition-all duration-500"
+                    aria-label="Admin Tools"
+                  >
+                    <span className="opacity-80 group-hover/adminmenu:scale-110 transition-transform duration-500">
+                      {Icons.admin(18)}
+                    </span>
+                    {/* Expanding Label Interaction */}
+                    <div className="max-w-0 overflow-hidden group-hover/adminmenu:max-w-[100px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+                      <span className="text-xs font-black uppercase tracking-widest pl-1 whitespace-nowrap">
+                        Dashboard
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Dropdown Tools */}
+                  <div className="absolute right-0 top-full pt-2 pointer-events-none opacity-0 translate-y-2 group-hover/adminmenu:pointer-events-auto group-hover/adminmenu:opacity-100 group-hover/adminmenu:translate-y-0 transition-all duration-300 z-[120]">
+                    <div className="w-56 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-violet-500/10 shadow-2xl py-2 overflow-hidden backdrop-blur-xl">
+                      <div className="px-4 py-2 border-b border-gray-50 dark:border-white/5 mb-1">
+                        <span className="text-[10px] font-black text-violet-500 uppercase tracking-[0.2em]">
+                          Management
+                        </span>
+                      </div>
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors"
+                      >
+                        <span className="opacity-70">{Icons.admin(14)}</span>
+                        Overview
+                      </Link>
+                      <Link
+                        to="/admin/listings"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors"
+                      >
+                        <span className="opacity-70">
+                          {Icons.adminListings(14)}
+                        </span>
+                        Listings
+                      </Link>
+                      <Link
+                        to="/admin/users"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors"
+                      >
+                        <span className="opacity-70">{Icons.users(14)}</span>
+                        Users
+                      </Link>
+                      <Link
+                        to="/admin/reports"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors"
+                      >
+                        <span className="opacity-70">{Icons.reports(14)}</span>
+                        Reports
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Mobile: Profile Picture / Settings Top-Bar (REPLACES HOME) */}
-              {!isMinimalNav && user && (
-                <button
-                  onClick={() => setIsMobileSettingsOpen(true)}
-                  className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl transition-all"
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt="profile"
-                      className="w-7 h-7 rounded-full object-cover ring-2 ring-emerald-500/20"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                      {(user.name || "U").charAt(0).toUpperCase()}
+              {/* Only render auth-dependent actions once loading is complete */}
+              {authLoading ? (
+                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 animate-pulse hidden md:block" />
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  {/* Mobile: Notifications Top-Bar */}
+                  {!isMinimalNav && user && (
+                    <div className="md:hidden">
+                      <NavNotifications
+                        user={user}
+                        isOpen={isNotifOpen}
+                        setIsOpen={(val) => {
+                          setIsNotifOpen(val);
+                          if (val) setIsMobileSettingsOpen(false);
+                        }}
+                      />
                     </div>
                   )}
-                </button>
-              )}
 
-              {/* Desktop Only Actions */}
-              {!isMinimalNav && user && (
-                <div className="hidden md:flex items-center gap-1.5 pl-3 border-l border-gray-200 dark:border-white/10">
-                  {/* Inbox with Unread Badge */}
-                  <NavLink
-                    to="/inbox"
-                    className={({ isActive }) =>
-                      "relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 " +
-                      (isActive
-                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
-                        : "text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-white/5")
-                    }
-                  >
-                    <InboxIcon />
-                    {unreadMessagesCount > 0 && (
-                      <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-[16px] text-[9px] font-bold text-white bg-red-500 border-[1.5px] border-white dark:border-[#121212] rounded-full px-0.5">
-                        {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
-                      </span>
-                    )}
-                  </NavLink>
-
-                  {/* Notifications */}
-                  <NavNotifications
-                    user={user}
-                    isOpen={isNotifOpen}
-                    setIsOpen={setIsNotifOpen}
-                  />
-
-                  {/* Settings Dropdown */}
-                  <div className="relative" ref={settingsRef}>
+                  {/* Mobile: Profile Picture / Settings Top-Bar */}
+                  {!isMinimalNav && user && (
                     <button
-                      onClick={() => setIsSettingsOpen((p) => !p)}
-                      className={
-                        "flex items-center justify-center w-9 h-9 rounded-xl transition-all " +
-                        (isSettingsActive || isSettingsOpen
-                          ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
-                          : "text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-white/5")
-                      }
+                      onClick={() => {
+                        setIsMobileSettingsOpen(true);
+                        setIsNotifOpen(false);
+                      }}
+                      className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl transition-all"
                     >
-                      <SettingsIcon />
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt="profile"
+                          className="w-7 h-7 rounded-full object-cover ring-2 ring-emerald-500/20"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-[#10B77F]/10 flex items-center justify-center text-[#10B77F] font-bold text-xs ring-1 ring-[#10B77F]/20">
+                          {(user.name || "U").charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </button>
-                    {isSettingsOpen && (
-                      <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-xl py-1.5 z-[100]">
-                        <Link
-                          to="/account-settings"
-                          onClick={() => setIsSettingsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                        >
-                          <SettingsIcon />
-                          Account Settings
-                        </Link>
-                        <div className="my-1 mx-3 border-t border-gray-100 dark:border-white/5" />
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors w-[calc(100%-8px)]"
-                        >
-                          <LogoutIcon />
-                          Log Out
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
-                  {/* Desktop: Profile Far Right */}
-                  <Link
-                    to={profileHref}
-                    className="flex items-center justify-center w-9 h-9 rounded-full ring-2 ring-transparent hover:ring-emerald-500/40 transition-all ml-1"
-                    aria-label="Your profile"
-                  >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt="profile"
-                        className="w-8 h-8 rounded-full object-cover"
+                  {/* Desktop Only Actions */}
+                  {!isMinimalNav && user && (
+                    <div className="hidden md:flex items-center gap-3 pl-6 border-l border-gray-200 dark:border-white/10">
+                      {/* Notifications */}
+                      <NavNotifications
+                        user={user}
+                        isOpen={isNotifOpen}
+                        setIsOpen={(val) => {
+                          setIsNotifOpen(val);
+                        }}
                       />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                        <UserAvatarIcon />
+
+                      {/* Unified Profile/Settings Dropdown */}
+                      <div className="relative group/profile" ref={settingsRef}>
+                        <button
+                          className="flex items-center justify-center w-10 h-10 rounded-full ring-2 ring-transparent transition-all hover:ring-[#10B77F]/20 group-hover/profile:ring-[#10B77F]/40 group-hover/profile:bg-[#10B77F]/10"
+                          aria-label="User menu"
+                          onClick={() => navigate(profileHref)}
+                        >
+                          {user.avatarUrl ? (
+                            <img
+                              src={user.avatarUrl}
+                              alt="profile"
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                              <UserAvatarIcon />
+                            </div>
+                          )}
+                        </button>
+
+                        {/* Hover Dropdown */}
+                        <div className="absolute right-0 top-full pt-2 pointer-events-none opacity-0 translate-y-2 group-hover/profile:pointer-events-auto group-hover/profile:opacity-100 group-hover/profile:translate-y-0 transition-all duration-300 z-[120]">
+                          <div className="w-64 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl py-2 overflow-hidden backdrop-blur-xl">
+                            {/* User Header */}
+                            <div className="px-4 py-3 mb-1 border-b border-gray-100 dark:border-white/5">
+                              <p className="text-sm font-black text-gray-900 dark:text-white truncate">
+                                {user.name || "User"}
+                              </p>
+                            </div>
+
+                            <Link
+                              to={profileHref}
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                              <ProfileIcon />
+                              View Profile
+                            </Link>
+
+                            {/* Inbox / Messages (PC Profile Dropdown only) */}
+                            <Link
+                              to="/inbox"
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors relative"
+                            >
+                              <div className="relative">
+                                {Icons.inbox(16)}
+                                {unreadMessagesCount > 0 && (
+                                  <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a1a1a]" />
+                                )}
+                              </div>
+                              Messages
+                            </Link>
+                            <Link
+                              to="/my-listings"
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <line x1="8" y1="6" x2="21" y2="6" />
+                                <line x1="8" y1="12" x2="21" y2="12" />
+                                <line x1="8" y1="18" x2="21" y2="18" />
+                                <line x1="3" y1="6" x2="3.01" y2="6" />
+                                <line x1="3" y1="12" x2="3.01" y2="12" />
+                                <line x1="3" y1="18" x2="3.01" y2="18" />
+                              </svg>
+                              My Listings
+                            </Link>
+                            <Link
+                              to="/favorites"
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                              </svg>
+                              Favorites
+                            </Link>
+                            <Link
+                              to="/account-settings"
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                              <SettingsIcon />
+                              Account Settings
+                            </Link>
+                            <div className="my-1.5 mx-3 border-t border-gray-100 dark:border-white/5" />
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors w-[calc(100%-8px)]"
+                            >
+                              <LogoutIcon />
+                              Log Out
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -304,7 +415,7 @@ const Nav = () => {
       </nav>
 
       {/* MOBILE BOTTOM TAB BAR */}
-      {!isMinimalNav && !isKeyboardOpen && (
+      {!isKeyboardOpen && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-gray-200 dark:border-[#1e1e1e] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
           <MobileNavLinks user={user} unreadCount={unreadMessagesCount} />
         </div>

@@ -35,23 +35,9 @@ describe("Routing", () => {
       );
     });
 
-    expect(screen.getByTestId(TEST_ID_HOME.container)).toBeInTheDocument();
-  });
-
-  it("Path '/user' should go to User list ", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/user"]}>
-          <App />
-        </MemoryRouter>,
-      );
+    await waitFor(() => {
+      expect(screen.getByTestId(TEST_ID_HOME.container)).toBeInTheDocument();
     });
-
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(TEST_ID_USER_LIST.container),
-      ).toBeInTheDocument(),
-    );
   });
 
   it("Path '/signup' should go to User create page ", async () => {
@@ -63,8 +49,10 @@ describe("Routing", () => {
       );
     });
 
-    expect(
-      screen.getByTestId(TEST_ID_CREATE_USER.container),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(TEST_ID_CREATE_USER.container),
+      ).toBeInTheDocument();
+    });
   });
 });

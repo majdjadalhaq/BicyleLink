@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { getNavLinks } from "./navConfig";
 
 /* ─── SVG Icons ─────────────────────────────────────────────────────── */
-const Icons = {
+export const Icons = {
   home: (size = 18) => (
     <svg
       width={size}
@@ -197,16 +197,21 @@ const Icons = {
 
 /* ─── Desktop Nav Links (center zone) ──────────────────────────────── */
 export const DesktopNavLinks = ({ user, unreadCount }) => {
-  const links = getNavLinks(user).filter((l) => !l.mobileOnly && !l.rightZone);
+  const links = getNavLinks(user).filter(
+    (l) => !l.mobileOnly && !l.rightZone && !l.profileDropdownOnly,
+  );
 
   return (
-    <ul className="flex items-center gap-2 h-full">
+    <ul className="flex items-center gap-4 h-full">
       {links.map((link) => {
         const icon = Icons[link.iconKey] || Icons.home;
         const isAdminLink = link.isAdmin;
 
         return (
-          <li key={link.path + link.label} className="relative group/navitem">
+          <li
+            key={link.path + link.label}
+            className="relative group/navitem h-full flex items-center"
+          >
             <NavLink
               to={link.path}
               data-testid={link.testId}
@@ -245,10 +250,53 @@ export const DesktopNavLinks = ({ user, unreadCount }) => {
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
-              <span className="overflow-hidden max-w-0 group-hover/navitem:max-w-[90px] opacity-0 group-hover/navitem:opacity-100 transition-all duration-200 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/navitem:ml-1.5">
+              <span className="overflow-hidden max-w-0 group-hover/navitem:max-w-[90px] opacity-0 group-hover/navitem:opacity-100 transition-all duration-200 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/navitem:ml-1.5 flex items-center gap-1">
                 {link.label}
+                {link.subLinks && (
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-50"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                )}
               </span>
             </NavLink>
+
+            {/* Dropdown for subLinks */}
+            {link.subLinks && (
+              <div className="absolute top-full left-0 pt-2 opacity-0 invisible translate-y-2 group-hover/navitem:opacity-100 group-hover/navitem:visible group-hover/navitem:translate-y-0 transition-all duration-200 z-[110]">
+                <div className="w-48 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/10 shadow-2xl py-2 overflow-hidden">
+                  <div className="px-4 py-1.5 mb-1 border-b border-gray-50 dark:border-white/5">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      {link.label} Tools
+                    </span>
+                  </div>
+                  {link.subLinks.map((sub) => {
+                    const subIcon = Icons[sub.iconKey] || Icons.home;
+                    return (
+                      <NavLink
+                        key={sub.path}
+                        to={sub.path}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10 transition-colors"
+                      >
+                        <span className="opacity-70 group-hover:opacity-100 transition-opacity">
+                          {subIcon(14)}
+                        </span>
+                        {sub.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </li>
         );
       })}
@@ -261,14 +309,15 @@ export const MobileNavLinks = ({ user, unreadCount }) => {
   const allLinks = getNavLinks(user);
   // Filter for mobile bottom tabs
   const links = allLinks.filter(
-    (l) => !l.desktopOnly && !l.mobileOnly && !l.noMobileTab,
+    (l) => !l.desktopOnly && !l.noMobileTab && !l.profileDropdownOnly,
   );
 
   return (
-    <ul className="flex items-stretch h-full w-full">
+    <ul className="flex items-stretch h-full w-full px-2">
       {links.map((link) => {
         const icon = Icons[link.iconKey] || Icons.home;
         const isCTA = link.isCTA;
+        const isAdminCTA = isCTA && link.isAdminDashboard;
 
         return (
           <li
@@ -285,19 +334,31 @@ export const MobileNavLinks = ({ user, unreadCount }) => {
                 if (isCTA)
                   return "flex flex-col items-center justify-center gap-1 -mt-3";
                 return (
-                  "flex flex-1 flex-col items-center justify-center h-full gap-1 py-1 transition-colors duration-200 " +
+                  "relative flex flex-1 flex-col items-center justify-center h-full gap-1 py-1 transition-colors duration-200 " +
                   (isActive
-                    ? "text-emerald-600 dark:text-emerald-500"
-                    : "text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-500")
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400")
                 );
               }}
             >
               {isCTA ? (
                 <>
-                  <span className="w-11 h-11 flex items-center justify-center bg-emerald-500 rounded-full text-white shadow-lg shadow-emerald-500/30">
+                  <span
+                    className={`w-11 h-11 flex items-center justify-center rounded-full text-white shadow-lg ${
+                      isAdminCTA
+                        ? "bg-violet-500 shadow-violet-500/30"
+                        : "bg-emerald-500 shadow-emerald-500/30"
+                    }`}
+                  >
                     {icon(20)}
                   </span>
-                  <span className="text-[10px] font-medium leading-none text-emerald-600 dark:text-emerald-500">
+                  <span
+                    className={`text-[10px] font-black leading-none mt-1 ${
+                      isAdminCTA
+                        ? "text-violet-600 dark:text-violet-400"
+                        : "text-emerald-600 dark:text-emerald-400"
+                    }`}
+                  >
                     {link.label}
                   </span>
                 </>
@@ -306,14 +367,16 @@ export const MobileNavLinks = ({ user, unreadCount }) => {
                   <span className="relative">
                     {icon(18)}
                     {link.hasUnreadBadge && unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[14px] h-[14px] text-[8px] font-bold text-white bg-red-500 border border-white dark:border-[#121212] rounded-full px-0.5">
+                      <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] text-[8px] font-bold text-white bg-red-500 border border-white dark:border-[#121212] rounded-full px-0.5">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] font-medium leading-none mt-0.5">
+                  <span className="text-[10px] font-bold leading-none mt-0.5">
                     {link.label}
                   </span>
+                  {/* Subtle active indicator dot */}
+                  <div className="absolute bottom-0 w-1 h-1 rounded-full bg-emerald-500 opacity-0 transition-opacity duration-200 [.active_&]:opacity-100" />
                 </>
               )}
             </NavLink>

@@ -1,12 +1,13 @@
 /**
  * Navigation Configuration — Role Matrix
  *
- * rightZone: true     → desktop right zone only (Inbox/Settings)
- * desktopOnly: true   → excluded from mobile bottom bar
- * mobileOnly: true    → excluded from desktop center nav
- * noMobileTab: true   → excluded from mobile bottom bar (handled by top-bar profile button)
- * isCTA: true          → Sell button gets emerald circle CTA style on mobile
- * isAdmin: true        → violet color on desktop
+ * rightZone: true       → desktop right zone only (profile button area)
+ * desktopOnly: true     → excluded from mobile bottom bar
+ * mobileOnly: true      → excluded from desktop center nav
+ * noMobileTab: true     → excluded from mobile bottom bar (profile dropdown item)
+ * isCTA: true           → Sell button gets emerald circle CTA style on mobile
+ * isAdmin: true         → violet color on desktop
+ * profileDropdownOnly   → shown only in desktop profile dropdown, not center nav or mobile
  */
 
 export const getNavLinks = (user) => {
@@ -24,44 +25,35 @@ export const getNavLinks = (user) => {
   // ── Admin ──────────────────────────────────────────────────────────
   if (role === "admin") {
     return [
-      { path: "/", label: "Home", iconKey: "home" },
+      // Desktop: Inbox in right zone
       {
         path: "/inbox",
         label: "Inbox",
         iconKey: "inbox",
         hasUnreadBadge: true,
         rightZone: true,
+        desktopOnly: true,
       },
       // Desktop-only admin sub-pages (center nav)
       {
         path: "/admin",
         label: "Dashboard",
         iconKey: "admin",
+        rightZone: true,
         desktopOnly: true,
         isAdmin: true,
+        isAdminDashboard: true,
+        subLinks: [
+          {
+            path: "/admin/listings",
+            label: "Listings",
+            iconKey: "adminListings",
+          },
+          { path: "/admin/users", label: "Users", iconKey: "users" },
+          { path: "/admin/reports", label: "Reports", iconKey: "reports" },
+        ],
       },
-      {
-        path: "/admin/users",
-        label: "Users",
-        iconKey: "users",
-        desktopOnly: true,
-        isAdmin: true,
-      },
-      {
-        path: "/admin/listings",
-        label: "Listings",
-        iconKey: "adminListings",
-        desktopOnly: true,
-        isAdmin: true,
-      },
-      {
-        path: "/admin/reports",
-        label: "Reports",
-        iconKey: "reports",
-        desktopOnly: true,
-        isAdmin: true,
-      },
-      // Settings → desktop right zone dropdown (NOT in mobile bottom bar)
+      // Settings → right zone (not mobile)
       {
         path: "/account-settings",
         label: "Settings",
@@ -69,11 +61,38 @@ export const getNavLinks = (user) => {
         rightZone: true,
         noMobileTab: true,
       },
-      // Mobile-only: single Admin Panel tab → /admin
+      // Mobile admin tabs
+      {
+        path: "/",
+        label: "Home",
+        iconKey: "home",
+        mobileOnly: true,
+      },
+      {
+        path: "/inbox",
+        label: "Chat",
+        iconKey: "inbox",
+        hasUnreadBadge: true,
+        mobileOnly: true,
+      },
       {
         path: "/admin",
-        label: "Admin Panel",
+        label: "Dashboard",
         iconKey: "admin",
+        isCTA: true, // Dashboard as primary CTA for admin mobile
+        isAdminDashboard: true,
+        mobileOnly: true,
+      },
+      {
+        path: "/admin/users",
+        label: "Users",
+        iconKey: "users",
+        mobileOnly: true,
+      },
+      {
+        path: "/admin/reports",
+        label: "Reports",
+        iconKey: "reports",
         mobileOnly: true,
       },
     ];
@@ -81,35 +100,85 @@ export const getNavLinks = (user) => {
 
   // ── Regular User ───────────────────────────────────────────────────
   return [
-    // slot 1 — Home
-    { path: "/", label: "Home", iconKey: "home" },
-    // slot 2 — Favorites
-    { path: "/favorites", label: "Favorites", iconKey: "favorites" },
-    // slot 3 — Sell
+    // ── Desktop Center Nav ──────────────────────────────────────────
+    // Sell (Now in Right Zone on PC, Center CTA on Mobile)
     {
       path: "/listing/create",
       label: "Sell",
       iconKey: "sell",
       isCTA: true,
       testId: "linkToCreateListing",
+      rightZone: true, // Appears in right zone on PC
+      desktopOnly: true, // shown on desktop right zone only
     },
-    // slot 4 — Inbox
+    // Inbox (Now in Profile Dropdown only on PC)
     {
       path: "/inbox",
-      label: "Inbox",
+      label: "Messages",
       iconKey: "inbox",
       hasUnreadBadge: true,
-      rightZone: true,
+      profileDropdownOnly: true, // Desktop: Profile Dropdown
     },
-    // slot 5 — My Listings
-    { path: "/my-listings", label: "My Listings", iconKey: "listings" },
-    // Settings → desktop right zone dropdown (NOT in mobile bottom bar)
+    // My Listings → desktop profile dropdown only (not center, not mobile tab)
+    {
+      path: "/my-listings",
+      label: "My Listings",
+      iconKey: "listings",
+      profileDropdownOnly: true,
+    },
+    // Favorites → desktop profile dropdown only (not center, not mobile tab)
+    {
+      path: "/favorites",
+      label: "Favorites",
+      iconKey: "favorites",
+      profileDropdownOnly: true,
+    },
+    // Settings → right zone (desktop only, no mobile tab)
     {
       path: "/account-settings",
       label: "Settings",
       iconKey: "settings",
       rightZone: true,
       noMobileTab: true,
+    },
+
+    // ── Mobile-Only Bottom Bar tabs ─────────────────────────────────
+    // Home
+    {
+      path: "/",
+      label: "Home",
+      iconKey: "home",
+      mobileOnly: true,
+    },
+    // Chat (Early in mobile User nav)
+    {
+      path: "/inbox",
+      label: "Chat",
+      iconKey: "inbox",
+      hasUnreadBadge: true,
+      mobileOnly: true,
+    },
+    // Sell (CTA center)
+    {
+      path: "/listing/create",
+      label: "Sell",
+      iconKey: "sell",
+      isCTA: true,
+      mobileOnly: true,
+    },
+    // Favorites (mobile)
+    {
+      path: "/favorites",
+      label: "Favs",
+      iconKey: "favorites",
+      mobileOnly: true,
+    },
+    // My Listings (mobile)
+    {
+      path: "/my-listings",
+      label: "Listings",
+      iconKey: "listings",
+      mobileOnly: true,
     },
   ];
 };

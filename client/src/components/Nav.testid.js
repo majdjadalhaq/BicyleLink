@@ -1,6 +1,7 @@
 import createTestIdFilePath from "../utils/createTestIdFilePath";
 
 const TEST_ID = {
+  container: `${createTestIdFilePath("components", "Nav")}-container`,
   linkToHome: `${createTestIdFilePath("components", "Nav")}-linkToHome`,
   linkToCreateListing: `${createTestIdFilePath("components", "Nav")}-linkToCreateListing`,
   linkToUsers: `${createTestIdFilePath("components", "Nav")}-linkToUser`,

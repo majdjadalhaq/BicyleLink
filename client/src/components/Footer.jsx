@@ -13,7 +13,7 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-50 dark:bg-[#0e0e0e] border-t border-gray-200 dark:border-[#1e1e1e] pt-12 pb-8 px-6 text-gray-500 dark:text-gray-400 transition-colors">
+    <footer className="bg-gray-50 dark:bg-[#0e0e0e] border-t border-gray-200 dark:border-[#1e1e1e] pt-12 pb-24 md:pb-8 px-6 text-gray-500 dark:text-gray-400 transition-colors">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-10 text-center md:text-left">
         {/* Brand */}
         <div className="md:col-span-2">
@@ -36,7 +36,7 @@ const Footer = () => {
                 <path d="M12 6V3" />
               </svg>
             </div>
-            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+            <span className="text-xl font-black text-emerald-500">
               BiCycleL
             </span>
           </div>

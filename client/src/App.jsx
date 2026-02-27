@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Nav from "./components/Nav";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -12,9 +12,7 @@ import { LoadingState } from "./components/ui";
 import Favorites from "./pages/Favorites/Favorites";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
-import RequireVerified from "./components/RequireVerified";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
-import Footer from "./components/Footer";
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const ProfileView = lazy(() => import("./pages/Profile/ProfileView"));
 const ProfileSetup = lazy(() => import("./pages/Profile/ProfileSetup"));
@@ -56,6 +54,10 @@ const App = () => {
                       <Routes>
                         {/* Public routes */}
                         <Route path="/" element={<Home />} />
+                        <Route
+                          path="/listings"
+                          element={<Navigate to="/" replace />}
+                        />
 
                         <Route
                           path="/listings/:id"
@@ -78,34 +80,42 @@ const App = () => {
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                           <Route path="/favorites" element={<Favorites />} />
-                          <Route element={<RequireVerified />}>
-                            <Route
-                              path="/listing/create"
-                              element={<CreateListing />}
-                            />
-                            <Route
-                              path="/listings/:id/edit"
-                              element={<EditListing />}
-                            />
-                            <Route
-                              path="/my-listings"
-                              element={<MyListings />}
-                            />
-                            <Route path="/profile" element={<ProfileView />} />
-                            <Route
-                              path="/profile/:username"
-                              element={<ProfileView />}
-                            />
-                            <Route path="/profile/edit" element={<Profile />} />
-                            <Route
-                              path="/profile/setup"
-                              element={<ProfileSetup />}
-                            />
-                            <Route
-                              path="/account-settings"
-                              element={<AccountSettings />}
-                            />
-                          </Route>
+                          <Route
+                            path="/listing/create"
+                            element={<CreateListing />}
+                          />
+                          <Route
+                            path="/listings/:id/edit"
+                            element={<EditListing />}
+                          />
+                          <Route path="/my-listings" element={<MyListings />} />
+                          <Route path="/profile" element={<ProfileView />} />
+                          <Route
+                            path="/profile/:username"
+                            element={<ProfileView />}
+                          />
+                          <Route path="/profile/edit" element={<Profile />} />
+                          <Route
+                            path="/profile/setup"
+                            element={<ProfileSetup />}
+                          />
+                          <Route
+                            path="/account-settings"
+                            element={<AccountSettings />}
+                          />
+                          {/* Redirect guessed/legacy account paths */}
+                          <Route
+                            path="/account"
+                            element={
+                              <Navigate to="/account-settings" replace />
+                            }
+                          />
+                          <Route
+                            path="/settings"
+                            element={
+                              <Navigate to="/account-settings" replace />
+                            }
+                          />
                         </Route>
 
                         {/* Admin Routes */}
@@ -128,8 +138,6 @@ const App = () => {
                     </Suspense>
                   </ErrorBoundary>
                 </main>
-
-                <Footer />
               </div>
             </NotificationProvider>
           </SocketProvider>
