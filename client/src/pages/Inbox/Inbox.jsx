@@ -13,6 +13,8 @@ const Inbox = () => {
   const [onlineStatuses, setOnlineStatuses] = useState({});
   const [typingRooms, setTypingRooms] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectionType, setSelectionType] = useState(null); // 'archive', 'delete', or null
+  const [selectedRooms, setSelectedRooms] = useState(new Set());
   const navigate = useNavigate();
   const { user } = useAuth();
   const { execute: executeApi } = useApi();
@@ -69,33 +71,46 @@ const Inbox = () => {
     };
   }, [socket, user?._id, performFetch]);
 
-  const handleArchive = async (e, room, currentStatus) => {
-    e.stopPropagation();
-    const data = await executeApi(`/api/messages/archive/${room}`, {
-      method: "POST",
-      body: { status: !currentStatus },
+  const toggleRoomSelection = (room) => {
+    setSelectedRooms((prev) => {
+      const next = new Set(prev);
+      if (next.has(room)) next.delete(room);
+      else next.add(room);
+      return next;
     });
+  };
+
+  const handleMarkAllRead = async () => {
+    const data = await executeApi("/api/messages/read-all", { method: "POST" });
     if (data?.success) {
-      setConversations((prev) => prev.filter((c) => c.room !== room));
+      setConversations((prev) => prev.map((c) => ({ ...c, unreadCount: 0 })));
     }
   };
 
-  const handleMarkUnread = async (e, room) => {
-    e.stopPropagation();
-    try {
-      const res = await fetch(`/api/messages/unread/${room}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setConversations((prev) =>
-          prev.map((c) => (c.room === room ? { ...c, unreadCount: 1 } : c)),
-        );
+  const handleBulkAction = async () => {
+    const actionType = selectionType;
+    const rooms = Array.from(selectedRooms);
+    if (rooms.length === 0) return;
+
+    const promises = rooms.map((room) => {
+      if (actionType === "delete") {
+        return executeApi(`/api/messages/${room}`, { method: "DELETE" });
+      } else {
+        return executeApi(`/api/messages/archive/${room}`, {
+          method: "POST",
+          body: { status: view === "active" },
+        });
       }
-    } catch (err) {
-      console.error("Failed to mark as unread:", err);
-    }
+    });
+
+    const results = await Promise.all(promises);
+    const successfulRooms = rooms.filter((_, i) => results[i]?.success);
+
+    setConversations((prev) =>
+      prev.filter((c) => !successfulRooms.includes(c.room)),
+    );
+    setSelectedRooms(new Set());
+    setSelectionType(null);
   };
 
   const filteredConversations = useMemo(() => {
@@ -124,6 +139,9 @@ const Inbox = () => {
   };
 
   const openChat = (conv) => {
+    setConversations((prev) =>
+      prev.map((c) => (c.room === conv.room ? { ...c, unreadCount: 0 } : c)),
+    );
     const isWarning = conv.room.startsWith("admin-warning");
     const listingParam = isWarning ? "admin-warning" : conv.listing?._id;
     let chatUrl = `/chat/${listingParam}?receiverId=${conv.otherUser?._id}`;
@@ -195,12 +213,34 @@ const Inbox = () => {
               {conversations.length} conversation
               {conversations.length !== 1 && "s"}
               {totalUnread > 0 && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-500/20">
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-[#10B77F]/10 text-[#10B77F] text-[10px] font-black uppercase tracking-wider border border-[#10B77F]/20">
                   {totalUnread} unread
                 </span>
               )}
             </p>
           </div>
+
+          {/* New Mark Al Read Button */}
+          {totalUnread > 0 && selectionType === null && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-2 px-4 py-2 bg-[#10B77F]/10 hover:bg-[#10B77F]/20 text-[#10B77F] rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-[#10B77F]/20"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Mark all as read
+            </button>
+          )}
         </div>
 
         {/* Search + View Switcher */}
@@ -226,7 +266,7 @@ const Inbox = () => {
               placeholder="Search by name or listing…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-400"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#10221C]/50 border border-gray-200 dark:border-white/5 rounded-2xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-[#10B77F] focus:ring-2 focus:ring-[#10B77F]/20 transition-all placeholder:text-gray-400"
               aria-label="Search conversations"
             />
           </div>
@@ -236,16 +276,152 @@ const Inbox = () => {
                 key={v}
                 className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                   view === v
-                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                    ? "bg-[#10B77F] text-white shadow-md shadow-[#10B77F]/20"
                     : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
-                onClick={() => setView(v)}
+                onClick={() => {
+                  setView(v);
+                  setSelectionType(null);
+                  setSelectedRooms(new Set());
+                }}
               >
                 {v}
               </button>
             ))}
           </div>
+
+          <div className="flex gap-2">
+            {/* Archive Toggle */}
+            {(selectionType === null || selectionType === "archive") && (
+              <button
+                onClick={() => {
+                  setSelectionType((p) => (p === "archive" ? null : "archive"));
+                  setSelectedRooms(new Set());
+                }}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                  selectionType === "archive"
+                    ? "bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/20"
+                    : "bg-white dark:bg-white/5 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-white/5 hover:border-emerald-500/30 hover:text-emerald-500"
+                }`}
+              >
+                {selectionType === "archive" ? (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="21 8 21 21 3 21 3 8" />
+                    <rect x="1" y="3" width="22" height="5" />
+                    <line x1="10" y1="12" x2="14" y2="12" />
+                  </svg>
+                )}
+                {selectionType === "archive"
+                  ? "Cancel"
+                  : view === "active"
+                    ? "Archive"
+                    : "Unarchive"}
+              </button>
+            )}
+
+            {/* Delete Toggle */}
+            {(selectionType === null || selectionType === "delete") && (
+              <button
+                onClick={() => {
+                  setSelectionType((p) => (p === "delete" ? null : "delete"));
+                  setSelectedRooms(new Set());
+                }}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all flex items-center gap-2 ${
+                  selectionType === "delete"
+                    ? "bg-red-500 text-white border-red-400 shadow-lg shadow-red-500/20"
+                    : "bg-white dark:bg-white/5 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-white/5 hover:border-red-500/30 hover:text-red-500"
+                }`}
+              >
+                {selectionType === "delete" ? (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                )}
+                {selectionType === "delete" ? "Cancel" : "Delete"}
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Selection Action Bar */}
+        {selectionType && selectedRooms.size > 0 && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-[#1a1a1a] border border-emerald-500/20 rounded-3xl shadow-2xl p-4 flex items-center justify-between gap-4 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-emerald-500/20">
+                  {selectedRooms.size}
+                </div>
+                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                  Selected
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleBulkAction}
+                  className={`px-6 py-2.5 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg transition-all ${
+                    selectionType === "archive"
+                      ? "bg-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600"
+                      : "bg-red-500 shadow-red-500/20 hover:bg-red-600"
+                  }`}
+                >
+                  Confirm{" "}
+                  {selectionType === "archive"
+                    ? view === "active"
+                      ? "Archive"
+                      : "Unarchive"
+                    : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Conversation List */}
         <div className="flex flex-col gap-2">
@@ -291,45 +467,85 @@ const Inbox = () => {
               return (
                 <div
                   key={conv.room}
-                  className={`group relative p-4 rounded-2xl border cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                    hasUnread
-                      ? "bg-white dark:bg-[#1e1e1e] border-emerald-200/60 dark:border-emerald-500/20 shadow-sm"
-                      : "bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5 hover:border-emerald-200/60 dark:hover:border-white/10"
+                  className={`group relative p-4 rounded-3xl border cursor-pointer transition-all duration-300 ${
+                    selectedRooms.has(conv.room)
+                      ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 shadow-lg"
+                      : hasUnread
+                        ? "bg-[var(--bg-surface)] dark:bg-[#10221C] border-[#10B77F]/30 dark:border-[#10B77F]/40 shadow-[0_8px_30px_rgba(16,183,127,0.06)]"
+                        : "bg-white dark:bg-[#10221C]/30 border-gray-100 dark:border-white/5 hover:border-[#10B77F]/20 hover:bg-[var(--bg-surface)] dark:hover:bg-[#10221C]/50 hover:shadow-md"
                   }`}
-                  onClick={() => openChat(conv)}
+                  onClick={() =>
+                    selectionType
+                      ? toggleRoomSelection(conv.room)
+                      : openChat(conv)
+                  }
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && openChat(conv)}
-                  aria-label={`Open conversation with ${conv.otherUser?.name || "User"}`}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" &&
+                    (selectionType
+                      ? toggleRoomSelection(conv.room)
+                      : openChat(conv))
+                  }
+                  aria-label={
+                    selectionType
+                      ? `Select conversation with ${conv.otherUser?.name || "User"}`
+                      : `Open conversation with ${conv.otherUser?.name || "User"}`
+                  }
                 >
-                  {/* Unread accent */}
-                  {hasUnread && (
-                    <div className="absolute left-0 top-4 bottom-4 w-1 bg-emerald-500 rounded-r-full" />
-                  )}
-
-                  <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-13 h-13 w-[52px] h-[52px] rounded-2xl overflow-hidden bg-emerald-500/10 border border-gray-100 dark:border-white/5">
-                        {conv.otherUser?.avatarUrl ||
-                        conv.listing?.images?.[0] ? (
-                          <img
-                            src={
-                              conv.otherUser?.avatarUrl ||
-                              conv.listing?.images?.[0]
-                            }
-                            alt={conv.otherUser?.name || "User"}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-emerald-500 font-black text-lg">
-                            {conv.otherUser?.name?.charAt(0).toUpperCase() ||
-                              "?"}
-                          </div>
+                  {/* Selection Indicator */}
+                  {selectionType && (
+                    <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20">
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                          selectedRooms.has(conv.room)
+                            ? "bg-emerald-500 border-emerald-500 text-white scale-110 shadow-lg shadow-emerald-500/20"
+                            : "bg-white/50 dark:bg-black/20 border-gray-300 dark:border-white/20"
+                        }`}
+                      >
+                        {selectedRooms.has(conv.room) && (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
                         )}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Unread accent */}
+                  {hasUnread && !selectionType && (
+                    <div className="absolute left-0 top-4 bottom-4 w-1 bg-[#10B77F] rounded-r-full shadow-[0_0_12px_rgba(16,183,127,0.4)]" />
+                  )}
+
+                  <div
+                    className={`flex items-center gap-4 transition-transform duration-300 ${selectionType ? "translate-x-8" : ""}`}
+                  >
+                    {/* Avatar (Left) */}
+                    <div className="relative flex-shrink-0">
+                      {conv.otherUser?.avatarUrl || conv.otherUser?.avatar ? (
+                        <img
+                          src={
+                            conv.otherUser.avatarUrl || conv.otherUser.avatar
+                          }
+                          alt={conv.otherUser.name || "User"}
+                          className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 dark:border-[#10B77F]/20 group-hover:border-[#10B77F]/50 transition-colors drop-shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-[#10B77F]/10 dark:bg-[#10B77F]/5 border border-[#10B77F]/20 flex items-center justify-center text-[#10B77F] font-black text-xl shadow-inner">
+                          {conv.otherUser?.name?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                      )}
                       <div
-                        className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#1a1a1a] transition-colors ${
+                        className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#1a1a1a] transition-colors ${
                           isOnline
                             ? "bg-emerald-500"
                             : "bg-gray-300 dark:bg-gray-600"
@@ -338,14 +554,14 @@ const Inbox = () => {
                       />
                     </div>
 
-                    {/* Content */}
+                    {/* Content (Center) */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-0.5">
                         <h3
                           className={`text-sm truncate ${
                             hasUnread
                               ? "font-black text-gray-900 dark:text-white"
-                              : "font-bold text-gray-700 dark:text-gray-200"
+                              : "font-bold text-gray-800 dark:text-gray-100"
                           }`}
                         >
                           {conv.otherUser?.name || "Unknown User"}
@@ -356,7 +572,7 @@ const Inbox = () => {
                       </div>
 
                       {conv.listing?.title && (
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate mb-1 font-bold uppercase tracking-wider">
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 truncate mb-1.5 font-black uppercase tracking-wider bg-emerald-500/5 dark:bg-emerald-500/10 self-start px-2 py-0.5 rounded-full border border-emerald-500/10">
                           {conv.listing.title}
                         </p>
                       )}
@@ -433,83 +649,34 @@ const Inbox = () => {
                       )}
                     </div>
 
-                    {/* Unread count */}
-                    {hasUnread && (
-                      <div className="flex-shrink-0 min-w-[22px] h-[22px] rounded-full bg-emerald-500 flex items-center justify-center px-1 shadow-md shadow-emerald-500/30">
-                        <span className="text-[9px] font-black text-white">
+                    {/* Listing Preview (Right) */}
+                    {conv.listing?.images?.[0] && (
+                      <div className="relative flex-shrink-0 ml-2">
+                        <img
+                          src={conv.listing.images[0]}
+                          alt={conv.listing.title}
+                          className="w-14 h-14 rounded-2xl object-cover border border-gray-100 dark:border-white/5 shadow-sm group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {hasUnread && (
+                          <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] rounded-full bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center px-1 shadow-glow-strong border-2 border-white dark:border-[#1a1a1a]">
+                            <span className="text-[9px] font-black text-white">
+                              {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!conv.listing?.images?.[0] && hasUnread && (
+                      <div className="flex-shrink-0 min-w-[20px] h-[20px] rounded-full bg-emerald-500 flex items-center justify-center px-1 shadow-lg shadow-emerald-500/40">
+                        <span className="text-[8px] font-black text-white">
                           {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Hover Actions */}
-                  <div className="absolute top-3.5 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-1 group-hover:translate-x-0">
-                    <button
-                      className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white text-gray-500 dark:text-gray-400 flex items-center justify-center transition-all border border-transparent hover:border-emerald-400/30"
-                      onClick={(e) => handleMarkUnread(e, conv.room)}
-                      title="Mark as Unread"
-                      aria-label="Mark as Unread"
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l1.12-1.15a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-                      </svg>
-                    </button>
-                    <button
-                      className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white text-gray-500 dark:text-gray-400 flex items-center justify-center transition-all border border-transparent hover:border-emerald-400/30"
-                      onClick={(e) =>
-                        handleArchive(e, conv.room, view === "archived")
-                      }
-                      title={view === "active" ? "Archive" : "Unarchive"}
-                      aria-label={
-                        view === "active"
-                          ? "Archive conversation"
-                          : "Unarchive conversation"
-                      }
-                    >
-                      {view === "active" ? (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="21 8 21 21 3 21 3 8" />
-                          <rect x="1" y="3" width="22" height="5" />
-                          <line x1="10" y1="12" x2="14" y2="12" />
-                        </svg>
-                      ) : (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="21 8 21 21 3 21 3 8" />
-                          <rect x="1" y="3" width="22" height="5" />
-                          <polyline points="10 12 12 10 14 12" />
-                          <line x1="12" y1="10" x2="12" y2="16" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
+                  {/* Actions removed as per user request */}
                 </div>
               );
             })
