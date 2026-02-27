@@ -3,13 +3,10 @@ import PropTypes from "prop-types";
 
 const ListingInfo = ({ listing, displayPrice }) => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {/* Price Block */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col">
-          <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-1">
-            Asking Price
-          </span>
           <span className="text-5xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
             €{displayPrice}
           </span>
@@ -17,7 +14,7 @@ const ListingInfo = ({ listing, displayPrice }) => {
 
         {/* Condition pill */}
         {listing.condition && (
-          <span className="mt-2 px-4 py-2 rounded-2xl text-xs font-black bg-emerald-500 text-white uppercase tracking-widest shadow-lg shadow-emerald-500/20 border border-emerald-400/30 flex-shrink-0">
+          <span className="mt-2 px-4 py-2 rounded-2xl text-xs font-black bg-emerald-800 dark:bg-emerald-600 text-white uppercase tracking-widest shadow-glow border border-emerald-400/20 flex-shrink-0">
             {listing.condition}
           </span>
         )}
@@ -38,7 +35,7 @@ const ListingInfo = ({ listing, displayPrice }) => {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        Listed {formatDistanceToNow(new Date(listing.createdAt))} ago
+        {formatDistanceToNow(new Date(listing.createdAt))} ago
       </p>
     </div>
   );

@@ -2,6 +2,41 @@ import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import FavoriteButton from "../../../components/FavoriteButton";
 
+const ActionIcon = ({
+  onClick,
+  icon,
+  label,
+  variant = "default",
+  disabled = false,
+}) => {
+  const baseClasses =
+    "group flex items-center justify-center h-10 transition-all duration-300 rounded-full shadow-lg backdrop-blur-md pointer-events-auto border border-white/20 dark:border-white/10 ";
+  const colorClasses =
+    variant === "danger"
+      ? "bg-red-500/90 text-white hover:bg-red-600"
+      : variant === "primary"
+        ? "bg-[#10B77F] text-white hover:bg-[#0EA572] hover:shadow-glow-strong"
+        : variant === "sold"
+          ? "bg-sky-600/90 text-white hover:bg-sky-700 hover:shadow-sky-500/20"
+          : "bg-white/90 text-gray-800 dark:bg-[#10221C]/90 dark:text-gray-200 hover:text-[#10B77F] hover:shadow-glow";
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${colorClasses} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+      title={label}
+    >
+      <div className="w-10 h-10 flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] max-w-0 opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:pr-4 group-hover:-ml-1">
+        <span className="text-sm font-bold whitespace-nowrap">{label}</span>
+      </div>
+    </button>
+  );
+};
+
 const ListingActions = ({
   listing,
   isOwner,
@@ -13,25 +48,18 @@ const ListingActions = ({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="absolute top-4 right-4 z-[20] flex flex-col items-end gap-3 pointer-events-none">
       {isOwner ? (
-        <div className="flex flex-col gap-3">
-          <button
-            className={`w-full py-4 rounded-2xl text-sm font-black tracking-widest uppercase transition-all shadow-lg active:scale-[0.98] text-white flex items-center justify-center gap-2 ${
-              listing.status === "sold"
-                ? "bg-sky-600 hover:bg-sky-700 shadow-sky-500/20"
-                : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20"
-            }`}
+        <>
+          <ActionIcon
             onClick={handleStatusClick}
-            title={
-              listing.status === "sold" ? "Re-activate Listing" : "Mark as Sold"
-            }
-          >
-            {listing.status === "sold" ? (
-              <>
+            label={listing.status === "sold" ? "Re-activate" : "Mark as Sold"}
+            variant={listing.status === "sold" ? "sold" : "primary"}
+            icon={
+              listing.status === "sold" ? (
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -42,13 +70,10 @@ const ListingActions = ({
                   <polyline points="23 4 23 10 17 10" />
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                 </svg>
-                Re-activate
-              </>
-            ) : (
-              <>
+              ) : (
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -58,36 +83,33 @@ const ListingActions = ({
                 >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Mark as Sold
-              </>
-            )}
-          </button>
-
-          <button
-            className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 active:scale-[0.98] flex items-center justify-center gap-2"
+              )
+            }
+          />
+          <ActionIcon
             onClick={() => navigate(`/listings/${id}/edit`)}
-            title="Edit this listing"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            Edit Listing
-          </button>
-        </div>
+            label="Edit Listing"
+            variant="default"
+            icon={
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            }
+          />
+        </>
       ) : (
-        <div className="flex flex-col gap-3">
-          <button
-            className="bg-emerald-600 dark:bg-emerald-500 text-white w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:bg-emerald-700 dark:hover:bg-emerald-600 shadow-xl shadow-emerald-600/20 dark:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        <>
+          <ActionIcon
             disabled={listing.status === "sold"}
             onClick={() => {
               if (!user) {
@@ -97,17 +119,13 @@ const ListingActions = ({
                 navigate(`/chat/${id}?receiverId=${sellerId}`);
               }
             }}
-            title={
-              listing.status === "sold"
-                ? "Item has been sold"
-                : "Contact Seller"
-            }
-          >
-            {listing.status === "sold" ? (
-              <>
+            label={listing.status === "sold" ? "Item Sold" : "Contact Seller"}
+            variant="primary"
+            icon={
+              listing.status === "sold" ? (
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -118,13 +136,10 @@ const ListingActions = ({
                   <circle cx="12" cy="12" r="10" />
                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
                 </svg>
-                Item Sold
-              </>
-            ) : (
-              <>
+              ) : (
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -134,37 +149,34 @@ const ListingActions = ({
                 >
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                Contact Seller
-              </>
-            )}
-          </button>
+              )
+            }
+          />
 
-          <FavoriteButton listingId={listing._id} variant="button" />
-        </div>
-      )}
+          <FavoriteButton listingId={listing._id} variant="action-overlay" />
 
-      {!isOwner && (
-        <button
-          className="flex items-center justify-center gap-2 text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-widest cursor-pointer p-2 mx-auto w-fit transition-all hover:text-red-500 active:scale-95"
-          onClick={onReportClick}
-          title="Report this listing"
-          aria-label="Report this listing"
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-            <line x1="4" y1="22" x2="4" y2="15" />
-          </svg>
-          Report listing
-        </button>
+          <ActionIcon
+            onClick={onReportClick}
+            label="Report listing"
+            variant="default"
+            icon={
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-400 group-hover:text-red-500 transition-colors"
+              >
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                <line x1="4" y1="22" x2="4" y2="15" />
+              </svg>
+            }
+          />
+        </>
       )}
     </div>
   );

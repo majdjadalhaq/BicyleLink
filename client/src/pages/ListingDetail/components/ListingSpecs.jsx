@@ -1,9 +1,9 @@
 import PropTypes from "prop-types";
 
 const SpecCard = ({ icon: Icon, label, value }) => (
-  <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 transition-all hover:border-emerald-500/30 group">
+  <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-[#10221C]/50 rounded-2xl border border-gray-100 dark:border-white/5 transition-all hover:border-[#10B77F]/30 group">
     <div className="flex items-center gap-2">
-      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
+      <div className="w-8 h-8 rounded-lg bg-[#10B77F]/10 text-[#10B77F] flex items-center justify-center border border-[#10B77F]/20 group-hover:scale-110 transition-transform">
         {Icon}
       </div>
       <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
@@ -156,11 +156,11 @@ const ListingSpecs = ({ listing }) => {
   if (activeSpecs.length === 0) return null;
 
   return (
-    <div className="mb-10">
-      <h3 className="text-xs font-black mb-6 text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2">
-        Machine Specifications
+    <div className="mb-8">
+      <h3 className="text-xs font-black mb-4 text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] border-b border-gray-100 dark:border-white/5 pb-2">
+        Specifications
       </h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {activeSpecs.map((spec) => (
           <SpecCard key={spec.label} {...spec} />
         ))}

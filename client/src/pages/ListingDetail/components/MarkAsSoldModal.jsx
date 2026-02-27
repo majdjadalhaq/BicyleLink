@@ -51,7 +51,7 @@ const MarkAsSoldModal = ({
             Cancel
           </button>
           <button
-            className="bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#10B77F] hover:bg-[#0EA572] text-white px-5 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-glow"
             disabled={!selectedBuyerId && selectedBuyerId !== "other"}
             onClick={onConfirm}
           >
