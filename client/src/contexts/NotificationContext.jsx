@@ -41,7 +41,16 @@ export const NotificationProvider = ({ children }) => {
   const initialLoadRef = useRef(false);
 
   // Initial load
+  // Fixed: always call fetchNotifications safely
   useEffect(() => {
+    if (!user) {
+      Promise.resolve().then(() => {
+        setItems([]);
+        setUnread(0);
+      });
+      return;
+    }
+
     let isMounted = true;
 
     async function loadData() {
@@ -52,15 +61,12 @@ export const NotificationProvider = ({ children }) => {
       }
     }
 
-    if (user) {
-      loadData();
-    }
+    loadData();
 
     return () => {
       isMounted = false;
     };
   }, [user, fetchNotifications, fetchUnread]);
-
   // Handle logout/reset
   useEffect(() => {
     if (!user) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../hooks/useToast";
 
 const ReviewsList = ({
   userId,
@@ -12,6 +13,7 @@ const ReviewsList = ({
   onReviewDeleted,
 }) => {
   const { user } = useAuth();
+  const toast = useToast();
   const page = 1;
   const [reviews, setReviews] = useState([]);
   const [editingReviewId, setEditingReviewId] = useState(null);
@@ -64,7 +66,12 @@ const ReviewsList = ({
       );
       handleCancelEdit();
     } else {
-      alert(data?.msg || "Failed to update review");
+      toast({
+        title: "Update failed",
+        description: data?.msg || "Failed to update review",
+        status: "error",
+        duration: 3000,
+      });
     }
   };
 
