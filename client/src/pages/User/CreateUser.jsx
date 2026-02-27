@@ -8,7 +8,9 @@ import { useAuth } from "../../hooks/useAuth";
 import TEST_ID from "./CreateUser.testid";
 
 const GOOGLE_CLIENT_ID =
-  process.env.VITE_GOOGLE_CLIENT_ID ||
+  (typeof import.meta !== "undefined" &&
+    import.meta.env?.VITE_GOOGLE_CLIENT_ID) ||
+  (typeof process !== "undefined" && process.env?.VITE_GOOGLE_CLIENT_ID) ||
   "placeholder-client-id.apps.googleusercontent.com";
 
 const GoogleSignupButton = ({ onSuccess, onError }) => {

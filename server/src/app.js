@@ -32,8 +32,15 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "https://accounts.google.com/gsi/client",
+          "https://apis.google.com",
+          "https://www.gstatic.com",
         ],
-        "frame-src": ["'self'", "https://accounts.google.com/gsi/"],
+        "frame-src": [
+          "'self'",
+          "https://accounts.google.com/gsi/",
+          "https://accounts.google.com",
+          "https://content.googleapis.com",
+        ],
         "img-src": [
           "'self'",
           "data:",
