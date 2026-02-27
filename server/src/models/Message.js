@@ -42,6 +42,10 @@ const messageSchema = new mongoose.Schema(
       lng: Number,
       address: String,
     },
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

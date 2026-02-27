@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Message from "../models/Message.js";
 import Listing from "../models/Listing.js";
 import ConversationStatus from "../models/ConversationStatus.js";
@@ -101,22 +102,32 @@ export const initSocket = (io) => {
 
         // --- NOTIFICATION ---
         // Create notification for receiver
-        const notification = await Notification.create({
-          recipientId: msg.receiverId,
-          senderId: msg.senderId,
-          listingId: msg.listingId,
-          type: "message",
-          title: "New message",
-          body:
-            msg.content.length > 50
-              ? `${msg.content.substring(0, 47)}...`
-              : msg.content,
-          link: "/inbox", // In a future enhancement, this could be /chat/roomID
-          read: false,
-        });
+        const receiver = await mongoose
+          .model("users")
+          .findById(msg.receiverId)
+          .select("notificationSettings");
 
-        // Emit real-time notification to the receiver's personal room
-        io.to(`user_${msg.receiverId}`).emit("new_notification", notification);
+        if (receiver?.notificationSettings?.messages !== false) {
+          const notification = await Notification.create({
+            recipientId: msg.receiverId,
+            senderId: msg.senderId,
+            listingId: msg.listingId,
+            type: "message",
+            title: "New message",
+            body:
+              msg.content.length > 50
+                ? `${msg.content.substring(0, 47)}...`
+                : msg.content,
+            link: "/inbox",
+            read: false,
+          });
+
+          // Emit real-time notification to the receiver's personal room
+          io.to(`user_${msg.receiverId}`).emit(
+            "new_notification",
+            notification,
+          );
+        }
       } catch (error) {
         logError(error);
       }
@@ -162,6 +173,11 @@ export const initSocket = (io) => {
           room: data.room,
         });
       }
+    });
+
+    socket.on("read_room", (data) => {
+      // Broadcast back to the user's personal room to trigger UI sync in other tabs/Nav
+      io.to(`user_${data.userId}`).emit("messages_read", { room: data.room });
     });
 
     socket.on("disconnect", () => {
