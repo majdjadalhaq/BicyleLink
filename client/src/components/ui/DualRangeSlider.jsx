@@ -8,9 +8,15 @@ const DualRangeSlider = ({
   onChange,
   formatValue = (v) => v,
   label = "",
+  id = "dual-range",
 }) => {
   const [localMin, setLocalMin] = useState(value[0]);
   const [localMax, setLocalMax] = useState(value[1]);
+
+  const minId = `${id}-min`;
+  const maxId = `${id}-max`;
+  const minRangeId = `${id}-min-range`;
+  const maxRangeId = `${id}-max-range`;
 
   useEffect(() => {
     setLocalMin(value[0]);
@@ -37,7 +43,10 @@ const DualRangeSlider = ({
     <div className="flex flex-col gap-4 w-full py-2">
       {label && (
         <div className="flex justify-between items-center">
-          <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">
+          <label
+            htmlFor={minRangeId}
+            className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1"
+          >
             {label}
           </label>
           <div className="text-[10px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest">
@@ -62,12 +71,15 @@ const DualRangeSlider = ({
         {/* Real Sliders (Hidden but functional) */}
         <div className="absolute w-full h-full flex items-center pointer-events-none">
           <input
+            id={minRangeId}
+            name={minRangeId}
             type="range"
             min={min}
             max={max}
             step={step}
             value={localMin}
             onChange={handleMinChange}
+            aria-label={`${label} - Minimum`}
             className="absolute w-full h-1.5 opacity-0 pointer-events-auto cursor-pointer z-20"
             style={{
               WebkitAppearance: "none",
@@ -75,12 +87,15 @@ const DualRangeSlider = ({
             }}
           />
           <input
+            id={maxRangeId}
+            name={maxRangeId}
             type="range"
             min={min}
             max={max}
             step={step}
             value={localMax}
             onChange={handleMaxChange}
+            aria-label={`${label} - Maximum`}
             className="absolute w-full h-1.5 opacity-0 pointer-events-auto cursor-pointer z-30"
             style={{
               WebkitAppearance: "none",
@@ -106,7 +121,12 @@ const DualRangeSlider = ({
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 uppercase">
             Min
           </span>
+          <label htmlFor={minId} className="sr-only">
+            Minimum {label}
+          </label>
           <input
+            id={minId}
+            name={minId}
             type="number"
             value={localMin}
             onChange={(e) => handleMinChange(e)}
@@ -117,7 +137,12 @@ const DualRangeSlider = ({
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 uppercase">
             Max
           </span>
+          <label htmlFor={maxId} className="sr-only">
+            Maximum {label}
+          </label>
           <input
+            id={maxId}
+            name={maxId}
             type="number"
             value={localMax}
             onChange={(e) => handleMaxChange(e)}
