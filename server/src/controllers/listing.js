@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import Listing from "../models/Listing.js";
+import User from "../models/User.js";
 import Message from "../models/Message.js";
 import Notification from "../models/Notification.js";
 import { logError } from "../util/logging.js";
@@ -259,9 +260,25 @@ export const updateStatus = async (req, res) => {
           .status(400)
           .json({ success: false, msg: "Invalid buyer ID" });
       }
+
+      // BUYER LOCK: If listing already has a buyerId, it cannot be changed to a different one
+      if (
+        req.resource.buyerId &&
+        req.resource.buyerId.toString() !== buyerId.toString()
+      ) {
+        return res.status(400).json({
+          success: false,
+          msg: "Listing is already locked to a different buyer from a previous transaction.",
+        });
+      }
+
       req.resource.buyerId = buyerId;
     } else if (status !== "sold") {
-      req.resource.buyerId = null;
+      // Note: We keep req.resource.buyerId if it's already set to preserve the "Lock"
+      // but if the status becomes active again, we technically don't use it.
+      // However, the user request says "if he reactivate it he cant choose another user when mark as sold again"
+      // So we must NOT nullify it if we want to enforce the lock later.
+      // req.resource.buyerId = null; // REMOVED to maintain lock
     }
 
     await req.resource.save();
@@ -269,20 +286,36 @@ export const updateStatus = async (req, res) => {
     // Create a notification for the buyer about review permission
     if (status === "sold" && buyerId) {
       try {
-        const notification = await Notification.create({
-          recipientId: buyerId,
-          senderId: req.resource.ownerId,
-          type: "review_permission",
-          listingId: req.resource._id,
-          title: "New Review Permission",
-          body: `You can now review your purchase: ${req.resource.title}`,
-          link: `/listings/${req.resource._id}`,
-        });
-        emitNotification(buyerId, notification);
+        const recipient = await User.findById(buyerId).select(
+          "notificationSettings",
+        );
+
+        if (recipient?.notificationSettings?.reviews !== false) {
+          const notification = await Notification.create({
+            recipientId: buyerId,
+            senderId: req.resource.ownerId,
+            type: "review_permission",
+            listingId: req.resource._id,
+            title: "Review Seller Access",
+            body: `You can now review your purchase: ${req.resource.title}`,
+            link: `/listings/${req.resource._id}`,
+          });
+          emitNotification(buyerId, notification);
+        }
       } catch (notifErr) {
         logError(notifErr);
       }
     }
+
+    // Live broadcast to anyone viewing the listing
+    const io = req.app.get("io");
+    if (io) {
+      io.to(req.resource._id.toString()).emit("listing_status_updated", {
+        status: req.resource.status,
+        buyerId: req.resource.buyerId,
+      });
+    }
+
     res.status(200).json({
       success: true,
       msg: `Listing marked as ${status}`,

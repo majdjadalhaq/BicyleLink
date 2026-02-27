@@ -159,9 +159,21 @@ export const loginUser = async (req, res) => {
 
     // Ensure email is verified
     if (user.isVerified !== true) {
+      // Regenerate code and send email again automatically
+      const newCode = crypto.randomInt(100000, 999999).toString();
+      user.verificationCode = newCode;
+      user.verificationCodeExpiry = Date.now() + 15 * 60 * 1000;
+      await user.save();
+
+      try {
+        await sendVerificationEmail(user.email, newCode);
+      } catch (error) {
+        logError(error);
+      }
+
       return res.status(403).json({
         success: false,
-        msg: "Please verify your email first",
+        msg: "Please verify your email first. A new code has been sent to your inbox.",
         necessitatesVerification: true,
         email: user.email,
       });
@@ -219,6 +231,14 @@ export const googleLogin = async (req, res) => {
     }
 
     const { email, name, picture, sub: googleId } = payload;
+    const sanitizedName = name
+      ? name.replace(/[^a-zA-Z0-9 _-]/g, "")
+      : email.split("@")[0].replace(/[^a-zA-Z0-9 _-]/g, "");
+
+    // Ensure name is at least 3 chars and unique (by adding random suffix)
+    let finalName = sanitizedName;
+    if (finalName.length < 3) finalName = (finalName + "User").slice(0, 10);
+    finalName = `${finalName.slice(0, 20)}_${crypto.randomInt(1000, 9999)}`;
 
     // Check if user exists
     let user = await User.findOne({ email });
@@ -238,17 +258,28 @@ export const googleLogin = async (req, res) => {
         crypto.randomBytes(16).toString("hex"),
         salt,
       );
-
-      user = await User.create({
-        name: name || `User${crypto.randomInt(1000, 9999)}`,
-        email,
-        password: randomPassword,
-        avatarUrl: picture,
-        authProvider: "google",
-        googleId,
-        isVerified: true, // Google emails are already verified
-        agreedToTerms: true,
-      });
+      try {
+        user = await User.create({
+          name: finalName,
+          email,
+          password: randomPassword,
+          avatarUrl: picture,
+          authProvider: "google",
+          googleId,
+          isVerified: true, // Google emails are already verified
+          agreedToTerms: true,
+        });
+      } catch (createErr) {
+        logError(createErr, "User.create failed in Google Login");
+        // If it's a conflict on name, retry with a different name or handled as 500 with better msg
+        if (createErr.code === 11000) {
+          return res.status(409).json({
+            success: false,
+            msg: "A conflict occurred during account creation. Please try again.",
+          });
+        }
+        throw createErr;
+      }
     } else {
       // Update existing user with googleId if it doesn't have one
       if (!user.googleId) {
@@ -278,10 +309,12 @@ export const googleLogin = async (req, res) => {
 
     res.status(200).json({ success: true, user: userResponse });
   } catch (error) {
-    logError(error);
+    logError(error, "googleLogin main catch");
     res.status(500).json({
       success: false,
       msg: "Internal server error during Google login",
+      error: error.message, // Temporarily expose for debugging
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -840,6 +873,50 @@ export const verifyEmailChange = async (req, res) => {
     res
       .status(500)
       .json({ success: false, msg: "Unable to verify email change" });
+  }
+};
+
+export const updateNotificationSettings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { settings } = req.body;
+
+    if (!settings || typeof settings !== "object") {
+      return res.status(400).json({
+        success: false,
+        msg: "Settings object is required",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    // Update settings selectively to ensure partial updates are reliable
+    if (!user.notificationSettings) {
+      user.notificationSettings = {};
+    }
+
+    Object.keys(settings).forEach((key) => {
+      user.notificationSettings[key] = settings[key];
+    });
+
+    // Mark as modified if using sub-document object
+    user.markModified("notificationSettings");
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      msg: "Notification settings updated",
+      settings: user.notificationSettings,
+    });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({
+      success: false,
+      msg: "Unable to update notification settings",
+    });
   }
 };
 

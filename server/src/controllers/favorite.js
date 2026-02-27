@@ -4,6 +4,7 @@ import Listing from "../models/Listing.js";
 import { logError } from "../util/logging.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
+import { emitNotification } from "../socket/socketHandler.js";
 import {
   buildListingFilter,
   buildListingSort,
@@ -89,23 +90,26 @@ export const toggleFavorite = async (req, res) => {
     const ownerId = listing.ownerId;
 
     if (ownerId && ownerId.toString() !== userId.toString()) {
-      const sender = await User.findById(userId).select("name");
+      const recipient = await User.findById(ownerId).select(
+        "name notificationSettings",
+      );
 
-      const notification = await Notification.create({
-        recipientId: ownerId,
-        senderId: userId,
-        listingId: listingId,
-        type: "favorite",
-        title: "Added to favorites",
-        body: `${sender?.name || "Someone"} added your listing to favorites`,
-        link: `/listings/${listingId}`,
-        read: false,
-      });
+      // Check notification settings
+      if (recipient?.notificationSettings?.favorites !== false) {
+        const sender = await User.findById(userId).select("name");
 
-      // Real-time socket emission
-      const io = req.app.get("io");
-      if (io) {
-        io.to(`user_${ownerId}`).emit("new_notification", notification);
+        const notification = await Notification.create({
+          recipientId: ownerId,
+          senderId: userId,
+          listingId: listingId,
+          type: "favorite",
+          title: "Added to favorites",
+          body: `${sender?.name || "Someone"} added your listing to favorites`,
+          link: `/profile/${userId}`,
+          read: false,
+        });
+
+        emitNotification(ownerId, notification);
       }
     }
 
