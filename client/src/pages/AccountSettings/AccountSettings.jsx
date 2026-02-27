@@ -4,6 +4,8 @@ import InputField from "../../components/form/InputField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
+import StatusMessage from "../../components/ui/StatusMessage";
+import ToggleSwitch from "../../components/ui/ToggleSwitch";
 
 /* ─── Sidebar Tab Button ──────────────────────────────────────── */
 const NavItem = ({ id, label, icon, activeTab, setActiveTab }) => {
@@ -111,40 +113,28 @@ const ExpandableSection = ({ title, subtitle, icon, children, danger }) => {
 };
 
 /* ─── Error Message ───────────────────────────────────────────── */
-const ErrorMsg = ({ error }) =>
-  error ? (
-    <p className="text-sm text-red-500 font-medium flex items-center gap-1.5 mt-1">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-      {error.toString()}
-    </p>
-  ) : null;
 
 /* ─── Toggle Row ──────────────────────────────────────────────── */
-const ToggleRow = ({ label, description }) => (
+const ToggleRow = ({ label, description, id, checked, onChange, disabled }) => (
   <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
-    <div>
-      <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+    <div className="flex-1 pr-4">
+      <label
+        htmlFor={id}
+        className="text-sm font-bold text-gray-800 dark:text-gray-200 cursor-pointer"
+      >
         {label}
-      </p>
+      </label>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
         {description}
       </p>
     </div>
-    <label className="relative inline-flex items-center cursor-pointer ml-4 flex-shrink-0">
-      <input type="checkbox" className="sr-only peer" defaultChecked />
-      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500" />
-    </label>
+    <ToggleSwitch
+      id={id}
+      name={id}
+      checked={checked}
+      onChange={onChange}
+      disabled={disabled}
+    />
   </div>
 );
 
@@ -224,6 +214,22 @@ const AccountSettings = () => {
     error: emailReqError,
     performFetch: performEmailReq,
   } = useFetch("/users/request-email-change", () => setIsEmailCodeSent(true));
+
+  const { isLoading: isUpdatingSettings, performFetch: performSettingsUpdate } =
+    useFetch("/users/notification-settings", (data) => {
+      if (data?.settings) {
+        login({ ...user, notificationSettings: data.settings });
+        showSuccess("Preferences updated!");
+      }
+    });
+
+  const handleSettingsChange = (key, value) => {
+    performSettingsUpdate({
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ settings: { [key]: value } }),
+    });
+  };
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
@@ -406,7 +412,7 @@ const AccountSettings = () => {
                         </strong>
                         .
                       </p>
-                      <ErrorMsg error={passReqError} />
+                      <StatusMessage type="error" message={passReqError} />
                       <button
                         type="button"
                         onClick={() => performPassCodeReq({ method: "POST" })}
@@ -457,18 +463,20 @@ const AccountSettings = () => {
                       </p>
                       <InputField
                         name="passwordCode"
+                        label="Security Code"
                         value={passwordCode}
                         onChange={setPasswordCode}
                         placeholder="6-digit Security Code"
                       />
                       <InputField
                         name="newPassword"
+                        label="New Password"
                         type="password"
                         value={newPassword}
                         onChange={setNewPassword}
                         placeholder="New Password"
                       />
-                      <ErrorMsg error={passwordError} />
+                      <StatusMessage type="error" message={passwordError} />
                       <div className="flex gap-3">
                         <button
                           type="button"
@@ -515,12 +523,13 @@ const AccountSettings = () => {
                     >
                       <InputField
                         name="newEmail"
+                        label="New Email"
                         type="email"
                         value={newEmail}
                         onChange={setNewEmail}
                         placeholder="New Email Address"
                       />
-                      <ErrorMsg error={emailReqError} />
+                      <StatusMessage type="error" message={emailReqError} />
                       <SubmitButton
                         isLoading={isRequestingEmail}
                         className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-colors text-sm"
@@ -550,11 +559,12 @@ const AccountSettings = () => {
                       </p>
                       <InputField
                         name="emailCode"
+                        label="Verification Code"
                         value={emailCode}
                         onChange={setEmailCode}
                         placeholder="6-digit Verification Code"
                       />
-                      <ErrorMsg error={emailVerifyError} />
+                      <StatusMessage type="error" message={emailVerifyError} />
                       <div className="flex gap-3">
                         <button
                           type="button"
@@ -604,7 +614,7 @@ const AccountSettings = () => {
 
                   {!isDeleteCodeSent ? (
                     <div>
-                      <ErrorMsg error={deleteReqError} />
+                      <StatusMessage type="error" message={deleteReqError} />
                       <button
                         type="button"
                         onClick={() => performDeleteCodeReq({ method: "POST" })}
@@ -640,11 +650,12 @@ const AccountSettings = () => {
                     >
                       <InputField
                         name="deleteCode"
+                        label="Deletion Code"
                         value={deleteCode}
                         onChange={setDeleteCode}
                         placeholder="6-digit Security Code"
                       />
-                      <ErrorMsg error={deleteError} />
+                      <StatusMessage type="error" message={deleteError} />
                       <div className="flex gap-3">
                         <button
                           type="button"
@@ -674,20 +685,36 @@ const AccountSettings = () => {
                 </h2>
                 <div>
                   <ToggleRow
+                    id="notif-messages"
                     label="Message Alerts"
                     description="Get notified when someone sends you a message."
+                    checked={user?.notificationSettings?.messages !== false}
+                    onChange={(val) => handleSettingsChange("messages", val)}
+                    disabled={isUpdatingSettings}
                   />
                   <ToggleRow
+                    id="notif-reviews"
                     label="Review Notifications"
                     description="Receive alerts when someone reviews your listing."
+                    checked={user?.notificationSettings?.reviews !== false}
+                    onChange={(val) => handleSettingsChange("reviews", val)}
+                    disabled={isUpdatingSettings}
                   />
                   <ToggleRow
+                    id="notif-favorites"
                     label="Favorite Alerts"
                     description="Know when someone saves your listing to favorites."
+                    checked={user?.notificationSettings?.favorites !== false}
+                    onChange={(val) => handleSettingsChange("favorites", val)}
+                    disabled={isUpdatingSettings}
                   />
                   <ToggleRow
+                    id="notif-marketing"
                     label="Marketing Emails"
                     description="Updates about new features, promotions, and tips."
+                    checked={user?.notificationSettings?.marketing !== false}
+                    onChange={(val) => handleSettingsChange("marketing", val)}
+                    disabled={isUpdatingSettings}
                   />
                 </div>
               </div>
