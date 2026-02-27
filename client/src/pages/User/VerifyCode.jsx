@@ -115,6 +115,7 @@ const VerifyCode = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <InputField
             name="code"
+            label="Verification Code"
             value={code}
             onChange={setCode}
             placeholder="Enter 6-digit code"

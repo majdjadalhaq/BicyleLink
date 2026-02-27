@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 
 const GOOGLE_CLIENT_ID =
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  process.env.VITE_GOOGLE_CLIENT_ID ||
   "placeholder-client-id.apps.googleusercontent.com";
 
 const GoogleLoginButton = ({ onSuccess, onError }) => {
@@ -41,15 +42,17 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
       )}
       <button
         type="button"
-        className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 py-3.5 bg-white dark:bg-[#10221C]/50 border border-gray-200 dark:border-[#10B77F]/20 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#10B77F]/10 hover:border-[#10B77F]/40 transition-all text-sm font-bold shadow-sm hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed group"
         onClick={() => login()}
         disabled={isLoading || isClientIdPlaceholder}
       >
-        <img
-          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-          alt="Google logo"
-          className="w-5 h-5 bg-white rounded-full p-0.5"
-        />
+        <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full p-0.5 shadow-sm group-hover:scale-110 transition-transform">
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            alt="Google logo"
+            className="w-full h-full"
+          />
+        </div>
         {isLoading ? "Signing in..." : "Continue with Google"}
       </button>
     </div>
@@ -59,6 +62,7 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   const navigate = useNavigate();
@@ -101,6 +105,8 @@ const Login = () => {
 
     if (data?.success) {
       onSuccess(data);
+    } else if (data?.necessitatesVerification) {
+      navigate("/verify-code", { state: { email: data.email } });
     }
   };
 
@@ -108,7 +114,7 @@ const Login = () => {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="flex w-full min-h-[calc(100vh-64px)] bg-white dark:bg-[#0a0a0a] overflow-hidden">
+      <div className="flex w-full min-h-[calc(100vh-64px)] bg-[#F1F4F2] dark:bg-[#0a0a0a] overflow-hidden">
         {/* Left: Interactive Visual Section */}
         <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-20 overflow-hidden">
           {/* Background Image with sophisticated mask */}
@@ -132,7 +138,9 @@ const Login = () => {
 
             <h2 className="text-6xl font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl">
               Elevate Your <br />
-              <span className="text-emerald-400">Ride.</span>
+              <span className="text-[#10B77F] drop-shadow-[0_0_15px_rgba(16,183,127,0.4)]">
+                Ride.
+              </span>
             </h2>
 
             <p className="text-xl text-gray-300 font-medium leading-relaxed">
@@ -169,65 +177,23 @@ const Login = () => {
         {/* Right: Authentication Interface */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
           <div className="w-full max-w-md relative z-10">
-            <header className="mb-10">
+            <div className="flex items-center gap-4 mb-4">
               <div
-                className="flex items-center gap-3 mb-8 group cursor-pointer"
+                className="w-16 h-16 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-500"
                 onClick={() => navigate("/")}
               >
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-500">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
-                    <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
-                    <path d="M12 6V3" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
-                    BiCycleL
-                  </h3>
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">
-                    Premium Bike Marketplace
-                  </p>
-                </div>
+                <img
+                  src="/favicon.png"
+                  alt="Logo"
+                  className="w-12 h-12 object-contain drop-shadow-glow"
+                />
               </div>
-
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gray-900 dark:bg-emerald-500/10 text-white dark:text-emerald-500 flex items-center justify-center border border-transparent dark:border-emerald-500/20">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
-                    Login
-                  </h1>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                    Secure Authentication Gateway
-                  </p>
-                </div>
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tighter leading-none">
+                  Login
+                </h1>
               </div>
-            </header>
+            </div>
 
             {/* Google Integration */}
             <div className="mb-8">
@@ -272,12 +238,13 @@ const Login = () => {
                     </svg>
                   </div>
                   <input
-                    id="email"
+                    id="login-email"
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    className="w-full pl-12 pr-6 py-4 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
                     autoComplete="username"
                   />
                 </div>
@@ -294,34 +261,27 @@ const Login = () => {
                   <Link
                     to="/forgot-password"
                     title="Initialize Recovery"
-                    className="text-[10px] font-black text-emerald-500 hover:text-emerald-600 uppercase tracking-widest transition-colors"
+                    className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors"
                   >
                     Forgot Password?
                   </Link>
                 </div>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778z" />
-                      <path d="M12 2l3 3m-3-3l-3 3m3-3v12" />
-                    </svg>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors z-10"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                   <input
-                    id="password"
-                    type="password"
+                    id="login-password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    className="w-full pl-12 pr-6 py-4 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
                     autoComplete="current-password"
                   />
                 </div>
@@ -350,7 +310,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full py-4 bg-gray-900 dark:bg-emerald-500 hover:bg-black dark:hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
+                className="group relative w-full py-4 bg-[#10B77F] hover:bg-[#0EA572] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-glow hover:shadow-glow-strong disabled:opacity-50 active:scale-[0.98]"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-3">
@@ -368,7 +328,7 @@ const Login = () => {
                 New here?{" "}
                 <Link
                   to="/signup"
-                  className="text-emerald-500 font-black hover:text-emerald-600 transition-colors uppercase tracking-widest ml-1"
+                  className="text-emerald-700 dark:text-emerald-400 font-black hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors uppercase tracking-widest ml-1"
                 >
                   Create Account
                 </Link>

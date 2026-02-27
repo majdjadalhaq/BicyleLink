@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import PasswordStrengthMeter from "../../components/PasswordStrengthMeter";
 import useApi from "../../hooks/useApi";
@@ -7,7 +8,7 @@ import { useAuth } from "../../hooks/useAuth";
 import TEST_ID from "./CreateUser.testid";
 
 const GOOGLE_CLIENT_ID =
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  process.env.VITE_GOOGLE_CLIENT_ID ||
   "placeholder-client-id.apps.googleusercontent.com";
 
 const GoogleSignupButton = ({ onSuccess, onError }) => {
@@ -35,15 +36,17 @@ const GoogleSignupButton = ({ onSuccess, onError }) => {
   return (
     <button
       type="button"
-      className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-sm font-medium"
+      className="w-full flex items-center justify-center gap-3 py-3.5 bg-white dark:bg-[#10221C]/50 border border-gray-200 dark:border-[#10B77F]/20 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#10B77F]/10 hover:border-[#10B77F]/40 transition-all text-sm font-bold shadow-sm hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed group"
       onClick={() => login()}
       disabled={isLoading}
     >
-      <img
-        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-        alt="Google logo"
-        className="w-5 h-5 bg-white p-0.5 rounded-full"
-      />
+      <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full p-0.5 shadow-sm group-hover:scale-110 transition-transform">
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          alt="Google logo"
+          className="w-full h-full"
+        />
+      </div>
       {isLoading ? "Signing up..." : "Continue with Google"}
     </button>
   );
@@ -54,7 +57,8 @@ const CreateUser = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
 
   const navigate = useNavigate();
@@ -70,7 +74,6 @@ const CreateUser = () => {
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setAgreedToTerms(false);
       navigate("/verify-code", { state: { email } });
     }
   };
@@ -121,11 +124,6 @@ const CreateUser = () => {
       return false;
     }
 
-    if (agreedToTerms !== true) {
-      setValidationError("You must accept the Terms of Service");
-      return false;
-    }
-
     setValidationError("");
     return true;
   };
@@ -141,7 +139,6 @@ const CreateUser = () => {
           name: username,
           email,
           password,
-          agreedToTerms,
         },
       },
     });
@@ -157,7 +154,7 @@ const CreateUser = () => {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div
         data-testid={TEST_ID.container}
-        className="flex w-full min-h-[calc(100vh-64px)] bg-white dark:bg-[#0a0a0a] overflow-hidden"
+        className="flex w-full min-h-[calc(100vh-64px)] bg-[#F1F4F2] dark:bg-[#0a0a0a] overflow-hidden"
       >
         {/* Left: Interactive Visual Section */}
         <div className="hidden lg:flex lg:w-5/12 relative flex-col justify-center p-16 overflow-hidden">
@@ -182,7 +179,9 @@ const CreateUser = () => {
 
             <h2 className="text-5xl font-black text-white tracking-tighter leading-[0.9] drop-shadow-2xl">
               Start Your <br />
-              <span className="text-emerald-400">Journey.</span>
+              <span className="text-[#10B77F] drop-shadow-[0_0_15px_rgba(16,183,127,0.4)]">
+                Journey.
+              </span>
             </h2>
 
             <p className="text-lg text-gray-300 font-medium leading-relaxed">
@@ -220,64 +219,23 @@ const CreateUser = () => {
         {/* Right: Registration Interface */}
         <div className="w-full lg:w-7/12 flex items-center justify-center p-8 sm:p-12 relative">
           <div className="w-full max-w-lg relative z-10">
-            <header className="mb-8">
+            <div className="flex items-center gap-4 mb-6">
               <div
-                className="flex items-center gap-3 mb-6 group cursor-pointer"
+                className="w-16 h-16 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-500"
                 onClick={() => navigate("/")}
               >
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-500">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                    <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
-                    <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
-                    <path d="M12 6V3" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
-                    BiCycleL
-                  </h3>
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">
-                    Premium Bike Marketplace
-                  </p>
-                </div>
+                <img
+                  src="/favicon.png"
+                  alt="Logo"
+                  className="w-12 h-12 object-contain drop-shadow-glow"
+                />
               </div>
-
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gray-900 dark:bg-emerald-500/10 text-white dark:text-emerald-500 flex items-center justify-center border border-transparent dark:border-emerald-500/20">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
-                    Join BiCycleL
-                  </h1>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                    Creator Network Registration
-                  </p>
-                </div>
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tighter leading-none">
+                  Create Account
+                </h1>
               </div>
-            </header>
+            </div>
 
             {/* Google Signup Integration */}
             <div className="mb-8">
@@ -311,12 +269,13 @@ const CreateUser = () => {
                 </label>
                 <input
                   id="username"
+                  name="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Choose a username"
                   data-testid={TEST_ID.usernameInput}
-                  className="w-full px-6 py-3.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                  className="w-full px-6 py-3.5 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
                   autoComplete="username"
                 />
               </div>
@@ -330,83 +289,81 @@ const CreateUser = () => {
                 </label>
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
                   data-testid={TEST_ID.emailInput}
-                  className="w-full px-6 py-3.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                  className="w-full px-6 py-3.5 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
                   autoComplete="email"
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label
                   htmlFor="password"
                   className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1"
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  data-testid={TEST_ID.passwordInput}
-                  className="w-full px-6 py-3.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
-                  autoComplete="new-password"
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors z-10"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a password"
+                    data-testid={TEST_ID.passwordInput}
+                    className="w-full pl-12 pr-6 py-3.5 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    autoComplete="new-password"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label
                   htmlFor="confirmPassword"
                   className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1"
                 >
                   Confirm Password
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter your password"
-                  data-testid={TEST_ID.confirmPasswordInput}
-                  className="w-full px-6 py-3.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
-                  autoComplete="new-password"
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors z-10"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    data-testid={TEST_ID.confirmPasswordInput}
+                    className="w-full pl-12 pr-6 py-3.5 bg-gray-50/50 dark:bg-[#10221C]/30 border border-gray-100 dark:border-[#10B77F]/10 rounded-2xl text-sm focus:border-[#10B77F] focus:ring-4 focus:ring-[#10B77F]/5 transition-all outline-none font-medium text-gray-900 dark:text-white"
+                    autoComplete="new-password"
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2">
                 <PasswordStrengthMeter password={password} />
-              </div>
-
-              <div className="md:col-span-2 flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
-                <input
-                  type="checkbox"
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  data-testid={TEST_ID.agreedToTermsInput}
-                  className="mt-1 h-5 w-5 rounded-lg border-gray-300 dark:border-gray-700 text-emerald-500 focus:ring-emerald-500 bg-white dark:bg-gray-900 cursor-pointer"
-                />
-                <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
-                  I agree to the{" "}
-                  <Link
-                    to="/terms"
-                    className="text-emerald-500 font-bold hover:underline"
-                  >
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link
-                    to="/privacy"
-                    className="text-emerald-500 font-bold hover:underline"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </span>
               </div>
 
               {displayError && (
@@ -431,7 +388,7 @@ const CreateUser = () => {
                 type="submit"
                 disabled={isLoading}
                 data-testid={TEST_ID.submitButton}
-                className="md:col-span-2 py-4 bg-gray-900 dark:bg-emerald-500 hover:bg-black dark:hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
+                className="md:col-span-2 py-4 bg-[#10B77F] hover:bg-[#0EA572] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-glow hover:shadow-glow-strong disabled:opacity-50 active:scale-[0.98]"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-3">
@@ -449,7 +406,7 @@ const CreateUser = () => {
                 Already have an account?{" "}
                 <Link
                   to="/login"
-                  className="text-emerald-500 font-black hover:text-emerald-600 transition-colors uppercase tracking-widest ml-1"
+                  className="text-emerald-700 dark:text-emerald-400 font-black hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors uppercase tracking-widest ml-1"
                 >
                   Login
                 </Link>

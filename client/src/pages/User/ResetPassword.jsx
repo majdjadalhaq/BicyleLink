@@ -129,6 +129,7 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <InputField
             name="code"
+            label="Verification Code"
             value={code}
             onChange={setCode}
             placeholder="6-digit verification code"
@@ -137,6 +138,7 @@ const ResetPassword = () => {
           />
           <InputField
             name="newPassword"
+            label="New Password"
             type="password"
             value={newPassword}
             onChange={setNewPassword}
@@ -150,6 +152,7 @@ const ResetPassword = () => {
 
           <InputField
             name="confirmPassword"
+            label="Confirm Password"
             type="password"
             value={confirmPassword}
             onChange={setConfirmPassword}
