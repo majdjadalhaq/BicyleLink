@@ -1,11 +1,35 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense, useRef } from "react";
+import { motion } from "framer-motion";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 
 const ListingCard = lazy(() => import("../../components/ListingCard"));
+import StarRating from "../../components/StarRating/StarRating";
 
 /* ─── Helpers ────────────────────────────────────────────────── */
+/* ─── Grid column detector ───────────────────────────────────────── */
+const useGridCols = (gridRef) => {
+  const [cols, setCols] = useState(3);
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const measure = () => {
+      const el = gridRef.current;
+      if (!el) return;
+      const style = window.getComputedStyle(el);
+      const colsStr = style.getPropertyValue("grid-template-columns");
+      if (colsStr && colsStr !== "none") {
+        setCols(colsStr.trim().split(/\s+/).length);
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(gridRef.current);
+    return () => ro.disconnect();
+  }, [gridRef]);
+  return cols;
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return null;
   return new Date(dateStr).toLocaleDateString("en-GB", {
@@ -13,27 +37,6 @@ const formatDate = (dateStr) => {
     month: "short",
     year: "numeric",
   });
-};
-
-const StarRow = ({ rating = 0, size = 14 }) => {
-  const filled = Math.round(rating);
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg
-          key={i}
-          width={size}
-          height={size}
-          viewBox="0 0 24 24"
-          fill={i <= filled ? "#f59e0b" : "none"}
-          stroke={i <= filled ? "#f59e0b" : "#4b5563"}
-          strokeWidth="2"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-  );
 };
 
 const UserAvatar = ({ user, className }) =>
@@ -63,6 +66,8 @@ const ProfileView = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [profileData, setProfileData] = useState(null);
+  const gridRef = useRef(null);
+  const gridCols = useGridCols(gridRef);
 
   const profileIdentifier =
     username || id || currentUser?.name || currentUser?._id;
@@ -109,17 +114,74 @@ const ProfileView = () => {
   return (
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#121212] transition-colors duration-300 pb-20">
       {/* ── FULL-BLEED Banner ── */}
-      <div className="w-full h-36 sm:h-48 relative overflow-hidden bg-emerald-600 dark:bg-emerald-950/40">
-        {/* Bicycle Pattern Background */}
-        <div
-          className="absolute inset-0 opacity-[0.08] dark:opacity-[0.05]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 32.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM22.5 32.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM19 21.5h-6a3 3 0 0 0-3 3l.5 3.5m9-6.5a3 3 0 0 1 3 3l-.5 3.5M16 21.5v-3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: "60px 60px",
-          }}
-        />
-        {/* Decorative mask */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
+      <div className="w-full h-48 sm:h-64 relative overflow-hidden bg-[#10221C] border-b border-[#10B77F]/20">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/premium_cycling_cover_1772204408302.png"
+            alt="Elite Cycling"
+            className="w-full h-full object-cover scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#10221C]/60 via-[#08120F]/40 to-[#10B77F]/10 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FAFAF8] dark:from-[#121212] via-transparent to-transparent z-20" />
+        </div>
+
+        {/* Decorative glass overlay */}
+        <div className="absolute inset-0 z-30 opacity-70" />
+
+        {/* Profile Statistics Glass Banner */}
+        <div className="absolute bottom-6 right-6 z-40 hidden md:flex items-center gap-3 animate-reveal">
+          <div className="px-5 py-3 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl flex items-center gap-6">
+            <button
+              onClick={() => {
+                document
+                  .getElementById("profile-listings")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="flex flex-col items-center px-2 border-r border-white/5 hover:scale-105 hover:text-emerald-300 transition-all group"
+            >
+              <span className="text-2xl font-black text-white leading-none group-hover:text-emerald-400 transition-colors">
+                {listings?.length || 0}
+              </span>
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1.5 grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all">
+                Listings
+              </span>
+            </button>
+            <div className="flex flex-col items-center px-2 border-r border-white/5">
+              <span className="text-2xl font-black text-white leading-none">
+                {listings?.filter((l) => l.status === "sold")?.length || 0}
+              </span>
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1.5 grayscale opacity-70">
+                Sold
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                document
+                  .getElementById("profile-reviews")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="flex flex-col items-center px-2 hover:scale-105 transition-all group"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-2xl font-black text-white leading-none group-hover:text-amber-400 transition-colors">
+                  {Number(user?.averageRating || 0).toFixed(1)}
+                </span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="#f59e0b"
+                  className="mb-0.5 group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-all"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </div>
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1.5 grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all">
+                Rating
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Constrained content ── */}
@@ -142,31 +204,13 @@ const ProfileView = () => {
                   <h1 className="text-2xl font-black text-gray-900 dark:text-white leading-none">
                     {user.name}
                   </h1>
-                  {user.isVerified && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-500 text-[10px] font-black uppercase tracking-widest">
-                      <svg
-                        width="9"
-                        height="9"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      Verified
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-1 mt-1">
-                  <StarRow rating={user.averageRating || 0} size={13} />
+                  <StarRating rating={user.averageRating || 0} />
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold ml-1">
-                    {(user.averageRating || 0).toFixed(1)}
                     {reviewsReceived.length > 0 &&
-                      ` (${reviewsReceived.length})`}
+                      `(${reviewsReceived.length})`}
                   </span>
                 </div>
 
@@ -274,69 +318,14 @@ const ProfileView = () => {
               {user.bio}
             </p>
           )}
-
-          {/* Stat pills */}
-          <div className="flex gap-3 mt-4 flex-wrap">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 shadow-sm">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-emerald-500"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              {listings.length} Listing{listings.length !== 1 ? "s" : ""}
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 shadow-sm">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-amber-400"
-              >
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              {(user.averageRating || 0).toFixed(1)} Rating
-            </div>
-            {user.isVerified && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-sm">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Verified Seller
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
       {/* ── MAIN CONTENT ── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_340px] gap-8">
           {/* Left: Listings */}
-          <section>
+          <section id="profile-listings" className="scroll-mt-24">
             <h2 className="text-xl font-black text-gray-900 dark:text-white mb-5 flex items-center gap-2">
               <svg
                 width="18"
@@ -360,6 +349,7 @@ const ProfileView = () => {
             </h2>
             {listings.length > 0 ? (
               <div
+                ref={gridRef}
                 className="grid gap-5"
                 style={{
                   gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
@@ -370,9 +360,25 @@ const ProfileView = () => {
                     <div className="col-span-full h-32 animate-pulse bg-gray-100 dark:bg-white/5 rounded-2xl" />
                   }
                 >
-                  {listings.map((l) => (
-                    <ListingCard key={l._id} listing={l} />
-                  ))}
+                  {listings.map((l, i) => {
+                    const row = Math.floor(i / gridCols);
+                    const col = i % gridCols;
+                    return (
+                      <motion.div
+                        key={l._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{
+                          duration: 0.5,
+                          delay: row * 0.18 + col * 0.08,
+                          ease: [0.21, 1.11, 0.81, 0.99],
+                        }}
+                      >
+                        <ListingCard listing={l} />
+                      </motion.div>
+                    );
+                  })}
                 </Suspense>
               </div>
             ) : (
@@ -402,7 +408,10 @@ const ProfileView = () => {
           </section>
 
           {/* Right: Reviews */}
-          <div className="flex flex-col gap-6">
+          <div
+            id="profile-reviews"
+            className="flex flex-col gap-6 scroll-mt-24"
+          >
             {/* Reviews Received */}
             <section className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
               <h2 className="text-base font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -439,7 +448,7 @@ const ProfileView = () => {
                           <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">
                             {review.reviewerId?.name || "Anonymous"}
                           </p>
-                          <StarRow rating={review.rating} size={11} />
+                          <StarRating rating={review.rating} />
                         </div>
                       </div>
                       {review.comment && (
@@ -504,7 +513,7 @@ const ProfileView = () => {
                           <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">
                             {review.targetId?.name}
                           </p>
-                          <StarRow rating={review.rating} size={11} />
+                          <StarRating rating={review.rating} />
                         </div>
                       </div>
                       {review.comment && (

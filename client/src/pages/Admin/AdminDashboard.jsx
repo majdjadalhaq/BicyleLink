@@ -133,7 +133,7 @@ const AdminDashboard = () => {
       </header>
 
       {/* Grid of Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Global Citizens"
           value={stats.totalUsers}
@@ -177,29 +177,31 @@ const AdminDashboard = () => {
           }
           color="success"
         />
-        <StatCard
-          title="Premium Slot"
-          value={stats.featuredListings}
-          icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          }
-          color="warning"
-        />
+        <div className="sm:col-span-2 lg:col-span-1">
+          <StatCard
+            title="Premium Slot"
+            value={stats.featuredListings}
+            icon={
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            }
+            color="warning"
+          />
+        </div>
       </div>
 
       {/* Analytics & Tools Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <ActivityGraph data={stats.recentListings} />
         </div>
