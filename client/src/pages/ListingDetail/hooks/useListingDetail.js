@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import useFetch from "../../../hooks/useFetch";
 import useApi from "../../../hooks/useApi";
 import useToast from "../../../hooks/useToast";
 import { formatPrice } from "../../../utils/formatPrice";
+import { useSocket } from "../../../hooks/useSocket";
 
 const useListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const socket = useSocket();
 
   const [listing, setListing] = useState(null);
   const [prevId, setPrevId] = useState(id);
@@ -27,6 +29,7 @@ const useListingDetail = () => {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Reset when navigating between listings
   if (id !== prevId) {
@@ -51,16 +54,22 @@ const useListingDetail = () => {
     setListing(response.result);
   });
 
+  const hasFetchedRef = useRef(false);
+  const viewTrackedRef = useRef(null); // String ref to track which ID was viewed
+
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
     performFetch();
     return () => cancelFetch();
   }, [id, reviewsRefreshTrigger]);
 
   // Track page view
   useEffect(() => {
-    if (!listing || !id) return;
+    if (!listing || !id || viewTrackedRef.current === id) return;
 
     const trackView = async () => {
+      viewTrackedRef.current = id;
       const isActuallyOwner =
         user && user._id === (listing.ownerId?._id || listing.ownerId);
       if (!isActuallyOwner) {
@@ -99,7 +108,32 @@ const useListingDetail = () => {
     };
 
     checkReview();
-  }, [id, user, reviewsRefreshTrigger]);
+  }, [id, user, reviewsRefreshTrigger, listing?.status]);
+
+  // Socket Live Updates
+  useEffect(() => {
+    if (!socket || !id) return;
+
+    socket.emit("join_room", { room: id });
+
+    const handleUpdate = (data) => {
+      setListing((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: data.status,
+          buyerId: data.buyerId,
+        };
+      });
+      showToast(`Listing status updated to ${data.status}`, "info");
+    };
+
+    socket.on("listing_status_updated", handleUpdate);
+    return () => {
+      socket.off("listing_status_updated", handleUpdate);
+      // socket.emit("leave_room", { room: id }); // Optional: implement leave_room if needed
+    };
+  }, [socket, id, showToast]);
 
   const handleStatusClick = () => {
     if (listing.status === "active") {
@@ -182,6 +216,16 @@ const useListingDetail = () => {
     }
   };
 
+  const handleMessageSeller = () => {
+    if (!user) {
+      navigate("/login", { state: { from: `/listings/${id}` } });
+      return;
+    }
+    // Navigate to chat room based on listingId and users
+    const room = `${id}_${user._id}_${listing.ownerId?._id || listing.ownerId}`;
+    navigate(`/chat/${room}`);
+  };
+
   const displayPrice = listing ? formatPrice(listing.price) : "";
 
   return {
@@ -214,6 +258,9 @@ const useListingDetail = () => {
     setReportModalOpen,
     isSubmittingReport,
     handleReportSubmit,
+    profileModalOpen,
+    setProfileModalOpen,
+    handleMessageSeller,
     navigate,
     showToast,
     displayPrice,
