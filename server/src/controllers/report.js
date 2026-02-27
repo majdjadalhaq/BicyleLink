@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import Report from "../models/Report.js";
+import User from "../models/User.js";
+import Notification from "../models/Notification.js";
+import { emitNotification } from "../socket/socketHandler.js";
 import { logError } from "../util/logging.js";
 
 export const createReport = async (req, res) => {
@@ -33,6 +36,24 @@ export const createReport = async (req, res) => {
       targetType,
       reason,
     });
+
+    // Notify all admins
+    try {
+      const admins = await User.find({ role: "admin" }).select("_id");
+      for (const admin of admins) {
+        const notification = await Notification.create({
+          recipientId: admin._id,
+          senderId: req.user.id,
+          type: "report",
+          title: "New Report Submitted",
+          body: `A new ${targetType} report has been filed for ${reason}`,
+          link: "/admin/reports",
+        });
+        emitNotification(admin._id, notification);
+      }
+    } catch (notifError) {
+      logError(notifError);
+    }
 
     res.status(201).json({
       success: true,

@@ -84,16 +84,22 @@ export const createReview = async (req, res) => {
 
     // Create notification for seller
     try {
-      const notification = await Notification.create({
-        recipientId: targetId,
-        senderId: reviewerId,
-        type: "review",
-        listingId: listingId,
-        title: "New Review Received",
-        body: `You received a new ${rating}-star review from ${populatedReview.reviewerId.name}`,
-        link: `/users/${targetId}`, // Seller's profile where reviews are shown
-      });
-      emitNotification(targetId, notification);
+      const recipient = await User.findById(targetId).select(
+        "notificationSettings",
+      );
+
+      if (recipient?.notificationSettings?.reviews !== false) {
+        const notification = await Notification.create({
+          recipientId: targetId,
+          senderId: reviewerId,
+          type: "review",
+          listingId: listingId,
+          title: "New Review Received",
+          body: `You received a new ${rating}-star review from ${populatedReview.reviewerId.name}`,
+          link: `/listings/${listingId}`,
+        });
+        emitNotification(targetId, notification);
+      }
     } catch (notifErr) {
       logError(notifErr);
     }

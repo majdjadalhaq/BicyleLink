@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Listing from "../models/Listing.js";
 import { logError } from "../util/logging.js";
 import ConversationStatus from "../models/ConversationStatus.js";
+import mongoose from "mongoose";
 
 export const getMessagesByRoom = async (req, res) => {
   try {
@@ -11,8 +12,11 @@ export const getMessagesByRoom = async (req, res) => {
     const userId = req.user._id;
 
     const query = { room };
-    if (before) {
-      query.createdAt = { $lt: new Date(before) };
+    if (before && before !== "undefined") {
+      const date = new Date(before);
+      if (!isNaN(date.getTime())) {
+        query.createdAt = { $lt: date };
+      }
     }
 
     const messages = await Message.find(query)
@@ -39,14 +43,15 @@ export const getMessagesByRoom = async (req, res) => {
 
 export const getInbox = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = new mongoose.Types.ObjectId(req.user._id);
     const { archived = "false" } = req.query;
     const showArchived = archived === "true";
 
-    // Get rooms for this user with matching archived status
+    // Get rooms for this user with matching archived/deleted status
     const statuses = await ConversationStatus.find({
       userId,
       isArchived: showArchived,
+      isDeleted: false,
     }).select("room");
     const targetRooms = statuses.map((s) => s.room);
 
@@ -58,13 +63,13 @@ export const getInbox = async (req, res) => {
     if (showArchived) {
       query.room = { $in: targetRooms };
     } else {
-      // For active, we want rooms NOT in the archived list
-      const archivedStatuses = await ConversationStatus.find({
+      // For active, we want rooms NOT in the archived or deleted list
+      const hiddenStatuses = await ConversationStatus.find({
         userId,
-        isArchived: true,
+        $or: [{ isArchived: true }, { isDeleted: true }],
       }).select("room");
-      const archivedRooms = archivedStatuses.map((s) => s.room);
-      query.room = { $nin: archivedRooms };
+      const hiddenRooms = hiddenStatuses.map((s) => s.room);
+      query.room = { $nin: hiddenRooms };
     }
 
     // Aggregate conversations
@@ -94,7 +99,9 @@ export const getInbox = async (req, res) => {
             ? msg.receiverId
             : msg.senderId;
 
-        const otherUser = await User.findById(otherUserId).select("name email");
+        const otherUser = await User.findById(otherUserId).select(
+          "name email avatarUrl avatar",
+        );
 
         // Handle Admin Warning messages without a listingId
         let listing;
@@ -151,7 +158,7 @@ export const archiveRoom = async (req, res) => {
 
     await ConversationStatus.findOneAndUpdate(
       { userId, room },
-      { isArchived: status },
+      { isArchived: status, isDeleted: false },
       { upsert: true },
     );
 
@@ -221,5 +228,69 @@ export const markRoomUnread = async (req, res) => {
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to mark as unread" });
+  }
+};
+
+export const deleteConversation = async (req, res) => {
+  try {
+    const { room } = req.params;
+    const userId = req.user._id;
+
+    await ConversationStatus.findOneAndUpdate(
+      { userId, room },
+      { isDeleted: true, isArchived: false },
+      { upsert: true },
+    );
+
+    res.status(200).json({ success: true, msg: "Conversation deleted" });
+  } catch (error) {
+    logError(error);
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to delete conversation" });
+  }
+};
+
+export const editMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { content } = req.body;
+    const userId = req.user._id;
+
+    if (!content?.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Content is required" });
+    }
+
+    const message = await Message.findOne({ _id: messageId, senderId: userId });
+    if (!message) {
+      return res
+        .status(404)
+        .json({ success: false, msg: "Message not found or unauthorized" });
+    }
+
+    message.content = content;
+    message.isEdited = true;
+    await message.save();
+
+    res.status(200).json({ success: true, result: message });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to edit message" });
+  }
+};
+export const markAllRead = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    await ConversationStatus.updateMany({ userId }, { lastReadAt: new Date() });
+
+    res
+      .status(200)
+      .json({ success: true, msg: "All conversations marked as read" });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to mark all as read" });
   }
 };

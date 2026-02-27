@@ -19,6 +19,7 @@ import {
   requestEmailChange,
   verifyEmailChange,
   getPublicProfile,
+  updateNotificationSettings,
 } from "../controllers/user.js";
 import { authenticate } from "../middleware/auth.js";
 
@@ -42,6 +43,11 @@ userRouter.put("/password", authenticate, changePassword);
 userRouter.delete("/account", authenticate, deleteAccount);
 userRouter.post("/request-email-change", authenticate, requestEmailChange);
 userRouter.post("/verify-email-change", authenticate, verifyEmailChange);
+userRouter.patch(
+  "/notification-settings",
+  authenticate,
+  updateNotificationSettings,
+);
 userRouter.get("/:id/profile", getPublicProfile);
 
 export default userRouter;
