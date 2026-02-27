@@ -26,6 +26,7 @@ const InputField = ({
       onChange={(e) => onChange(e.target.value)}
       data-testid={dataTestId}
       className={`input-emerald ${className || ""}`}
+      aria-label={!label ? placeholder : undefined}
       {...rest}
     />
   </div>
