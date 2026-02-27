@@ -16,13 +16,18 @@ const CitySearchInput = ({
 }) => {
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-1">
+      <label
+        htmlFor="city-search"
+        className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-1"
+      >
         Location
       </label>
 
       <div className="relative w-full" ref={dropdownRef}>
         <div className="flex gap-2 items-center">
           <input
+            id="city-search"
+            name="city-search"
             type="text"
             className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl text-sm text-gray-900 dark:text-gray-100 transition-all focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 placeholder-gray-400 dark:placeholder-gray-600"
             placeholder="Enter city..."

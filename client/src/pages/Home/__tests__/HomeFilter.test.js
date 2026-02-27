@@ -10,6 +10,15 @@ jest.mock("../../../hooks/useFetch", () => ({
   default: jest.fn(),
 }));
 
+// Mock useToast to prevent context errors in inner components
+jest.mock("../../../hooks/useToast", () => () => ({
+  showToast: jest.fn(),
+}));
+
+jest.mock("../../../contexts/ThemeContext", () => ({
+  useTheme: () => ({ theme: "light" }),
+}));
+
 // Mock child components to isolate Home logic
 jest.mock("../../../components/ListingCard", () => () => (
   <div data-testid="listing-card">Listing</div>
@@ -64,13 +73,10 @@ describe("Home Filter Integration", () => {
       expect.any(Function),
     );
 
-    // 1. Open Filter
-    const filterToggle = screen.getByTitle("Advanced Filters");
-    fireEvent.click(filterToggle);
-
     // 2. Type Location
     // The input has placeholder "Enter city..."
-    const locationInput = screen.getByPlaceholderText("Enter city...");
+    // Because HeroFilter is lazy loaded, we need to await it
+    const locationInput = await screen.findByPlaceholderText("Enter city...");
     fireEvent.change(locationInput, { target: { value: "London" } });
 
     // 3. Select City from Dropdown
@@ -78,15 +84,14 @@ describe("Home Filter Integration", () => {
     // We need to wait for the city option to appear
     // Note: The City library is mocked above to return "London", so it should appear.
     // If it doesn't, there may be an issue with how the mocked City data is rendered in the component.
-    const cityOption = await screen.findByText(
-      "London",
-      { selector: ".city-name" },
-      { timeout: 3000 },
-    );
+    const cityOption = await screen.findByText("London", undefined, {
+      timeout: 3000,
+    });
     fireEvent.click(cityOption);
 
     // 4. Apply Filter
-    const applyBtn = screen.getByText("Apply Filters");
+    // In the new layout, the apply button is just "Apply" in the sidebar layout
+    const applyBtn = screen.getByText("Apply");
     fireEvent.click(applyBtn);
 
     // 5. Verification
@@ -105,14 +110,14 @@ describe("Home Filter Integration", () => {
   it("updates query string with category when filter is applied", async () => {
     renderWithRouter(<Home />);
 
-    const filterToggle = screen.getByTitle("Advanced Filters");
-    fireEvent.click(filterToggle);
-
-    // Find and click a category chip, e.g., "Mountain"
-    const categoryChip = screen.getByText("Mountain");
+    // Expand the "Category" section first since it's collapsible
+    // Initial state `expandedSections.category` is actually `true`, so Mountain should be visible.
+    // Let's make sure it's in the document before clicking
+    const categoryChip = await screen.findByText("Mountain");
     fireEvent.click(categoryChip);
 
-    const applyBtn = screen.getByText("Apply Filters");
+    // Use the "Apply" button from the sidebar
+    const applyBtn = screen.getByText("Apply");
     fireEvent.click(applyBtn);
 
     await waitFor(() => {
