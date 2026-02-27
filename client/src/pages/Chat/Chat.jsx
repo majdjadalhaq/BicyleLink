@@ -41,6 +41,7 @@ const Chat = () => {
     selectedImageUrl,
     setSelectedImageUrl,
     isAdminWarning,
+    handleEditMessage,
   } = useChat(listingId, user, receiverId, roomParam);
 
   if (!user) {
@@ -57,7 +58,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-w-4xl mx-auto w-full bg-light-surface dark:bg-dark-surface border-x border-light-border dark:border-dark-border">
+    <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-64px)] max-w-4xl mx-auto w-full bg-light-surface dark:bg-dark-surface border-x border-light-border dark:border-dark-border">
       <ChatHeader
         onBack={() => navigate("/inbox")}
         listing={listing}
@@ -75,6 +76,7 @@ const Chat = () => {
         isLoadingHistory={isLoadingHistory}
         isOtherTyping={isOtherTyping}
         isAdminWarning={isAdminWarning}
+        onEdit={handleEditMessage}
       />
 
       {isUploading && (

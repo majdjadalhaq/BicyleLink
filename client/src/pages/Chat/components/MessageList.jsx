@@ -13,6 +13,7 @@ const MessageList = ({
   isLoadingHistory,
   isOtherTyping,
   isAdminWarning,
+  onEdit,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -62,6 +63,7 @@ const MessageList = ({
             onImageClick={onImageClick}
             copyFeedback={copyFeedback}
             isAdminWarning={isAdminWarning}
+            onEdit={onEdit}
           />
         ))
       )}
@@ -100,6 +102,7 @@ MessageList.propTypes = {
   isLoadingHistory: PropTypes.bool.isRequired,
   isOtherTyping: PropTypes.bool.isRequired,
   isAdminWarning: PropTypes.bool,
+  onEdit: PropTypes.func,
 };
 
 export default MessageList;
