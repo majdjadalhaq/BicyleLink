@@ -1,7 +1,6 @@
 import supertest from "supertest";
 
 import { connectToMockDB, closeMockDatabase } from "../__testUtils__/dbMock.js";
-import { addUserToMockDB } from "../__testUtils__/userMocks.js";
 import app from "../app.js";
 
 const request = supertest(app);
@@ -14,17 +13,14 @@ afterAll(async () => {
   await closeMockDatabase();
 });
 
-describe("GET /api/users", () => {
-  it("Should return an empty array if there are no users in the db", (done) => {
+describe("GET /api/admin/users", () => {
+  it("Should return 401 or 403 if the user is not authenticated", (done) => {
     request
-      .get("/api/users")
+      .get("/api/admin/users")
       .then((response) => {
-        expect(response.status).toBe(200);
-
-        const { body } = response;
-        expect(body.success).toBe(true);
-        expect(body.result).toEqual([]);
-
+        // Admin route requires authentication — expect either 401 (no token) or 403 (not admin)
+        expect([401, 403]).toContain(response.status);
+        expect(response.body.success).toBe(false);
         done();
       })
       .catch((err) => {
@@ -32,48 +28,16 @@ describe("GET /api/users", () => {
       });
   });
 
-  it("Should return all the users in the db", async () => {
-    const testUser1 = {
-      name: "John",
-      email: "john@doe.com",
-      password: "Password123!",
-      city: "Amsterdam",
-      country: "Netherlands",
-      agreedToTerms: true,
-    };
-    const testUser2 = {
-      name: "Jane",
-      email: "jane@doe.com",
-      password: "Password123!",
-      city: "Utrecht",
-      country: "Netherlands",
-      agreedToTerms: true,
-    };
-
-    await addUserToMockDB(testUser1);
-    await addUserToMockDB(testUser2);
-
-    // Asynchronous tests should return a Promise
-    return request.get("/api/users").then((response) => {
-      expect(response.status).toBe(200);
-
-      const { body } = response;
-      expect(body.success).toBe(true);
-
-      const users = body.result;
-      expect(users).toHaveLength(2);
-      expect(users.filter((user) => user.name === testUser1.name)).toHaveLength(
-        1,
-      );
-      expect(
-        users.filter((user) => user.email === testUser1.email),
-      ).toHaveLength(1);
-      expect(users.filter((user) => user.name === testUser2.name)).toHaveLength(
-        1,
-      );
-      expect(
-        users.filter((user) => user.email === testUser2.email),
-      ).toHaveLength(1);
-    });
+  it("Should not expose user list publicly", (done) => {
+    // The old /api/users route no longer exists — should now 404
+    request
+      .get("/api/users")
+      .then((response) => {
+        expect(response.status).toBe(404);
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
   });
 });

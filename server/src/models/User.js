@@ -8,10 +8,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      match: [
-        /^[a-zA-Z0-9 _-]+$/,
-        "Username can only contain letters, numbers, spaces, underscores, and dashes",
-      ],
     },
     email: { type: String, required: true, unique: true },
     pendingEmail: { type: String, unique: true, sparse: true },
@@ -28,11 +24,7 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     agreedToTerms: {
       type: Boolean,
-      required: true,
-      validate: {
-        validator: (v) => v === true,
-        message: "Terms of Service must be accepted",
-      },
+      default: true,
     },
     avatarUrl: { type: String, trim: true },
     verificationCode: { type: String, index: true },
@@ -60,6 +52,12 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
     googleId: { type: String, unique: true, sparse: true },
+    notificationSettings: {
+      messages: { type: Boolean, default: true },
+      reviews: { type: Boolean, default: true },
+      favorites: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: true },
+    },
   },
   { timestamps: true },
 );
@@ -118,10 +116,6 @@ export const validateUser = (userObject) => {
     errorList.push("country is a required field");
   }
   */
-
-  if (userObject.agreedToTerms !== true) {
-    errorList.push("Terms of Service must be accepted");
-  }
 
   return errorList;
 };
