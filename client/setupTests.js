@@ -14,3 +14,13 @@ jestFetchMock.enableMocks();
 import { TextEncoder, TextDecoder } from "util";
 globalThis.TextEncoder = TextEncoder;
 globalThis.TextDecoder = TextDecoder;
+
+// Mock ResizeObserver
+globalThis.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+// Mock import.meta for Jest
+process.env.VITE_GOOGLE_CLIENT_ID = "mock-client-id";

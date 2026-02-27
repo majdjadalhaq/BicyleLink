@@ -1,4 +1,3 @@
-/* global process */
 /**
  * Configuration utility to safely access environment variables.
  * This handles the difference between Vite's import.meta.env and Jest's environment.

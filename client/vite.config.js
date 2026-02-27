@@ -7,6 +7,9 @@ export default defineConfig(({ command, mode }) => {
   const backendProxyTarget = env.VITE_BACKEND_URL ?? "http://localhost:3000";
   return {
     plugins: [react()],
+    define: {
+      "process.env": env,
+    },
     server: {
       // Specify server port. Note if the port is already being used,
       // Vite will automatically try the next available port so this may not be the actual port
@@ -22,6 +25,26 @@ export default defineConfig(({ command, mode }) => {
         "/socket.io": {
           target: backendProxyTarget,
           ws: true,
+        },
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('react-router-dom') || id.includes('@remix-run')) {
+                return 'vendor-router';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-ui';
+              }
+              return 'vendor'; // Fallback for all other NM dependencies
+            }
+          },
         },
       },
     },
