@@ -49,12 +49,16 @@ app.use(
           "https://api.cloudinary.com",
           "https://nominatim.openstreetmap.org",
           "https://accounts.google.com/gsi/",
+          "https://oauth2.googleapis.com",
+          "https://www.googleapis.com",
           "https://c54b.hyf.dev",
+          "http://localhost:3000",
         ],
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginOpenerPolicy: { policy: "unsafe-none" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginEmbedderPolicy: false,
   }),
 );
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
@@ -68,6 +72,9 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
       "https://bicyclel.nl",
       "https://www.bicyclel.nl",
     ],

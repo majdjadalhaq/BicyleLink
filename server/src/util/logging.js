@@ -18,11 +18,10 @@ const logger = winston.createLogger({
   ),
   transports: [
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.simple(),
-        // Add colorize for better readability in logs if desired, but simple is safer
-      ),
+      format: winston.format.combine(winston.format.simple()),
     }),
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "combined.log" }),
   ],
 });
 export const logError = (error, context = "") => {
