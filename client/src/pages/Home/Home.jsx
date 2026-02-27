@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense, useRef } from "react";
+import { motion } from "framer-motion";
 import useFetch from "../../hooks/useFetch";
-import Skeleton from "../../components/Skeleton/Skeleton.jsx";
+import { ListingCardSkeleton } from "../../components/ui/SkeletonLoaders.jsx";
 import TEST_ID from "./Home.testid";
 import QuickViewDrawer from "../../components/QuickViewDrawer/QuickViewDrawer.jsx";
 
@@ -8,7 +9,29 @@ const ListingCard = lazy(() => import("../../components/ListingCard.jsx"));
 const HeroFilter = lazy(
   () => import("../../components/HeroFilter/HeroFilter.jsx"),
 );
-import BicycleLoading from "../../components/ui/BicycleLoading";
+
+/* ─── Grid column detector ───────────────────────────────────────── */
+const useGridCols = (gridRef) => {
+  const [cols, setCols] = useState(3);
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const measure = () => {
+      const el = gridRef.current;
+      if (!el) return;
+      // getComputedStyle gives us the actual repeat count
+      const style = window.getComputedStyle(el);
+      const colsStr = style.getPropertyValue("grid-template-columns");
+      if (colsStr && colsStr !== "none") {
+        setCols(colsStr.trim().split(/\s+/).length);
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(gridRef.current);
+    return () => ro.disconnect();
+  }, [gridRef]);
+  return cols;
+};
 
 const Home = () => {
   const [listings, setListings] = useState([]);
@@ -64,7 +87,14 @@ const Home = () => {
     },
   );
 
+  const initialFetchRef = useRef(false);
+  const gridRef = useRef(null);
+  const gridCols = useGridCols(gridRef);
+
   useEffect(() => {
+    if (page === 1 && initialFetchRef.current) return;
+    if (page === 1) initialFetchRef.current = true;
+
     performFetch();
     return () => cancelFetch();
   }, [page, debouncedSearchTerm, filters]);
@@ -142,12 +172,17 @@ const Home = () => {
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </div>
+              <label htmlFor="hero-search" className="sr-only">
+                Search bikes, brands, and locations
+              </label>
               <input
+                id="hero-search"
+                name="hero-search"
                 type="text"
                 placeholder="Search bikes, brands, locations..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="w-full pl-12 pr-4 py-4 text-sm sm:text-base rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-all shadow-xl shadow-black/5 focus:bg-white/20 dark:focus:bg-white/15 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500"
+                className="w-full pl-12 pr-4 py-4 text-sm sm:text-base rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-all shadow-xl shadow-black/5 focus:bg-white/20 dark:focus:bg-white/15 focus:ring-4 focus:ring-[#10B77F]/10 focus:border-[#10B77F]"
               />
             </div>
           </div>
@@ -158,7 +193,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar - Desktop Only */}
-          <aside className="hidden md:block w-72 flex-shrink-0">
+          <aside className="hidden md:block w-64 lg:w-72 flex-shrink-0">
             <div className="sticky top-24">
               <div className="flex items-center justify-between mb-6 px-1">
                 <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">
@@ -167,7 +202,7 @@ const Home = () => {
                 {activeFilterCount > 0 && (
                   <button
                     onClick={handleClearFilters}
-                    className="text-[10px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors uppercase tracking-widest"
+                    className="text-[10px] font-bold text-[#10B77F] hover:text-[#0EA572] transition-colors uppercase tracking-widest"
                   >
                     Reset
                   </button>
@@ -291,8 +326,16 @@ const Home = () => {
               )}
 
               {isLoading && page === 1 && (
-                <div className="min-h-[40vh] flex items-center justify-center">
-                  <BicycleLoading message="Scanning the bike shed..." />
+                <div
+                  className="grid gap-5 mb-6"
+                  style={{
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(240px, 1fr))",
+                  }}
+                >
+                  {[...Array(8)].map((_, i) => (
+                    <ListingCardSkeleton key={`loading-skeleton-${i}`} />
+                  ))}
                 </div>
               )}
 
@@ -327,34 +370,51 @@ const Home = () => {
               )}
 
               <div
-                className="grid gap-5"
+                ref={gridRef}
+                className="grid gap-5 p-1"
                 style={{
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
                 }}
               >
                 <Suspense
                   fallback={
                     <>
                       {[...Array(8)].map((_, i) => (
-                        <Skeleton key={`lazy-skeleton-${i}`} type="card" />
+                        <ListingCardSkeleton key={`lazy-skeleton-${i}`} />
                       ))}
                     </>
                   }
                 >
-                  {listings.map((listing) => (
-                    <ListingCard
-                      key={listing._id}
-                      listing={listing}
-                      onQuickView={setSelectedListing}
-                    />
-                  ))}
+                  {listings.map((listing, i) => {
+                    const row = Math.floor(i / gridCols);
+                    const col = i % gridCols;
+                    return (
+                      <motion.div
+                        key={listing._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+                        transition={{
+                          duration: 0.55,
+                          delay: row * 0.18 + col * 0.08,
+                          ease: [0.2, 0.8, 0.2, 1],
+                        }}
+                        className="h-full"
+                      >
+                        <ListingCard
+                          listing={listing}
+                          onQuickView={setSelectedListing}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </Suspense>
               </div>
 
               {hasMore && (
-                <div className="text-center mt-12 pb-8">
+                <div className="text-center mt-12 pb-32 sm:pb-8">
                   <button
-                    className="px-10 py-3.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-bold rounded-full shadow-lg shadow-emerald-600/20 dark:shadow-emerald-500/20 transition-all text-sm disabled:opacity-50"
+                    className="px-10 py-3.5 bg-emerald-800 dark:bg-emerald-600 hover:bg-emerald-900 dark:hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-full shadow-glow disabled:opacity-50 transition-all active:scale-95"
                     onClick={handleLoadMore}
                     disabled={isLoading}
                   >
