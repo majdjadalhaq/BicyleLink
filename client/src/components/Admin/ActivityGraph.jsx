@@ -60,8 +60,17 @@ const ActivityGraph = ({ data }) => {
           </p>
         </div>
       </div>
-      <div className="h-[350px] w-full mt-4">
-        <ResponsiveContainer width="100%" height="100%">
+      <div
+        className="h-[350px] w-full mt-4 relative overflow-hidden"
+        style={{ minWidth: 0 }}
+      >
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          debounce={100}
+          minWidth={0}
+          minHeight={350}
+        >
           <AreaChart
             data={chartData}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -100,7 +109,8 @@ const ActivityGraph = ({ data }) => {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                backgroundColor:
+                  "var(--color-tooltip-bg, rgba(255, 255, 255, 0.9))",
                 backdropFilter: "blur(12px)",
                 border: "1px solid rgba(0, 0, 0, 0.05)",
                 borderRadius: "16px",
