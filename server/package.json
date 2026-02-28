@@ -22,7 +22,8 @@
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "prettier": "prettier ./src --check",
-    "prettier:fix": "prettier ./src --write"
+    "prettier:fix": "prettier ./src --write",
+    "seed-demo": "node src/scripts/seedDemoData.js"
   },
   "author": "",
   "license": "ISC",
