@@ -17,14 +17,25 @@ jest.mock("../../../hooks/useApi", () => () => ({
   executeApi: jest.fn(),
 }));
 
-jest.mock("../../../hooks/useFetch", () =>
-  jest.fn(() => ({
-    isLoading: false,
-    error: null,
-    performFetch: jest.fn(),
-    cancelFetch: jest.fn(),
-  })),
-);
+// Home uses direct fetch in useEffect; mock it
+beforeAll(() => {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          success: true,
+          result: [],
+          page: 1,
+          hasMore: false,
+          totalCount: 0,
+        }),
+    }),
+  );
+});
+afterAll(() => {
+  delete global.fetch;
+});
 
 jest.mock("../../../components/ListingCard.jsx", () => {
   const MockListingCard = () => <div data-testid="mock-listing-card" />;

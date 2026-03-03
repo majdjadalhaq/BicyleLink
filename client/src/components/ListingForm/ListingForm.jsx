@@ -429,34 +429,70 @@ const ListingForm = ({
               )}
             </div>
 
-            <div className="flex flex-col gap-4 col-span-full">
+            <div className="flex flex-col gap-8 col-span-full mt-4">
               <div className="flex justify-between items-center px-1">
                 <label
                   htmlFor="model-year-slider"
                   className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest"
                 >
-                  Model Year {formData.year ? `(${formData.year})` : ""}
+                  Model Year
                 </label>
               </div>
-              <div className="flex items-center gap-4 px-1">
-                <span className="text-[10px] font-bold text-gray-400 w-8">
+              <div className="flex items-center gap-4 px-1 group">
+                <span className="text-[10px] font-bold text-gray-400 w-8 text-center pt-2">
                   1990
                 </span>
-                <label htmlFor="model-year-slider" className="sr-only">
-                  Model Year Slider
-                </label>
-                <input
-                  id="model-year-slider"
-                  name="model-year-slider"
-                  type="range"
-                  min="1990"
-                  max={new Date().getFullYear()}
-                  step="1"
-                  value={formData.year || new Date().getFullYear()}
-                  onChange={(e) => handleChange("year", e.target.value)}
-                  className="flex-1 h-1.5 bg-gray-200 dark:bg-white/5 rounded-full appearance-none cursor-pointer accent-emerald-500"
-                />
-                <span className="text-[10px] font-bold text-gray-400 w-8">
+
+                <div className="flex-1 relative h-6 flex items-center">
+                  <label htmlFor="model-year-slider" className="sr-only">
+                    Model Year Slider
+                  </label>
+
+                  {/* Track Background */}
+                  <div className="absolute w-full h-1.5 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
+                    {/* Active Track Fill */}
+                    <div
+                      className="absolute h-full bg-emerald-500/50 dark:bg-emerald-500/30"
+                      style={{
+                        left: `0%`,
+                        width: `${((Number(formData.year || new Date().getFullYear()) - 1990) / (new Date().getFullYear() - 1990)) * 100}%`,
+                      }}
+                    />
+                  </div>
+
+                  {/* Visual Handle with Tooltip */}
+                  <div
+                    className="absolute w-5 h-5 bg-white dark:bg-gray-100 rounded-full border-2 border-emerald-500 shadow-md shadow-emerald-500/20 transform -translate-x-1/2 pointer-events-none z-10 flex items-center justify-center transition-transform active:scale-90 group-hover:scale-110"
+                    style={{
+                      left: `${((Number(formData.year || new Date().getFullYear()) - 1990) / (new Date().getFullYear() - 1990)) * 100}%`,
+                    }}
+                  >
+                    {/* Floating tooltip */}
+                    <div className="absolute -top-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-2 py-1 rounded-md shadow-lg text-[10px] font-black min-w-[36px] text-center">
+                      {formData.year || new Date().getFullYear()}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-solid border-t-gray-900 dark:border-t-white border-t-[4px] border-l-transparent border-l-[4px] border-r-transparent border-r-[4px]" />
+                    </div>
+                  </div>
+
+                  {/* Real hidden input */}
+                  <input
+                    id="model-year-slider"
+                    name="model-year-slider"
+                    type="range"
+                    min="1990"
+                    max={new Date().getFullYear()}
+                    step="1"
+                    value={formData.year || new Date().getFullYear()}
+                    onChange={(e) => handleChange("year", e.target.value)}
+                    className="absolute w-full h-1.5 opacity-0 pointer-events-auto cursor-pointer z-20"
+                    style={{
+                      WebkitAppearance: "none",
+                      appearance: "none",
+                    }}
+                  />
+                </div>
+
+                <span className="text-[10px] font-bold text-gray-400 w-8 text-center pt-2">
                   {new Date().getFullYear()}
                 </span>
               </div>

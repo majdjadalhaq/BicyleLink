@@ -172,15 +172,15 @@ export const MobileNavLinks = ({ user, unreadCount }) => {
                 </>
               ) : (
                 <>
-                  <span className="relative">
+                  <span className="relative inline-flex">
                     {icon(18)}
                     {link.hasUnreadBadge && unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[14px] h-[14px] text-[8px] font-bold text-white bg-red-500 border border-white dark:border-[#121212] rounded-full px-0.5">
+                      <span className="absolute -top-1.5 -right-2 inline-flex items-center justify-center min-w-[16px] h-[16px] text-[9px] font-black text-white bg-red-500 border-2 border-white dark:border-[#121212] rounded-full px-1 z-50">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] font-bold leading-none mt-0.5">
+                  <span className="text-[10px] font-bold leading-none mt-0.5 z-10">
                     {link.label}
                   </span>
                   {/* Subtle active indicator dot */}

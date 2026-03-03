@@ -13,11 +13,12 @@ const CitySearchInput = ({
   onSelect,
   onUseGPS,
   dropdownRef,
+  id = "city-search",
 }) => {
   return (
     <div className="flex flex-col gap-3">
       <label
-        htmlFor="city-search"
+        htmlFor={id}
         className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-1"
       >
         Location
@@ -26,8 +27,8 @@ const CitySearchInput = ({
       <div className="relative w-full" ref={dropdownRef}>
         <div className="flex gap-2 items-center">
           <input
-            id="city-search"
-            name="city-search"
+            id={id}
+            name={id}
             type="text"
             className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl text-sm text-gray-900 dark:text-gray-100 transition-all focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 placeholder-gray-400 dark:placeholder-gray-600"
             placeholder="Enter city..."
@@ -95,6 +96,7 @@ const CitySearchInput = ({
 };
 
 CitySearchInput.propTypes = {
+  id: PropTypes.string,
   citySearch: PropTypes.string.isRequired,
   cityOptions: PropTypes.array.isRequired,
   showCityDropdown: PropTypes.bool.isRequired,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import FilterChips from "./FilterChips";
 import DualRangeSlider from "../ui/DualRangeSlider";
 import CitySearchInput from "./CitySearchInput";
@@ -18,10 +18,13 @@ const HeroFilter = ({
   filters,
   onApply,
   onClear,
-  onClearSearch,
   isOpen,
   isSidebar,
+  idPrefix = "",
 }) => {
+  const baseId = useId().replace(/:/g, "-");
+  const uniquePrefix = idPrefix ? `${idPrefix}-` : `${baseId}-`;
+
   // Local state for immediate UI feedback before applying
   const [localFilters, setLocalFilters] = useState(filters);
   const { showToast } = useToast();
@@ -143,8 +146,8 @@ const HeroFilter = ({
     ) {
       filtersToApply.radius = 50;
     }
-    if (filtersToApply.location && onClearSearch) {
-      onClearSearch();
+    if (citySearch.trim() && !filtersToApply.lat && !filtersToApply.lng) {
+      filtersToApply.location = citySearch.trim();
     }
     onApply(filtersToApply);
   };
@@ -308,6 +311,7 @@ const HeroFilter = ({
 
           {/* Location */}
           <CitySearchInput
+            id={`${uniquePrefix}city-search`}
             citySearch={citySearch}
             cityOptions={cityOptions}
             showCityDropdown={showCityDropdown}
@@ -322,15 +326,15 @@ const HeroFilter = ({
           {/* Distance Slider - Directly under Location */}
           <div className="flex flex-col gap-4 scroll-mt-20">
             <label
-              htmlFor="radius-slider"
+              htmlFor={`${uniquePrefix}radius-slider`}
               className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1"
             >
               Distance Range
             </label>
             <div className="flex items-center gap-4 px-1">
               <input
-                id="radius-slider"
-                name="radius-slider"
+                id={`${uniquePrefix}radius-slider`}
+                name={`${uniquePrefix}radius-slider`}
                 type="range"
                 min="0"
                 max="200"
@@ -648,6 +652,7 @@ const HeroFilter = ({
           )}
 
           <CitySearchInput
+            id={`${uniquePrefix}city-search-desktop`}
             citySearch={citySearch}
             cityOptions={cityOptions}
             showCityDropdown={showCityDropdown}
@@ -661,15 +666,15 @@ const HeroFilter = ({
 
           <div className="flex flex-col gap-4">
             <label
-              htmlFor="radius-slider-desktop"
+              htmlFor={`${uniquePrefix}radius-slider-desktop`}
               className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1"
             >
               Distance Range
             </label>
             <div className="flex items-center gap-4 pt-2">
               <input
-                id="radius-slider-desktop"
-                name="radius-slider-desktop"
+                id={`${uniquePrefix}radius-slider-desktop`}
+                name={`${uniquePrefix}radius-slider-desktop`}
                 type="range"
                 min="0"
                 max="200"
