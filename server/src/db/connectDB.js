@@ -8,6 +8,7 @@ const connectDB = () => {
       process.env.MONGODB_URL ? "DEFINED" : "UNDEFINED"
     }`,
   );
+  mongoose.set("strictQuery", true);
   return mongoose.connect(process.env.MONGODB_URL);
 };
 
