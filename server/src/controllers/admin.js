@@ -4,7 +4,7 @@ import Listing from "../models/Listing.js";
 import Report from "../models/Report.js";
 import Message from "../models/Message.js";
 import { logError } from "../utils/logging.js";
-import { ALLOWED_UPDATE_FIELDS } from "../utils/listingConstants.js";
+import { ALLOWED_LISTING_WRITE_FIELDS } from "../utils/listingConstants.js";
 
 // Helper to check if value is a non-null, non-array object
 const isPlainObject = (val) =>
@@ -313,8 +313,8 @@ export const updateListingByAdmin = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Listing not found" });
     }
 
-    // Use shared ALLOWED_UPDATE_FIELDS from listingConstants.js
-    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+    // Use shared ALLOWED_LISTING_WRITE_FIELDS from listingConstants.js
+    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
         listing[field] = updates[field];
       }

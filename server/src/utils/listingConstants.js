@@ -1,9 +1,10 @@
 /**
- * Allowed fields for listing creation/update.
+ * Allowed fields for listing creation and update.
  * Shared between listing.js and admin.js controllers to avoid duplication.
  * Prevents prototype pollution by whitelisting only known fields.
+ * Frozen to guard against accidental mutation.
  */
-export const ALLOWED_UPDATE_FIELDS = [
+export const ALLOWED_LISTING_WRITE_FIELDS = Object.freeze([
   "title",
   "description",
   "price",
@@ -17,4 +18,4 @@ export const ALLOWED_UPDATE_FIELDS = [
   "status",
   "category",
   "coordinates",
-];
+]);

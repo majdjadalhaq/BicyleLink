@@ -12,7 +12,7 @@ import {
   buildListingFilter,
   buildListingSort,
 } from "../utils/listingHelpers.js";
-import { ALLOWED_UPDATE_FIELDS } from "../utils/listingConstants.js";
+import { ALLOWED_LISTING_WRITE_FIELDS } from "../utils/listingConstants.js";
 
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -138,7 +138,7 @@ export const createListing = async (req, res) => {
 
     // Whitelist allowed fields to prevent prototype pollution
     const safeListing = {};
-    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
       if (listingData[field] !== undefined) {
         safeListing[field] = listingData[field];
       }
@@ -190,7 +190,7 @@ export const updateListing = async (req, res) => {
       });
     }
 
-    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
         req.resource[field] = updates[field];
       }
