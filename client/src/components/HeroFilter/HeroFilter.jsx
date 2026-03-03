@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { City } from "country-state-city";
+import { useState, useEffect, useRef } from "react";
 import FilterChips from "./FilterChips";
 import DualRangeSlider from "../ui/DualRangeSlider";
 import CitySearchInput from "./CitySearchInput";
@@ -66,11 +65,13 @@ const HeroFilter = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cache Dutch cities only
-  const allCities = useMemo(
-    () => City.getAllCities().filter((c) => c.countryCode === "NL"),
-    [],
-  );
+  // Dynamically load Dutch cities (keeps country-state-city in separate chunk)
+  const [allCities, setAllCities] = useState([]);
+  useEffect(() => {
+    import("country-state-city").then(({ City }) => {
+      setAllCities(City.getAllCities().filter((c) => c.countryCode === "NL"));
+    });
+  }, []);
 
   const handleChipToggle = (category, value) => {
     setLocalFilters((prev) => {

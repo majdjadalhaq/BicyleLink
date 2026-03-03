@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Country, City } from "country-state-city";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
@@ -12,10 +11,12 @@ import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
+import { useCountryStateCity } from "../../hooks/useCountryStateCity";
 
 const ProfileSetup = () => {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const { Country, City, isLoaded: cscLoaded } = useCountryStateCity();
 
   const [country, setCountry] = useState(user?.country || "");
   const [city, setCity] = useState(user?.city || "");
@@ -41,10 +42,11 @@ const ProfileSetup = () => {
 
   const { isLoading, performFetch } = useFetch("/users/profile", onSuccess);
 
-  const countries = Country.getAllCountries();
-  const cities = selectedCountryCode
-    ? City.getCitiesOfCountry(selectedCountryCode)
-    : [];
+  const countries = cscLoaded && Country ? Country.getAllCountries() : [];
+  const cities =
+    cscLoaded && City && selectedCountryCode
+      ? City.getCitiesOfCountry(selectedCountryCode)
+      : [];
 
   const handleCountryChange = (value) => {
     const countryObj = countries.find((c) => c.isoCode === value);
@@ -266,7 +268,8 @@ const ProfileSetup = () => {
               <button
                 type="button"
                 onClick={handleDetectLocation}
-                className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                disabled={!cscLoaded}
+                className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
                   width="12"
@@ -296,6 +299,7 @@ const ProfileSetup = () => {
                   onChange={handleCountryChange}
                   options={countryOptions}
                   placeholder="Select..."
+                  disabled={!cscLoaded}
                 />
               </div>
               <div className="flex flex-col gap-1.5 focus-within:opacity-100 transition-opacity">
@@ -308,7 +312,7 @@ const ProfileSetup = () => {
                   onChange={setCity}
                   options={cityOptions}
                   placeholder="Select..."
-                  disabled={!selectedCountryCode}
+                  disabled={!cscLoaded || !selectedCountryCode}
                 />
               </div>
             </div>

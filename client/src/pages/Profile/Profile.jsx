@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Country, City } from "country-state-city";
+import { useState, useEffect, useRef } from "react";
 import {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_UPLOAD_PRESET,
@@ -10,7 +9,7 @@ import TextAreaField from "../../components/form/TextAreaField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
-import { useEffect, useRef } from "react";
+import { useCountryStateCity } from "../../hooks/useCountryStateCity";
 
 /* ─── Star Rating Display ──────────────────────────────────────── */
 const StarRating = ({ rating = 0 }) => {
@@ -67,6 +66,7 @@ const FieldGroup = ({ label, children }) => (
 /* ─── Main Component ─────────────────────────────────────────────── */
 const Profile = () => {
   const { user, login } = useAuth();
+  const { Country, City, isLoaded: cscLoaded } = useCountryStateCity();
 
   const [name, setName] = useState(user?.name || "");
   const [country, setCountry] = useState(user?.country || "");
@@ -101,10 +101,11 @@ const Profile = () => {
     },
   );
 
-  const countries = Country.getAllCountries();
-  const cities = selectedCountryCode
-    ? City.getCitiesOfCountry(selectedCountryCode)
-    : [];
+  const countries = cscLoaded && Country ? Country.getAllCountries() : [];
+  const cities =
+    cscLoaded && City && selectedCountryCode
+      ? City.getCitiesOfCountry(selectedCountryCode)
+      : [];
 
   const handleCountryChange = (value) => {
     const countryObj = countries.find((c) => c.isoCode === value);
@@ -531,7 +532,8 @@ const Profile = () => {
                     <button
                       type="button"
                       onClick={handleDetectLocation}
-                      className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                      disabled={!cscLoaded}
+                      className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg
                         width="12"
@@ -556,6 +558,7 @@ const Profile = () => {
                     onChange={handleCountryChange}
                     options={countryOptions}
                     placeholder="Select Country"
+                    disabled={!cscLoaded}
                   />
                   <SelectField
                     name="city"
@@ -563,7 +566,7 @@ const Profile = () => {
                     onChange={setCity}
                     options={cityOptions}
                     placeholder="Select City"
-                    disabled={!selectedCountryCode}
+                    disabled={!cscLoaded || !selectedCountryCode}
                   />
                 </div>
 

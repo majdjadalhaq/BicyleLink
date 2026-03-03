@@ -76,7 +76,13 @@ describe("Home Filter Integration", () => {
     // 2. Type Location
     // The input has placeholder "Enter city..."
     // Because HeroFilter is lazy loaded, we need to await it
-    const locationInput = await screen.findByPlaceholderText("Enter city...");
+    const locationInput = await screen.findByPlaceholderText(
+      "Enter city...",
+      {},
+      { timeout: 8000 },
+    );
+    // Allow time for country-state-city dynamic import to resolve before typing
+    await new Promise((r) => setTimeout(r, 200));
     fireEvent.change(locationInput, { target: { value: "London" } });
 
     // 3. Select City from Dropdown
@@ -85,7 +91,7 @@ describe("Home Filter Integration", () => {
     // Note: The City library is mocked above to return "London", so it should appear.
     // If it doesn't, there may be an issue with how the mocked City data is rendered in the component.
     const cityOption = await screen.findByText("London", undefined, {
-      timeout: 3000,
+      timeout: 5000,
     });
     fireEvent.click(cityOption);
 
