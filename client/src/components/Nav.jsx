@@ -169,8 +169,8 @@ const Nav = () => {
               {/* Theme Toggle */}
               <ThemeToggle />
 
-              {/* Sell Button (PC Right Zone for regular users) */}
-              {!isMinimalNav && user?.role !== "admin" && (
+              {/* Sell Button (PC Right Zone for regular users only) */}
+              {!isMinimalNav && user && user.role !== "admin" && (
                 <Link
                   to="/listing/create"
                   aria-label="Create new listing"

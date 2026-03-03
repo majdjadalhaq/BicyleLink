@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 const Footer = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const isAuthPage = [
     "/login",
     "/signup",
@@ -60,14 +62,16 @@ const Footer = () => {
                 Browse Bikes
               </Link>
             </li>
-            <li>
-              <Link
-                to="/listing/create"
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                Sell a Bike
-              </Link>
-            </li>
+            {user && (
+              <li>
+                <Link
+                  to="/listing/create"
+                  className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                >
+                  Sell a Bike
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
 

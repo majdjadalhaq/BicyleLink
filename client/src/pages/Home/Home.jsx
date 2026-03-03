@@ -87,14 +87,10 @@ const Home = () => {
     },
   );
 
-  const initialFetchRef = useRef(false);
   const gridRef = useRef(null);
   const gridCols = useGridCols(gridRef);
 
   useEffect(() => {
-    if (page === 1 && initialFetchRef.current) return;
-    if (page === 1) initialFetchRef.current = true;
-
     performFetch();
     return () => cancelFetch();
   }, [page, debouncedSearchTerm, filters]);
