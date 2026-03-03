@@ -5,11 +5,43 @@ import ConversationStatus from "../models/ConversationStatus.js";
 import Notification from "../models/Notification.js";
 import { logError } from "../utils/logging.js";
 
+import jwt from "jsonwebtoken";
+
 const onlineUsers = new Map();
 let ioInstance = null;
 
 export const initSocket = (io) => {
   ioInstance = io;
+
+  // --- Socket JWT Authentication Middleware ---
+  io.use((socket, next) => {
+    try {
+      const rawCookie = socket.request.headers.cookie;
+      if (!rawCookie) {
+        return next(new Error("Authentication error: No cookies found"));
+      }
+
+      // Parse cookie string
+      const cookies = rawCookie.split(";").reduce((res, item) => {
+        const data = item.trim().split("=");
+        if (data.length === 2) {
+          res[data[0]] = data[1];
+        }
+        return res;
+      }, {});
+
+      const token = cookies.token;
+      if (!token) {
+        return next(new Error("Authentication error: Missing token"));
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.data.userId = decoded.id;
+      next();
+    } catch {
+      next(new Error("Authentication error: Invalid or expired token"));
+    }
+  });
   const broadcastUserStatus = async (userId, status) => {
     try {
       const statuses = await ConversationStatus.find({ userId });
@@ -34,18 +66,19 @@ export const initSocket = (io) => {
   };
 
   io.on("connection", (socket) => {
-    let currentUserId = null;
+    // Current user id verified from JWT token during connection
+    const currentUserId = socket.data.userId;
 
     socket.on("join_room", (data) => {
-      // data can be just room string or { room, userId }
-      const { room, userId } = typeof data === "string" ? { room: data } : data;
+      // data can be just room string or { room }
+      const room = typeof data === "string" ? data : data.room;
 
       // Security check: Room ID format is listingId_userId1_userId2
       // User can only join if their ID is part of the room string
-      if (userId && !room.includes(userId)) {
+      if (currentUserId && !room.includes(currentUserId)) {
         logError(
           new Error(
-            `Unauthorized room join attempt: User ${userId} -> Room ${room}`,
+            `Unauthorized room join attempt: User ${currentUserId} -> Room ${room}`,
           ),
         );
         return;
@@ -53,22 +86,24 @@ export const initSocket = (io) => {
 
       socket.join(room);
 
-      if (userId) {
-        currentUserId = userId;
+      if (currentUserId) {
         // Join personal room for app-wide notifications (Inbox, etc.)
-        socket.join(`user_${userId}`);
+        socket.join(`user_${currentUserId}`);
 
-        if (!onlineUsers.has(userId)) {
-          onlineUsers.set(userId, new Set());
+        if (!onlineUsers.has(currentUserId)) {
+          onlineUsers.set(currentUserId, new Set());
           // Notify shared contacts about new online status
-          broadcastUserStatus(userId, "online");
+          broadcastUserStatus(currentUserId, "online");
         }
-        onlineUsers.get(userId).add(socket.id);
+        onlineUsers.get(currentUserId).add(socket.id);
       }
     });
 
     socket.on("send_message", async (msg) => {
       try {
+        // Overwrite client-provided senderId with verified socket userId
+        msg.senderId = currentUserId;
+
         // Security Check: Ensure sender is part of the room they are sending to
         if (!msg.room.includes(msg.senderId)) {
           logError(
@@ -134,18 +169,21 @@ export const initSocket = (io) => {
     });
 
     socket.on("typing", (data) => {
-      if (!data.room.includes(data.userId)) return;
+      // Use verified user ID
+      const verifiedUserId = currentUserId;
+
+      if (!data.room.includes(verifiedUserId)) return;
 
       // Broadcast to the chat room
       socket.to(data.room).emit("typing_status", {
-        userId: data.userId,
+        userId: verifiedUserId,
         isTyping: true,
         room: data.room, // Include room so Inbox knows which chat is typing
       });
 
       // Also broadcast to the other user's personal room for Inbox indicators
       const parts = data.room.split("_");
-      const otherUserId = parts[1] === data.userId ? parts[2] : parts[1];
+      const otherUserId = parts[1] === verifiedUserId ? parts[2] : parts[1];
       if (otherUserId) {
         socket.to(`user_${otherUserId}`).emit("typing_status", {
           userId: data.userId,
@@ -156,19 +194,19 @@ export const initSocket = (io) => {
     });
 
     socket.on("stop_typing", (data) => {
-      if (!data.room.includes(data.userId)) return;
+      if (!data.room.includes(currentUserId)) return;
 
       socket.to(data.room).emit("typing_status", {
-        userId: data.userId,
+        userId: currentUserId,
         isTyping: false,
         room: data.room,
       });
 
       const parts = data.room.split("_");
-      const otherUserId = parts[1] === data.userId ? parts[2] : parts[1];
+      const otherUserId = parts[1] === currentUserId ? parts[2] : parts[1];
       if (otherUserId) {
         socket.to(`user_${otherUserId}`).emit("typing_status", {
-          userId: data.userId,
+          userId: currentUserId,
           isTyping: false,
           room: data.room,
         });
@@ -177,7 +215,7 @@ export const initSocket = (io) => {
 
     socket.on("read_room", (data) => {
       // Broadcast back to the user's personal room to trigger UI sync in other tabs/Nav
-      io.to(`user_${data.userId}`).emit("messages_read", { room: data.room });
+      io.to(`user_${currentUserId}`).emit("messages_read", { room: data.room });
     });
 
     socket.on("disconnect", () => {

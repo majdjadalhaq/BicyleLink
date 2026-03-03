@@ -125,13 +125,13 @@ const Nav = () => {
                   className="h-9 w-9 md:h-10 md:w-10 object-contain relative z-10 transition-all duration-500 ease-out group-hover:scale-110 drop-shadow-glow"
                 />
 
-                {/* Brand Text & Link icon - Hidden on Mobile, Shows on large screens, Expands on hover (Medium screens) */}
-                <div className="hidden md:flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] max-w-0 lg:max-w-[150px] opacity-0 lg:opacity-100 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-1.5">
-                  <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-gray-100 transition-colors group-hover:text-[#10B77F]">
-                    iCycle
+                {/* Brand Text & Link icon - Hidden on Mobile, Hidden entirely by default, Expands only on hover */}
+                <div className="hidden md:flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] max-w-0 opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-1.5">
+                  <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-white transition-colors">
+                    icycle
                   </span>
 
-                  <div className="flex items-center text-emerald-500">
+                  <div className="flex items-center text-emerald-500 ml-0.5">
                     {/* The 'L' which is actually a Link icon */}
                     <svg
                       width="18"

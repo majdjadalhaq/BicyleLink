@@ -27,7 +27,7 @@
     "clsx": "^2.1.1",
     "country-state-city": "^3.2.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.34.3",
+    "framer-motion": "^12.34.5",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.23",
     "lucide-react": "^0.575.0",

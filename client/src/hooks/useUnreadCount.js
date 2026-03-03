@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSocket } from "./useSocket";
 
 /**
@@ -11,18 +11,13 @@ import { useSocket } from "./useSocket";
 const useUnreadCount = (user, intervalMs = 30000) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const socket = useSocket();
-  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     // No user → nothing to fetch
     if (!user) {
       setUnreadCount(0);
-      hasFetchedRef.current = false;
       return;
     }
-
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
 
     const fetchCount = async () => {
       try {

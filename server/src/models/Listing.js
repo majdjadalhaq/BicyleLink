@@ -118,6 +118,15 @@ listingSchema.set("toJSON", {
 // Create 2dsphere index for geospatial queries
 listingSchema.index({ coordinates: "2dsphere" });
 
+// Create text index for search queries
+listingSchema.index(
+  { title: "text", description: "text", brand: "text", model: "text" },
+  {
+    name: "ListingTextIndex",
+    weights: { title: 10, brand: 5, model: 5, description: 1 },
+  },
+);
+
 const Listing = mongoose.model("listings", listingSchema);
 
 export default Listing;

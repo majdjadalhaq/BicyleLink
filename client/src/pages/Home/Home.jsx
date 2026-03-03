@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
-import useFetch from "../../hooks/useFetch";
 import { ListingCardSkeleton } from "../../components/ui/SkeletonLoaders.jsx";
 import TEST_ID from "./Home.testid";
 import QuickViewDrawer from "../../components/QuickViewDrawer/QuickViewDrawer.jsx";
@@ -51,56 +50,108 @@ const Home = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const query = useMemo(() => {
+  const buildQuery = () => {
     const params = new URLSearchParams({
-      page,
-      limit: 12,
-      search: debouncedSearchTerm,
+      page: String(page),
+      limit: "12",
+      search: debouncedSearchTerm || "",
     });
-    if (filters.minPrice) params.append("minPrice", filters.minPrice);
-    if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
-    if (filters.minYear) params.append("minYear", filters.minYear);
-    if (filters.maxYear) params.append("maxYear", filters.maxYear);
+    if (filters.minPrice != null)
+      params.set("minPrice", String(filters.minPrice));
+    if (filters.maxPrice != null)
+      params.set("maxPrice", String(filters.maxPrice));
+    if (filters.minYear != null) params.set("minYear", String(filters.minYear));
+    if (filters.maxYear != null) params.set("maxYear", String(filters.maxYear));
 
-    // Use categories from filters
     const cats = filters.category?.length ? filters.category : [];
-    if (cats.length) params.append("category", cats.join(","));
+    if (cats.length) params.set("category", cats.join(","));
 
     if (filters.condition?.length)
-      params.append("condition", filters.condition.join(","));
-    if (filters.location) params.append("location", filters.location);
-    if (filters.lat) params.append("lat", filters.lat);
-    if (filters.lng) params.append("lng", filters.lng);
-    if (filters.radius) params.append("radius", filters.radius);
+      params.set("condition", filters.condition.join(","));
+    if (filters.location) params.set("location", filters.location);
+    if (filters.lat) params.set("lat", filters.lat);
+    if (filters.lng) params.set("lng", filters.lng);
+    if (filters.radius) params.set("radius", filters.radius);
     return params.toString();
-  }, [page, debouncedSearchTerm, filters]);
+  };
 
-  const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    `/listings?${query}`,
-    (response) => {
-      if (page === 1) {
-        setListings(response.result);
-      } else {
-        setListings((prev) => [...prev, ...response.result]);
-      }
-      setHasMore(response.hasMore);
-    },
-  );
+  const query = useMemo(buildQuery, [
+    page,
+    debouncedSearchTerm,
+    filters.category,
+    filters.condition,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.minYear,
+    filters.maxYear,
+    filters.location,
+    filters.lat,
+    filters.lng,
+    filters.radius,
+  ]);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const gridRef = useRef(null);
   const gridCols = useGridCols(gridRef);
 
+  // Fetch listings when query changes
   useEffect(() => {
-    performFetch();
-    return () => cancelFetch();
-  }, [page, debouncedSearchTerm, filters]);
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchListings = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/listings?${query}`, {
+          method: "GET",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          signal,
+        });
+        const jsonResult = await res.json();
+
+        if (!res.ok) {
+          throw new Error(
+            jsonResult.msg ||
+              jsonResult.errors?.[0]?.message ||
+              `Error: ${res.status} ${res.statusText}`,
+          );
+        }
+        if (!jsonResult.success) {
+          throw new Error(jsonResult.msg || "Request failed");
+        }
+
+        const { result, page: resPage, hasMore: resHasMore } = jsonResult;
+        const isFirstPage = resPage === 1;
+        if (isFirstPage) {
+          setListings(result || []);
+        } else {
+          setListings((prev) => [...(prev || []), ...(result || [])]);
+        }
+        setHasMore(!!resHasMore);
+      } catch (err) {
+        if (err.name !== "AbortError") setError(err);
+      } finally {
+        if (!signal.aborted) setIsLoading(false);
+      }
+    };
+
+    fetchListings();
+    return () => controller.abort();
+  }, [query]);
 
   const handleLoadMore = () => setPage((prev) => prev + 1);
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
   };
-  const handleClearSearch = () => setSearchTerm("");
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setPage(1);
+  };
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setPage(1);
@@ -190,7 +241,7 @@ const Home = () => {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar - Desktop Only */}
           <aside className="hidden md:block w-64 lg:w-72 flex-shrink-0">
-            <div className="sticky top-24">
+            <div className="sticky top-[80px]">
               <div className="flex items-center justify-between mb-6 px-1">
                 <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">
                   Filters
@@ -210,6 +261,7 @@ const Home = () => {
                 }
               >
                 <HeroFilter
+                  idPrefix="sidebar"
                   isOpen={true}
                   filters={filters}
                   onApply={handleApplyFilters}
@@ -249,6 +301,7 @@ const Home = () => {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <HeroFilter
+                  idPrefix="modal"
                   isOpen={true}
                   filters={filters}
                   onApply={handleApplyFilters}
@@ -263,8 +316,40 @@ const Home = () => {
           )}
 
           <div className="flex-1 min-w-0">
+            {/* Mobile Filter Button (Sticky independently under the nav bar) */}
+            <div className="md:hidden sticky top-[56px] z-50 bg-[#FAFAF8] dark:bg-[#121212] py-2 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100 dark:border-[#2a2a2a]/50 shadow-sm backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+              <button
+                onClick={() => setIsFilterOpen(true)}
+                className="w-full flex items-center justify-center gap-2.5 px-5 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] rounded-xl text-xs font-black uppercase tracking-widest text-gray-800 dark:text-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)] active:scale-[0.98] transition-all"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="4" y1="21" x2="4" y2="14" />
+                  <line x1="4" y1="10" x2="4" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12" y2="3" />
+                  <line x1="20" y1="21" x2="20" y2="16" />
+                  <line x1="20" y1="12" x2="20" y2="3" />
+                </svg>
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="bg-emerald-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] ml-1">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
             {/* Section header */}
-            <div className="mb-8">
+            <div className="mb-6 mt-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
@@ -280,36 +365,6 @@ const Home = () => {
                       : "No bikes found with current criteria"}
                   </p>
                 </div>
-
-                {/* Mobile Filter Trigger */}
-                <button
-                  onClick={() => setIsFilterOpen(true)}
-                  className="md:hidden flex items-center gap-2.5 px-5 py-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-[#2a2a2a] rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-gray-300 shadow-sm active:scale-95 transition-all"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="4" y1="21" x2="4" y2="14" />
-                    <line x1="4" y1="10" x2="4" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12" y2="3" />
-                    <line x1="20" y1="21" x2="20" y2="16" />
-                    <line x1="20" y1="12" x2="20" y2="3" />
-                  </svg>
-                  Filters
-                  {activeFilterCount > 0 && (
-                    <span className="bg-emerald-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[8px]">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </button>
               </div>
             </div>
 

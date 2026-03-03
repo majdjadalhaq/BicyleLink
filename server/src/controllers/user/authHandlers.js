@@ -86,7 +86,15 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    // Strict primitive assertion (NoSQL Injection Defense)
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({
+        success: false,
+        msg: "Email and password must be valid strings.",
+      });
+    }
+
+    if (!email.trim() || !password.trim()) {
       return res
         .status(400)
         .json({ success: false, msg: "Email and password are required" });
@@ -285,7 +293,15 @@ export const verifyEmail = async (req, res) => {
   try {
     const { email, code } = req.body;
 
-    if (!email || !code) {
+    // Strict string coercion defense
+    if (typeof email !== "string" || typeof code !== "string") {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid input format. Strings required.",
+      });
+    }
+
+    if (!email.trim() || !code.trim()) {
       return res
         .status(400)
         .json({ success: false, msg: "Email and code are required" });
@@ -352,8 +368,10 @@ export const verifyEmail = async (req, res) => {
 export const resendVerificationCode = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, msg: "Email is required" });
+    if (typeof email !== "string" || !email.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Email must be a valid string." });
     }
 
     const user = await User.findOne({ email }).select(
@@ -434,8 +452,10 @@ export const resendVerificationCode = async (req, res) => {
 export const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, msg: "Email is required" });
+    if (typeof email !== "string" || !email.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Email must be a valid string" });
     }
 
     const user = await User.findOne({ email });
@@ -483,10 +503,18 @@ export const resetPassword = async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
 
-    if (!email || !code || !newPassword) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "All fields are required" });
+    if (
+      typeof email !== "string" ||
+      typeof code !== "string" ||
+      typeof newPassword !== "string" ||
+      !email.trim() ||
+      !code.trim() ||
+      !newPassword.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        msg: "All fields are required and must be valid strings.",
+      });
     }
 
     const user = await User.findOne({ email }).select(

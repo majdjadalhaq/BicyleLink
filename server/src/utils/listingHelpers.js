@@ -84,7 +84,7 @@ export const buildListingFilter = (query) => {
     }
   }
 
-  // Full-text style search across title, brand, location, description
+  // Full-text style search across title, brand, model, location, description
   if (search) {
     const searchRegex = { $regex: escapeRegex(search), $options: "i" };
     if (!filter.$and) filter.$and = [];
@@ -92,6 +92,7 @@ export const buildListingFilter = (query) => {
       $or: [
         { title: searchRegex },
         { brand: searchRegex },
+        { model: searchRegex },
         { location: searchRegex },
         { description: searchRegex },
       ],
