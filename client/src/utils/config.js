@@ -18,6 +18,7 @@ const getEnv = (key) => {
   return undefined;
 };
 
+export { getEnv };
 export const CLOUDINARY_CLOUD_NAME = getEnv("VITE_CLOUDINARY_CLOUD_NAME");
 export const CLOUDINARY_UPLOAD_PRESET = getEnv("VITE_CLOUDINARY_UPLOAD_PRESET");
 export const BACKEND_URL = getEnv("VITE_BACKEND_URL");

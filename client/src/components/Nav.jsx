@@ -6,7 +6,8 @@ import TEST_ID from "./Nav.testid";
 import useUnreadCount from "../hooks/useUnreadCount";
 import useNotifications from "../hooks/useNotifications";
 import useKeyboardFocus from "../hooks/useKeyboardFocus";
-import { Icons, DesktopNavLinks, MobileNavLinks } from "./Nav/NavLinks";
+import { DesktopNavLinks, MobileNavLinks } from "./Nav/NavLinks";
+import { Icons } from "./Nav/NavLinksIcons";
 import NavNotifications from "./Nav/NavNotifications";
 import { ThemeToggle } from "./ui";
 
