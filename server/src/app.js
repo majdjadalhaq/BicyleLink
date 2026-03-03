@@ -79,7 +79,7 @@ app.use(
   }),
 );
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(globalLimiter);
+app.use("/api", globalLimiter);
 
 // Standard Middleware
 // Tell express to use the json middleware
