@@ -2,6 +2,7 @@
 
 ## Production Checklist
 
+- [ ] `npm audit` shows no vulnerabilities (run `npm audit fix` in root, client, server)
 - [ ] All environment variables set (no secrets in repo)
 - [ ] `npm run code-style-check` passes
 - [ ] `npm run build:client` succeeds

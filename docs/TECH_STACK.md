@@ -21,6 +21,7 @@
 | Image crop | react-easy-crop |
 | Charts | recharts |
 | OAuth | @react-oauth/google |
+| Location data | country-state-city (code-split via dynamic import) |
 | Utils | date-fns, lodash, clsx, tailwind-merge |
 
 ## Server Libraries

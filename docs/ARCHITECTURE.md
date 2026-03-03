@@ -30,7 +30,7 @@ BiCycleL is a MERN-stack marketplace for buying and selling bicycles. The applic
 | `src/components` | Shared UI components, Nav, forms, modals |
 | `src/pages` | Route-level pages with page-specific components |
 | `src/contexts` | Auth, Theme, Toast, Socket, Notification providers |
-| `src/hooks` | useAuth, useApi, useFetch, useNotifications, useUnreadCount |
+| `src/hooks` | useAuth, useApi, useFetch, useCountryStateCity, useNotifications, useUnreadCount |
 | `src/services` | API client (fetch wrapper with credentials) |
 | `src/utils` | Config, formatDate, formatPrice, cloudinary helpers |
 
@@ -45,7 +45,7 @@ BiCycleL is a MERN-stack marketplace for buying and selling bicycles. The applic
 
 | Path | Purpose |
 |------|---------|
-| `src/controllers` | Business logic per domain |
+| `src/controllers` | Business logic per domain (user split into authHandlers, profileHandlers, accountHandlers) |
 | `src/models` | Mongoose schemas |
 | `src/routes` | Route definitions and middleware wiring |
 | `src/middleware` | Auth, admin, validation, rate limiting |
