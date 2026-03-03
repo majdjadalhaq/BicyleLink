@@ -2,13 +2,28 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "../Home";
 import { BrowserRouter } from "react-router-dom";
-import useFetch from "../../../hooks/useFetch";
 
-// Mock the hook
-jest.mock("../../../hooks/useFetch", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+// Mock global fetch — Home uses direct fetch in useEffect
+const mockFetch = jest.fn();
+beforeAll(() => {
+  global.fetch = mockFetch;
+});
+afterAll(() => {
+  delete global.fetch;
+});
+
+const mockListingsResponse = () =>
+  Promise.resolve({
+    ok: true,
+    json: () =>
+      Promise.resolve({
+        success: true,
+        result: [],
+        page: 1,
+        hasMore: false,
+        totalCount: 0,
+      }),
+  });
 
 // Mock useToast to prevent context errors in inner components
 jest.mock("../../../hooks/useToast", () => () => ({
@@ -54,24 +69,19 @@ const renderWithRouter = (ui) => {
 
 describe("Home Filter Integration", () => {
   beforeEach(() => {
-    useFetch.mockReset();
-    // Default mock implementation
-    useFetch.mockReturnValue({
-      isLoading: false,
-      error: null,
-      performFetch: jest.fn(), // performFetch is called in useEffect
-      cancelFetch: jest.fn(),
-    });
+    mockFetch.mockReset();
+    mockFetch.mockImplementation(mockListingsResponse);
   });
 
   it("updates query string with location when filter is applied", async () => {
     renderWithRouter(<Home />);
 
-    // Initial render check
-    expect(useFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/listings?"),
-      expect.any(Function),
-    );
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/api\/listings\?/),
+        expect.any(Object),
+      );
+    });
 
     // 2. Type Location
     // The input has placeholder "Enter city..."
@@ -100,14 +110,12 @@ describe("Home Filter Integration", () => {
     const applyBtn = screen.getByText("Apply");
     fireEvent.click(applyBtn);
 
-    // 5. Verification
-    // Use waitFor because state updates are async
+    // 5. Verification — fetch should be called with URL containing location=London
     await waitFor(
       () => {
-        expect(useFetch).toHaveBeenCalledWith(
-          expect.stringMatching(/location=London/),
-          expect.any(Function),
-        );
+        const calls = mockFetch.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        expect(lastCall[0]).toMatch(/location=London/);
       },
       { timeout: 2000 },
     );
@@ -116,21 +124,16 @@ describe("Home Filter Integration", () => {
   it("updates query string with category when filter is applied", async () => {
     renderWithRouter(<Home />);
 
-    // Expand the "Category" section first since it's collapsible
-    // Initial state `expandedSections.category` is actually `true`, so Mountain should be visible.
-    // Let's make sure it's in the document before clicking
     const categoryChip = await screen.findByText("Mountain");
     fireEvent.click(categoryChip);
 
-    // Use the "Apply" button from the sidebar
     const applyBtn = screen.getByText("Apply");
     fireEvent.click(applyBtn);
 
     await waitFor(() => {
-      expect(useFetch).toHaveBeenCalledWith(
-        expect.stringMatching(/category=Mountain/),
-        expect.any(Function),
-      );
+      const calls = mockFetch.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall[0]).toMatch(/category=Mountain/);
     });
   });
 });
