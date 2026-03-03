@@ -20,7 +20,7 @@ import {
   verifyEmailChange,
   getPublicProfile,
   updateNotificationSettings,
-} from "../controllers/user.js";
+} from "../controllers/user/index.js";
 import { authenticate } from "../middleware/auth.js";
 
 const userRouter = express.Router();
