@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 import { getJwtSecret } from "../config/jwt.js";
 
 // Helper to extract token

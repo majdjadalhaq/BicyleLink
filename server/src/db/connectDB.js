@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { logInfo } from "../util/logging.js";
+import { logInfo } from "../utils/logging.js";
 
 const connectDB = () => {
   logInfo(

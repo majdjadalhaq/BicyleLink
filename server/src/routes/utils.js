@@ -1,6 +1,6 @@
 import express from "express";
 import { geocodeLocation, reverseGeocode } from "../utils/geocoder.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 
 const utilsRouter = express.Router();
 

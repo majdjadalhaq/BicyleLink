@@ -4,7 +4,7 @@ import User from "./models/User.js";
 import Listing from "./models/Listing.js";
 import bcrypt from "bcrypt";
 
-import { logError } from "./util/logging.js";
+import { logError } from "./utils/logging.js";
 
 const testRouter = express.Router();
 
@@ -154,12 +154,13 @@ testRouter.get("/get-last-code", async (req, res) => {
   const { email } = req.query;
   try {
     const user = await User.findOne({ email }).select(
-      "+verificationCode +securityCode",
+      "+verificationCode +securityCode +passwordResetCode",
     );
     res.status(200).json({
       success: true,
       verificationCode: user?.verificationCode,
       securityCode: user?.securityCode,
+      passwordResetCode: user?.passwordResetCode,
     });
   } catch {
     res.status(500).json({ error: "Failed to seed test users" });

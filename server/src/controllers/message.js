@@ -1,9 +1,8 @@
 import Message from "../models/Message.js";
-import User from "../models/User.js";
-import Listing from "../models/Listing.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 import ConversationStatus from "../models/ConversationStatus.js";
 import mongoose from "mongoose";
+import { getIO } from "../socket/socketHandler.js";
 
 export const getMessagesByRoom = async (req, res) => {
   try {
@@ -47,103 +46,162 @@ export const getInbox = async (req, res) => {
     const { archived = "false" } = req.query;
     const showArchived = archived === "true";
 
-    // Get rooms for this user with matching archived/deleted status
-    const statuses = await ConversationStatus.find({
+    // Determine which rooms to show vs hide
+    const hiddenStatuses = await ConversationStatus.find({
       userId,
-      isArchived: showArchived,
+      $or: [{ isArchived: !showArchived }, { isDeleted: true }],
+    }).select("room");
+    const hiddenRooms = hiddenStatuses.map((s) => s.room);
+
+    const archivedStatuses = await ConversationStatus.find({
+      userId,
+      isArchived: true,
       isDeleted: false,
     }).select("room");
-    const targetRooms = statuses.map((s) => s.room);
+    const archivedRooms = archivedStatuses.map((s) => s.room);
 
-    // If we're looking for active rooms, we also include rooms that have no status yet
-    const query = {
-      $or: [{ senderId: userId }, { receiverId: userId }],
-    };
+    const roomFilter = showArchived
+      ? { $in: archivedRooms }
+      : { $nin: hiddenRooms };
 
-    if (showArchived) {
-      query.room = { $in: targetRooms };
-    } else {
-      // For active, we want rooms NOT in the archived or deleted list
-      const hiddenStatuses = await ConversationStatus.find({
-        userId,
-        $or: [{ isArchived: true }, { isDeleted: true }],
-      }).select("room");
-      const hiddenRooms = hiddenStatuses.map((s) => s.room);
-      query.room = { $nin: hiddenRooms };
-    }
-
-    // Aggregate conversations
+    // Single aggregate: group by room, get last message, then lookup user + listing + unread
     const conversations = await Message.aggregate([
       {
-        $match: query,
+        $match: {
+          $or: [{ senderId: userId }, { receiverId: userId }],
+          room: roomFilter,
+        },
       },
-      {
-        $sort: { createdAt: -1 },
-      },
+      { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: "$room",
           lastMessage: { $first: "$$ROOT" },
         },
       },
+      { $sort: { "lastMessage.createdAt": -1 } },
+      // Lookup other user details
       {
-        $sort: { "lastMessage.createdAt": -1 },
+        $lookup: {
+          from: "users",
+          let: {
+            senderId: "$lastMessage.senderId",
+            receiverId: "$lastMessage.receiverId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $ne: ["$_id", userId] },
+                    {
+                      $or: [
+                        { $eq: ["$_id", "$$senderId"] },
+                        { $eq: ["$_id", "$$receiverId"] },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            { $project: { name: 1, email: 1, avatarUrl: 1, avatar: 1 } },
+            { $limit: 1 },
+          ],
+          as: "otherUserArr",
+        },
+      },
+      // Lookup listing details
+      {
+        $lookup: {
+          from: "listings",
+          let: { listingId: "$lastMessage.listingId" },
+          pipeline: [
+            {
+              $match: { $expr: { $eq: ["$_id", "$$listingId"] } },
+            },
+            { $project: { title: 1, images: 1 } },
+            { $limit: 1 },
+          ],
+          as: "listingArr",
+        },
+      },
+      // Lookup conversation status for this user+room
+      {
+        $lookup: {
+          from: "conversationstatuses",
+          let: { room: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", userId] },
+                    { $eq: ["$room", "$$room"] },
+                  ],
+                },
+              },
+            },
+            { $limit: 1 },
+          ],
+          as: "statusArr",
+        },
       },
     ]);
 
-    const populatedConversations = await Promise.all(
-      conversations.map(async (conv) => {
-        const msg = conv.lastMessage;
-        const otherUserId =
-          msg.senderId.toString() === userId.toString()
-            ? msg.receiverId
-            : msg.senderId;
-
-        const otherUser = await User.findById(otherUserId).select(
-          "name email avatarUrl avatar",
-        );
-
-        // Handle Admin Warning messages without a listingId
-        let listing;
-        if (msg.listingId) {
-          listing = await Listing.findById(msg.listingId).select(
-            "title images",
-          );
-        } else {
-          listing = {
-            _id: "system",
-            title: "Administrator Warning",
-            images: [
-              "https://placehold.co/400x400/6a1b9a/ffffff?text=System+Notice",
-            ],
-          };
-        }
-
-        // Get unread count for this room and user
-        const status = await ConversationStatus.findOne({
-          userId,
-          room: msg.room,
-        });
-        const lastReadAt = status ? status.lastReadAt : new Date(0);
-
-        const unreadCount = await Message.countDocuments({
-          room: msg.room,
-          receiverId: userId,
-          createdAt: { $gt: lastReadAt },
-        });
-
-        return {
-          room: msg.room,
-          lastMessage: msg,
-          otherUser,
-          listing,
-          unreadCount,
-          isArchived: status ? status.isArchived : false,
-        };
-      }),
+    // Compute unread counts in a single batch query
+    const roomNames = conversations.map((c) => c._id);
+    const statusDocs = await ConversationStatus.find({
+      userId,
+      room: { $in: roomNames },
+    }).select("room lastReadAt");
+    const statusByRoom = Object.fromEntries(
+      statusDocs.map((s) => [s.room, s.lastReadAt]),
     );
 
-    res.status(200).json({ success: true, result: populatedConversations });
+    const unreadAgg = await Message.aggregate([
+      {
+        $match: {
+          receiverId: userId,
+          room: { $in: roomNames },
+        },
+      },
+      {
+        $group: {
+          _id: "$room",
+          msgs: { $push: "$createdAt" },
+        },
+      },
+    ]);
+    const unreadByRoom = {};
+    for (const row of unreadAgg) {
+      const lastRead = statusByRoom[row._id] ?? new Date(0);
+      unreadByRoom[row._id] = row.msgs.filter(
+        (d) => new Date(d) > new Date(lastRead),
+      ).length;
+    }
+
+    const result = conversations.map((conv) => {
+      const msg = conv.lastMessage;
+      const status = conv.statusArr[0] ?? null;
+      const rawListing = conv.listingArr[0];
+      const listing = rawListing ?? {
+        _id: "system",
+        title: "Administrator Warning",
+        images: [
+          "https://placehold.co/400x400/6a1b9a/ffffff?text=System+Notice",
+        ],
+      };
+      return {
+        room: msg.room,
+        lastMessage: msg,
+        otherUser: conv.otherUserArr[0] ?? null,
+        listing,
+        unreadCount: unreadByRoom[msg.room] ?? 0,
+        isArchived: status ? status.isArchived : false,
+      };
+    });
+
+    res.status(200).json({ success: true, result });
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to fetch inbox" });
@@ -176,27 +234,47 @@ export const archiveRoom = async (req, res) => {
 
 export const getUnreadTotal = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = new mongoose.Types.ObjectId(req.user._id);
 
-    // This is more complex because we need the lastReadAt per room
-    const statuses = await ConversationStatus.find({ userId });
-    let totalUnread = 0;
+    // Fetch all conversation statuses for this user (lastReadAt per room)
+    const statuses = await ConversationStatus.find({ userId }).select(
+      "room lastReadAt",
+    );
+    const statusByRoom = Object.fromEntries(
+      statuses.map((s) => [s.room, s.lastReadAt ?? new Date(0)]),
+    );
 
     // Get all rooms the user is part of
     const rooms = await Message.distinct("room", {
       $or: [{ senderId: userId }, { receiverId: userId }],
     });
 
-    for (const room of rooms) {
-      const status = statuses.find((s) => s.room === room);
-      const lastReadAt = status ? status.lastReadAt : new Date(0);
+    if (rooms.length === 0) {
+      return res.status(200).json({ success: true, result: 0 });
+    }
 
-      const count = await Message.countDocuments({
-        room,
-        receiverId: userId,
-        createdAt: { $gt: lastReadAt },
-      });
-      totalUnread += count;
+    // Single aggregate across all rooms — count messages newer than lastReadAt per room
+    const agg = await Message.aggregate([
+      {
+        $match: {
+          receiverId: userId,
+          room: { $in: rooms },
+        },
+      },
+      {
+        $group: {
+          _id: "$room",
+          messages: { $push: "$createdAt" },
+        },
+      },
+    ]);
+
+    let totalUnread = 0;
+    for (const row of agg) {
+      const lastRead = statusByRoom[row._id] ?? new Date(0);
+      totalUnread += row.messages.filter(
+        (d) => new Date(d) > new Date(lastRead),
+      ).length;
     }
 
     res.status(200).json({ success: true, result: totalUnread });
@@ -285,6 +363,11 @@ export const markAllRead = async (req, res) => {
     const userId = req.user._id;
 
     await ConversationStatus.updateMany({ userId }, { lastReadAt: new Date() });
+
+    const io = getIO();
+    if (io) {
+      io.to(`user_${userId}`).emit("messages_read", { room: "all" });
+    }
 
     res
       .status(200)

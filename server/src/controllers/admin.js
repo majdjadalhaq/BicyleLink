@@ -3,7 +3,8 @@ import User from "../models/User.js";
 import Listing from "../models/Listing.js";
 import Report from "../models/Report.js";
 import Message from "../models/Message.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
+import { ALLOWED_UPDATE_FIELDS } from "../utils/listingConstants.js";
 
 // Helper to check if value is a non-null, non-array object
 const isPlainObject = (val) =>
@@ -68,11 +69,24 @@ export const getAdminStats = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find()
-      .select("-password -verificationCode -securityCode")
-      .sort({ createdAt: -1 });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip = (page - 1) * limit;
 
-    res.status(200).json({ success: true, users });
+    const [users, total] = await Promise.all([
+      User.find()
+        .select("-password -verificationCode -securityCode")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      users,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to retrieve users" });
@@ -193,10 +207,24 @@ export const sendAdminWarning = async (req, res) => {
 
 export const getListings = async (req, res) => {
   try {
-    const listings = await Listing.find()
-      .populate("ownerId", "name email")
-      .sort({ createdAt: -1 });
-    res.status(200).json({ success: true, listings });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip = (page - 1) * limit;
+
+    const [listings, total] = await Promise.all([
+      Listing.find()
+        .populate("ownerId", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Listing.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      listings,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     logError(error);
     res
@@ -242,18 +270,24 @@ export const deleteListingByAdmin = async (req, res) => {
   }
 };
 
+const WARNINGS_MAX_LIMIT = 50;
+
 export const getAdminSentWarnings = async (req, res) => {
   try {
     const { id } = req.params;
+    const limit = Math.min(
+      WARNINGS_MAX_LIMIT,
+      Math.max(1, parseInt(req.query.limit) || 20),
+    );
 
-    // Fetch messages sent to this user where the room signifies an admin warning
-    // We don't filter by senderId so the current admin can see warnings sent by OTHER admins too.
     const warnings = await Message.find({
       receiverId: id,
       room: `admin-warning-${id}`,
     })
-      .sort({ createdAt: -1 }) // Newest first
-      .select("content createdAt read");
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select("content createdAt read")
+      .lean();
 
     res.status(200).json({ success: true, warnings });
   } catch (error) {
@@ -279,23 +313,7 @@ export const updateListingByAdmin = async (req, res) => {
       return res.status(404).json({ success: false, msg: "Listing not found" });
     }
 
-    // Reuse ALLOWED_UPDATE_FIELDS logic or similar
-    const ALLOWED_UPDATE_FIELDS = [
-      "title",
-      "description",
-      "price",
-      "images",
-      "location",
-      "brand",
-      "model",
-      "year",
-      "condition",
-      "mileage",
-      "status",
-      "category",
-      "coordinates",
-    ];
-
+    // Use shared ALLOWED_UPDATE_FIELDS from listingConstants.js
     ALLOWED_UPDATE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
         listing[field] = updates[field];

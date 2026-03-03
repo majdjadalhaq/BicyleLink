@@ -1,4 +1,4 @@
-import { logError } from "../util/logging.js";
+import { logError } from "./logging.js";
 
 /**
  * Geocodes a location string to a GeoJSON Point using the Nominatim API.

@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
-import { logError, logInfo } from "../util/logging.js";
+import { logError, logInfo } from "./logging.js";
 
 /**
  * Creates and returns an Ethereal transporter for local development.
@@ -28,7 +28,7 @@ const getEtherealTransporter = async () => {
  */
 const emailTemplate = (content, _title) => `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,9 +61,8 @@ const emailTemplate = (content, _title) => `
       </div>
       <div class="footer">
         <div class="social-links">
-          <a href="#" class="social-link">Website</a>
-          <a href="#" class="social-link">Support</a>
-          <a href="#" class="social-link">Twitter</a>
+          <a href="https://bicyclel.nl" class="social-link">Website</a>
+          <a href="mailto:support@bicyclel.nl" class="social-link">Support</a>
         </div>
         <div class="fine-print">
           <p>&copy; 2026 BiCycleL Platform. All rights reserved.</p>

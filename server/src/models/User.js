@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import validateAllowedFields from "../util/validateAllowedFields.js";
+import validateAllowedFields from "../utils/validateAllowedFields.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -100,6 +100,8 @@ export const validateUser = (userObject) => {
 
   if (userObject.email == null) {
     errorList.push("email is a required field");
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userObject.email)) {
+    errorList.push("email must be a valid email address");
   }
 
   if (userObject.password == null) {

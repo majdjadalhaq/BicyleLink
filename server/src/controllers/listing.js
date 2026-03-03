@@ -4,14 +4,15 @@ import Listing from "../models/Listing.js";
 import User from "../models/User.js";
 import Message from "../models/Message.js";
 import Notification from "../models/Notification.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 import { emitNotification } from "../socket/socketHandler.js";
-import validationErrorMessage from "../util/validationErrorMessage.js";
+import validationErrorMessage from "../utils/validationErrorMessage.js";
 import { geocodeLocation } from "../utils/geocoder.js";
 import {
   buildListingFilter,
   buildListingSort,
 } from "../utils/listingHelpers.js";
+import { ALLOWED_UPDATE_FIELDS } from "../utils/listingConstants.js";
 
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -19,23 +20,6 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 // Helper to check if value is a non-null, non-array object
 const isPlainObject = (val) =>
   val != null && typeof val === "object" && !Array.isArray(val);
-
-// Allowed fields for listing creation/update to prevent prototype pollution
-const ALLOWED_UPDATE_FIELDS = [
-  "title",
-  "description",
-  "price",
-  "images",
-  "location",
-  "brand",
-  "model",
-  "year",
-  "condition",
-  "mileage",
-  "status",
-  "category",
-  "coordinates",
-];
 
 // GET /api/listings — paginated list with filtering, searching, and sorting
 export const getListings = async (req, res) => {
@@ -46,6 +30,18 @@ export const getListings = async (req, res) => {
       return res.status(400).json({
         success: false,
         msg: "Invalid geospatial params: lat must be [-90,90], lng must be [-180,180], radius must be > 0",
+      });
+    }
+    if (filter.__invalidPriceRange) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid price range: minPrice must be less than or equal to maxPrice",
+      });
+    }
+    if (filter.__invalidYearRange) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid year range: minYear must be less than or equal to maxYear",
       });
     }
 

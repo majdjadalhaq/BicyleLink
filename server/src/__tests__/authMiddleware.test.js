@@ -22,7 +22,7 @@ jest.unstable_mockModule("mongoose", () => ({
     },
   },
 }));
-jest.unstable_mockModule("../util/logging.js", () => ({
+jest.unstable_mockModule("../utils/logging.js", () => ({
   logError: jest.fn(),
 }));
 

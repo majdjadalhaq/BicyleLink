@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Review from "../models/Review.js";
 import User from "../models/User.js";
 import Listing from "../models/Listing.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 import Notification from "../models/Notification.js";
 import { emitNotification } from "../socket/socketHandler.js";
 

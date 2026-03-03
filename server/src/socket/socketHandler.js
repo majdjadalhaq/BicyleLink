@@ -3,7 +3,7 @@ import Message from "../models/Message.js";
 import Listing from "../models/Listing.js";
 import ConversationStatus from "../models/ConversationStatus.js";
 import Notification from "../models/Notification.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 
 const onlineUsers = new Map();
 let ioInstance = null;
@@ -198,7 +198,7 @@ export const initSocket = (io) => {
         // Verify if users share a conversation before disclosing status
         const sharedRoom = await ConversationStatus.findOne({
           userId: currentUserId,
-          room: { $regex: targetUserId },
+          room: { $regex: String(targetUserId) },
         });
 
         if (sharedRoom) {

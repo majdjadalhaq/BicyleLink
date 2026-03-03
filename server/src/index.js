@@ -4,7 +4,7 @@ import express from "express";
 dotenv.config();
 
 import app from "./app.js";
-import { logInfo, logError } from "./util/logging.js";
+import { logInfo, logError } from "./utils/logging.js";
 
 logInfo(" [DEBUG] Index.js loaded. Starting startup sequence...");
 
