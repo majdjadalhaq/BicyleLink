@@ -1,0 +1,28 @@
+[dotenv@17.3.1] injecting env (11) from .env -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+--- STARTING ATLAS E2E VERIFICATION ---
+Checking connection URI: mongodb+srv://c54-group-b:JHQW...
+✅ ATLAS CONNECTION SUCCESSFUL
+Current Listing Count: 14
+Seeding up to 10k listings...
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 1000
+... inserted batch of 986
+✅ SEEDING COMPLETE. Total Listings: 10000
+
+--- TESTING $text INDEX SCRIPT OPTIMIZATION ---
+Explain Query Used Index: PROJECTION_DEFAULT
+Execution Time (ms): 22
+Total Docs Examined: 9986
+
+--- TESTING REPORTS N+1 OPTIMIZATION ---
+Reports Batch Fetch Time (ms): 34
+Fetched 0 Users and 0 Listings safely via $in.
+
+--- VERIFICATION COMPLETE ---
