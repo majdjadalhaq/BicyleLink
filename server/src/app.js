@@ -50,6 +50,7 @@ app.use(
           "https://placehold.co",
           "https://images.unsplash.com",
           "https://via.placeholder.com",
+          "https://static-maps.yandex.ru",
           "https://*.tile.openstreetmap.org",
           "https://www.gstatic.com",
           "https://i.pravatar.cc",

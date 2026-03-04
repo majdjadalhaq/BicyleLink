@@ -1,35 +1,50 @@
 import express from "express";
-import { logInfo } from "../utils/logging.js";
+import { logInfo, logError } from "../utils/logging.js";
+import { authorizeAdmin } from "../middleware/adminMiddleware.js";
+
 const router = express.Router();
 
 /**
- * Endpoint to handle incoming webhooks from Resend
- * This allows us to "Receive" events about our emails (delivered, opened, etc.)
+ * Endpoint to handle incoming webhooks from Resend.
+ * Validates the webhook signature to prevent spoofing.
+ * Resend signs each webhook with a shared secret — set RESEND_WEBHOOK_SECRET in Heroku.
  */
 router.post("/webhook", (req, res) => {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+
+  // If a webhook secret is configured, validate the signature
+  if (secret) {
+    const signature =
+      req.headers["svix-signature"] || req.headers["resend-signature"];
+    if (!signature || signature !== secret) {
+      return res
+        .status(401)
+        .json({ success: false, msg: "Invalid webhook signature" });
+    }
+  }
+
   const event = req.body;
+  logInfo(`Email webhook received: ${event?.type || "unknown"}`);
 
-  // You can log these to see if your emails are actually being delivered
-  logInfo(`📨 Email Event Received: ${event.type}`);
-
-  // Future: Here you can update your database if an email was opened or if a user replied
-  res.status(200).json({ received: true });
+  // Future: handle delivery/open/bounce events and update DB
+  res.status(200).json({ success: true, msg: "Webhook received" });
 });
 
 /**
- * General purpose API to manually trigger a test email (Admin only recommended)
+ * Admin-only endpoint to manually trigger a test email.
+ * POST to avoid accidental triggering by crawlers or browser pre-fetch.
+ * Requires admin authentication.
  */
-router.get("/test", async (req, res) => {
+router.post("/test", authorizeAdmin, async (req, res) => {
   try {
     const { sendVerificationEmail } = await import("../utils/emailService.js");
-    // Change this to your email to test
-    await sendVerificationEmail(
-      process.env.TEST_EMAIL || "test@example.com",
-      "123456",
-    );
-    res.json({ success: true, message: "Test email triggered" });
+    const target =
+      process.env.TEST_EMAIL || req.user?.email || "test@example.com";
+    await sendVerificationEmail(target, "123456");
+    res.json({ success: true, msg: `Test email sent to ${target}` });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    logError(error);
+    res.status(500).json({ success: false, msg: error.message });
   }
 });
 
