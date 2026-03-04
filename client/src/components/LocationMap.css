@@ -1,0 +1,52 @@
+.location-map-wrapper {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.location-map-container {
+  height: 50vh;
+  min-height: 350px;
+  max-height: 600px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.leaflet-container {
+  background: #f1f5f9;
+}
+
+.dark .leaflet-container {
+  background: #111;
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.distance-badge {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.location-map-header.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+@media (max-width: 767px) {
+  .location-map-container {
+    height: 60vh;
+    border-radius: 0;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}

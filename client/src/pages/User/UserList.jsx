@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import useFetch from "../../hooks/useFetch";
 import TEST_ID from "./UserList.testid";

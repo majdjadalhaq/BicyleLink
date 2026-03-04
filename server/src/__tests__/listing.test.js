@@ -7,15 +7,12 @@ import {
   closeMockDatabase,
   clearMockDatabase,
 } from "../__testUtils__/dbMock.js";
-import app from "../app.js";
-import Listing from "../models/Listing.js";
-import User from "../models/User.js";
 
-const request = supertest(app);
+let request;
 
 // Mock the authenticate middleware using global to bypass jest.mock scoping
 // Mock the authenticate middleware using global to bypass jest.mock scoping
-jest.mock("../middleware/auth.js", () => ({
+jest.unstable_mockModule("../middleware/auth.js", () => ({
   authenticate: (req, res, next) => {
     if (global.__mockAuthUser) {
       req.user = global.__mockAuthUser;
@@ -56,6 +53,11 @@ jest.mock("../middleware/auth.js", () => ({
   optionalAuth: (req, res, next) => next(),
 }));
 
+const app = (await import("../app.js")).default;
+request = supertest(app);
+const Listing = (await import("../models/Listing.js")).default;
+const User = (await import("../models/User.js")).default;
+
 beforeAll(async () => {
   await connectToMockDB();
 }, 20000);
@@ -88,6 +90,8 @@ const testListingBase = {
   description: "Great condition mountain bike",
   price: 500,
   location: "Amsterdam",
+  category: "Mountain",
+  condition: "good",
 };
 
 describe("POST /api/listings", () => {

@@ -1,19 +1,15 @@
 import { jest } from "@jest/globals";
 import supertest from "supertest";
 
+let request;
+
 import {
   connectToMockDB,
   closeMockDatabase,
   clearMockDatabase,
 } from "../__testUtils__/dbMock.js";
-import app from "../app.js";
-import Listing from "../models/Listing.js";
-import User from "../models/User.js";
 
-const request = supertest(app);
-
-// Reuse the mock authentication logic from listing.test.js
-jest.mock("../middleware/auth.js", () => ({
+jest.unstable_mockModule("../middleware/auth.js", () => ({
   authenticate: (req, res, next) => {
     if (global.__mockAuthUser) {
       req.user = global.__mockAuthUser;
@@ -28,6 +24,11 @@ jest.mock("../middleware/auth.js", () => ({
   },
   optionalAuth: (req, res, next) => next(),
 }));
+
+const app = (await import("../app.js")).default;
+request = supertest(app);
+const Listing = (await import("../models/Listing.js")).default;
+const User = (await import("../models/User.js")).default;
 
 beforeAll(async () => {
   await connectToMockDB();
@@ -66,6 +67,10 @@ const seedListings = async (user) => {
       year: 2010,
       ownerId: user._id,
       location: "Amsterdam",
+      coordinates: {
+        type: "Point",
+        coordinates: [4.8952, 52.3702],
+      },
       status: "active",
       images: ["img1.jpg"],
     },
@@ -79,6 +84,10 @@ const seedListings = async (user) => {
       year: 2022,
       ownerId: user._id,
       location: "Rotterdam",
+      coordinates: {
+        type: "Point",
+        coordinates: [4.4777, 51.9244],
+      },
       status: "active",
       images: ["img2.jpg"],
     },
@@ -92,6 +101,10 @@ const seedListings = async (user) => {
       year: 2018,
       ownerId: user._id,
       location: "Utrecht",
+      coordinates: {
+        type: "Point",
+        coordinates: [5.1214, 52.0907],
+      },
       status: "active",
       images: ["img3.jpg"],
     },
@@ -101,8 +114,13 @@ const seedListings = async (user) => {
       price: 200,
       category: "Road",
       brand: "Trek",
+      condition: "good",
       ownerId: user._id,
       location: "Amsterdam",
+      coordinates: {
+        type: "Point",
+        coordinates: [4.8952, 52.3702],
+      },
       status: "sold", // Should be included in list but excluded from facets often
       images: ["img4.jpg"],
     },
@@ -163,6 +181,32 @@ describe("Advanced Listing Filters", () => {
       expect(res.status).toBe(200);
       expect(res.body.result).toHaveLength(1);
       expect(res.body.result[0].title).toBe("Cheap Road Bike");
+    });
+
+    it("should filter by geospatial distance (lat/lng/radius)", async () => {
+      // Search near Amsterdam (52.3702, 4.8952), radius 30km
+      // Should find Amsterdam and Utrecht (~36km away won't fit), Rotterdam (~57km away won't fit)
+      const res = await request.get(
+        "/api/listings?lat=52.3702&lng=4.8952&radius=30",
+      );
+      expect(res.status).toBe(200);
+      // Amsterdam listings only (Cheap Road Bike + Sold Bike)
+      const locations = res.body.result.map((l) => l.location);
+      expect(locations).toContain("Amsterdam");
+      expect(locations).not.toContain("Rotterdam");
+      expect(locations).not.toContain("Utrecht");
+    });
+
+    it("should find all cities within large radius", async () => {
+      // Search near Amsterdam, radius 100km - should find all cities
+      const res = await request.get(
+        "/api/listings?lat=52.3702&lng=4.8952&radius=100",
+      );
+      expect(res.status).toBe(200);
+      const locations = [...new Set(res.body.result.map((l) => l.location))];
+      expect(locations).toContain("Amsterdam");
+      expect(locations).toContain("Rotterdam");
+      expect(locations).toContain("Utrecht");
     });
   });
 

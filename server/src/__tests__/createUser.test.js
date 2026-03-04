@@ -1,3 +1,4 @@
+import { jest } from "@jest/globals";
 import supertest from "supertest";
 
 import { connectToMockDB, closeMockDatabase } from "../__testUtils__/dbMock.js";
@@ -16,13 +17,11 @@ afterAll(async () => {
   await closeMockDatabase();
 });
 
+// Minimal valid user — city/country are optional now
 const testUserBase = {
   name: "John",
   email: "john@doe.com",
   password: "Password123!",
-  city: "Amsterdam",
-  country: "Netherlands",
-  agreedToTerms: true,
 };
 
 describe("POST /api/users", () => {
@@ -37,30 +36,49 @@ describe("POST /api/users", () => {
       .catch((err) => done(err));
   });
 
-  it("Should return a bad request if the user object does not have agreedToTerms: true", (done) => {
-    const testUser = { ...testUserBase, agreedToTerms: false };
+  it("Should return a bad request if name is missing", (done) => {
+    const testUser = { ...testUserBase };
+    delete testUser.name;
 
     request
       .post("/api/users")
       .send({ user: testUser })
       .then((response) => {
         expect(response.status).toBe(400);
-        expect(response.body.msg).toContain("Terms of Service");
+        expect(response.body.success).toBe(false);
+        expect(response.body.msg).toContain("name");
         done();
       })
       .catch((err) => done(err));
   });
 
-  it("Should return a bad request if agreedToTerms is missing", (done) => {
+  it("Should return a bad request if email is missing", (done) => {
     const testUser = { ...testUserBase };
-    delete testUser.agreedToTerms;
+    delete testUser.email;
 
     request
       .post("/api/users")
       .send({ user: testUser })
       .then((response) => {
         expect(response.status).toBe(400);
-        expect(response.body.msg).toContain("must be accepted");
+        expect(response.body.success).toBe(false);
+        expect(response.body.msg).toContain("email");
+        done();
+      })
+      .catch((err) => done(err));
+  });
+
+  it("Should return a bad request if password is missing", (done) => {
+    const testUser = { ...testUserBase };
+    delete testUser.password;
+
+    request
+      .post("/api/users")
+      .send({ user: testUser })
+      .then((response) => {
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.msg).toContain("password");
         done();
       })
       .catch((err) => done(err));
@@ -80,6 +98,21 @@ describe("POST /api/users", () => {
     const userInDb = await findUserInMockDB(response.body.user._id);
     expect(userInDb.name).toEqual(testUser.name);
     expect(userInDb.isVerified).toBe(false); // Default should be false
-    expect(userInDb.agreedToTerms).toBe(true);
+    expect(userInDb.agreedToTerms).toBe(true); // Default in schema is true
+  });
+
+  it("Should return a success state when city and country are provided", async () => {
+    const testUser = {
+      ...testUserBase,
+      name: "Jane",
+      email: "jane@doe.com",
+      city: "Amsterdam",
+      country: "Netherlands",
+    };
+
+    const response = await request.post("/api/users").send({ user: testUser });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
   });
 });

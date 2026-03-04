@@ -1,5 +1,3 @@
-import styles from "./TextAreaField.module.css";
-
 const TextAreaField = ({
   name,
   value,
@@ -7,9 +5,14 @@ const TextAreaField = ({
   placeholder,
   rows = 4,
   dataTestId,
+  className,
 }) => (
-  <div className={styles.textAreaGroup}>
-    <label htmlFor={name}>{placeholder}</label>
+  <div className="flex flex-col gap-1.5 w-full">
+    {placeholder && (
+      <label htmlFor={name} className="text-sm font-medium ml-1">
+        {placeholder}
+      </label>
+    )}
     <textarea
       id={name}
       name={name}
@@ -18,6 +21,7 @@ const TextAreaField = ({
       rows={rows}
       placeholder={placeholder}
       data-testid={dataTestId}
+      className={`input-emerald resize-y ${className || ""}`}
     />
   </div>
 );

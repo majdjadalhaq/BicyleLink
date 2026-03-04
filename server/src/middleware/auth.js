@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import { logError } from "../util/logging.js";
+import { logError } from "../utils/logging.js";
 import { getJwtSecret } from "../config/jwt.js";
 
 // Helper to extract token
@@ -34,6 +34,13 @@ export const authenticate = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           msg: "The user belonging to this token no longer exists",
+        });
+      }
+
+      if (user.isBlocked) {
+        return res.status(403).json({
+          success: false,
+          msg: "Your account has been blocked by an administrator.",
         });
       }
 

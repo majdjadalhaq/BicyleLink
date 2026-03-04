@@ -1,10 +1,10 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 
 const PublicOnlyRoute = () => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading-fallback">Loading...</div>;
   }
 

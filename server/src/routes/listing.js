@@ -7,6 +7,8 @@ import {
   deleteListing,
   updateStatus,
   getListingFacets,
+  getCandidates,
+  incrementViews,
 } from "../controllers/listing.js";
 import {
   authenticate,
@@ -23,6 +25,14 @@ listingRouter.get("/", optionalAuth, getListings);
 
 // GET /api/listings/facets - Get filter statistics (Must be before /:id)
 listingRouter.get("/facets", getListingFacets);
+
+// GET /api/listings/:id/candidates - Get potential buyers (requires ownership logic in controller)
+listingRouter.get(
+  "/:id/candidates",
+  authenticate,
+  requireVerified,
+  getCandidates,
+);
 
 // GET /api/listings/:id - Get single listing
 listingRouter.get("/:id", optionalAuth, getListingById);
@@ -56,5 +66,8 @@ listingRouter.patch(
   requireOwnership(Listing),
   updateStatus,
 );
+
+// PATCH /api/listings/:id/view - Increment view count
+listingRouter.patch("/:id/view", optionalAuth, incrementViews);
 
 export default listingRouter;

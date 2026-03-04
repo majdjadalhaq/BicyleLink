@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { logInfo } from "../util/logging.js";
+import { logInfo } from "../utils/logging.js";
 
 const connectDB = () => {
   logInfo(
@@ -8,6 +8,7 @@ const connectDB = () => {
       process.env.MONGODB_URL ? "DEFINED" : "UNDEFINED"
     }`,
   );
+  mongoose.set("strictQuery", true);
   return mongoose.connect(process.env.MONGODB_URL);
 };
 

@@ -3,16 +3,25 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import morgan from "morgan";
-import favoriteRouter from "./routes/Favorite.js";
+import favoriteRouter from "./routes/favorite.js";
 
 import userRouter from "./routes/user.js";
 import listingRouter from "./routes/listing.js";
 import messageRouter from "./routes/message.js";
+import reviewRouter from "./routes/review.js";
+import utilsRouter from "./routes/utils.js";
+import adminRouter from "./routes/admin.js";
+import notificationRouter from "./routes/notification.js";
+import reportRouter from "./routes/report.js";
+import emailRouter from "./routes/email.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
 
 // Create an express server
 const app = express();
+
+// Trust proxy for Heroku/Cloud environments
+app.set("trust proxy", 1);
 
 // Security & Logging Middleware
 app.use(
@@ -20,6 +29,19 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://accounts.google.com/gsi/client",
+          "https://apis.google.com",
+          "https://www.gstatic.com",
+        ],
+        "frame-src": [
+          "'self'",
+          "https://accounts.google.com/gsi/",
+          "https://accounts.google.com",
+          "https://content.googleapis.com",
+        ],
         "img-src": [
           "'self'",
           "data:",
@@ -28,20 +50,36 @@ app.use(
           "https://placehold.co",
           "https://images.unsplash.com",
           "https://via.placeholder.com",
-          "https://static-maps.yandex.ru",
+          "https://*.tile.openstreetmap.org",
+          "https://www.gstatic.com",
+          "https://i.pravatar.cc",
+          "https://*.googleusercontent.com",
         ],
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+        ],
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
         "connect-src": [
           "'self'",
           "https://api.cloudinary.com",
           "https://nominatim.openstreetmap.org",
+          "https://accounts.google.com/gsi/",
+          "https://oauth2.googleapis.com",
+          "https://www.googleapis.com",
+          "https://c54b.hyf.dev",
+          "http://localhost:3000",
         ],
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginEmbedderPolicy: false,
   }),
 );
-app.use(morgan("dev"));
-app.use(globalLimiter);
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use("/api", globalLimiter);
 
 // Standard Middleware
 // Tell express to use the json middleware
@@ -49,7 +87,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
+      "https://bicyclel.nl",
+      "https://www.bicyclel.nl",
+    ],
     credentials: true,
   }),
 );
@@ -64,6 +109,12 @@ app.use("/api/users", userRouter);
 app.use("/api/listings", listingRouter);
 app.use("/api/favorites", favoriteRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/utils", utilsRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/notifications", notificationRouter);
+app.use("/api/reports", reportRouter);
+app.use("/api/emails", emailRouter);
 
 // Error Handling
 app.use(errorHandler);

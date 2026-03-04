@@ -1,0 +1,113 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modalContent {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modalContent h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.cropperContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  background: #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zoomControl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zoomControl label {
+  font-size: 0.875rem;
+  color: #4b5563;
+  min-width: 50px;
+}
+
+.zoomRange {
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  appearance: none;
+  outline: none;
+}
+
+.zoomRange::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #4f46e5;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.saveBtn {
+  background-color: #4f46e5;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveBtn:hover {
+  background-color: #4338ca;
+}
+
+.cancelBtn {
+  background-color: white;
+  color: #4b5563;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}

@@ -1,145 +1,56 @@
 import mongoose from "mongoose";
 
 import Listing from "../models/Listing.js";
-import { logError } from "../util/logging.js";
-import validationErrorMessage from "../util/validationErrorMessage.js";
-
-// Helper to escape regex special characters
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+import User from "../models/User.js";
+import Message from "../models/Message.js";
+import Notification from "../models/Notification.js";
+import { logError } from "../utils/logging.js";
+import { emitNotification } from "../socket/socketHandler.js";
+import validationErrorMessage from "../utils/validationErrorMessage.js";
+import { geocodeLocation } from "../utils/geocoder.js";
+import {
+  buildListingFilter,
+  buildListingSort,
+} from "../utils/listingHelpers.js";
+import { ALLOWED_LISTING_WRITE_FIELDS } from "../utils/listingConstants.js";
 
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Helper to check if value is a plain object (not null, not array)
+// Helper to check if value is a non-null, non-array object
 const isPlainObject = (val) =>
   val != null && typeof val === "object" && !Array.isArray(val);
 
-// Allowed fields for updates/creation to prevent pollution
-const ALLOWED_UPDATE_FIELDS = [
-  "title",
-  "description",
-  "price",
-  "images",
-  "location",
-  "brand",
-  "model",
-  "year",
-  "condition",
-  "mileage",
-  "status", // User might be allowed to change status
-  "category",
-];
-
-// GET all listings
+// GET /api/listings — paginated list with filtering, searching, and sorting
 export const getListings = async (req, res) => {
   try {
-    const {
-      status,
-      location,
-      search,
-      minPrice,
-      maxPrice,
-      minYear,
-      maxYear,
-      brand,
-      category,
-      condition,
-      sort,
-      ownerId,
-      page = 1,
-      limit = 10,
-    } = req.query;
-    const filter = status
-      ? { status }
-      : { status: { $in: ["active", "sold"] } };
+    const filter = buildListingFilter(req.query);
 
-    if (location)
-      filter.location = { $regex: escapeRegex(location), $options: "i" };
-
-    if (ownerId) {
-      filter.ownerId = ownerId;
-      // If filtering by owner, we might want to see all their listings, not just active ones?
-      // For now, let's keep the status filter logic (defaults to active/sold) unless overridden.
-      // But if standard user wants to see their 'cancelled' ones too, we might need to adjust.
-      // Let's assume for "My Listings" we want to see everything they own.
-      // So if ownerId is present, we might want to relax the default status filter if status wasn't explicitly provided.
-      if (!status) {
-        delete filter.status; // Remove default active/sold filter to show all
-      }
+    if (filter.__invalidGeo) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid geospatial params: lat must be [-90,90], lng must be [-180,180], radius must be > 0",
+      });
+    }
+    if (filter.__invalidPriceRange) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid price range: minPrice must be less than or equal to maxPrice",
+      });
+    }
+    if (filter.__invalidYearRange) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid year range: minYear must be less than or equal to maxYear",
+      });
     }
 
-    if (search) {
-      const searchRegex = { $regex: escapeRegex(search), $options: "i" };
-      filter.$or = [
-        { title: searchRegex },
-        { brand: searchRegex },
-        { location: searchRegex },
-        { description: searchRegex },
-      ];
-    }
-
-    // --- NEW: Advanced Filters ---
-    // 1. Price Range
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = parseFloat(minPrice);
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
-    }
-
-    // 2. Year Range
-    if (minYear || maxYear) {
-      filter.year = {};
-      if (minYear) filter.year.$gte = parseInt(minYear, 10);
-      if (maxYear) filter.year.$lte = parseInt(maxYear, 10);
-    }
-
-    // 3. Multi-Select Filters (Brand, Category, Condition)
-    if (brand) {
-      const brands = Array.isArray(brand) ? brand : brand.split(",");
-      if (brands.length > 0) {
-        // Sanitize regex input to prevent ReDoS
-        filter.brand = {
-          $in: brands.map((b) => new RegExp(escapeRegex(b), "i")),
-        };
-      }
-    }
-
-    if (category) {
-      const categories = Array.isArray(category)
-        ? category
-        : category.split(",");
-      if (categories.length > 0) filter.category = { $in: categories };
-    }
-
-    if (condition) {
-      const conditions = Array.isArray(condition)
-        ? condition
-        : condition.split(",");
-      if (conditions.length > 0) filter.condition = { $in: conditions };
-    }
-
-    // Sort options
-    let sortBy = "createdAt";
-    let sortOrder = -1; // Descending by default
-
-    if (sort === "price_asc") {
-      sortBy = "price";
-      sortOrder = 1;
-    } else if (sort === "price_desc") {
-      sortBy = "price";
-      sortOrder = -1;
-    } else if (sort === "year_desc") {
-      sortBy = "year";
-      sortOrder = -1;
-    } else if (sort === "year_asc") {
-      sortBy = "year";
-      sortOrder = 1;
-    }
+    const { sort, page = 1, limit = 10 } = req.query;
+    const { sortBy, sortObject } = buildListingSort(sort);
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
 
-    // Validate pagination
     if (
       !Number.isInteger(pageNum) ||
       !Number.isInteger(limitNum) ||
@@ -155,17 +66,17 @@ export const getListings = async (req, res) => {
 
     const skip = (pageNum - 1) * limitNum;
 
-    // Handle nulls in sorting
+    // Exclude null values from price/year fields when sorting by them
     if (sortBy === "price" || sortBy === "year") {
       filter[sortBy] = { ...filter[sortBy], $ne: null };
     }
 
     const [listings, totalCount] = await Promise.all([
       Listing.find(filter)
-        .sort({ [sortBy]: sortOrder })
+        .sort(sortObject)
         .skip(skip)
         .limit(limitNum)
-        .populate("ownerId", "name email"),
+        .populate("ownerId", "name email avatarUrl ratingSum reviewCount"),
       Listing.countDocuments(filter),
     ]);
 
@@ -184,7 +95,7 @@ export const getListings = async (req, res) => {
   }
 };
 
-// GET single listing by ID
+// GET /api/listings/:id — single listing by ID
 export const getListingById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -197,7 +108,7 @@ export const getListingById = async (req, res) => {
 
     const listing = await Listing.findById(id).populate(
       "ownerId",
-      "name email",
+      "name email avatarUrl ratingSum reviewCount",
     );
 
     if (!listing) {
@@ -213,7 +124,7 @@ export const getListingById = async (req, res) => {
   }
 };
 
-// POST create new listing
+// POST /api/listings — create a new listing
 export const createListing = async (req, res) => {
   try {
     const listingData = req.body?.listing;
@@ -225,18 +136,24 @@ export const createListing = async (req, res) => {
       });
     }
 
-    // Explicitly pick allowed fields
+    // Whitelist allowed fields to prevent prototype pollution
     const safeListing = {};
-    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
       if (listingData[field] !== undefined) {
         safeListing[field] = listingData[field];
       }
     });
 
-    // Set ownerId from authenticated user
     safeListing.ownerId = req.user._id;
 
-    // Create instance to run Mongoose validators
+    // Geocode location if no coordinates are explicitly provided
+    if (safeListing.location && !safeListing.coordinates) {
+      const geoResult = await geocodeLocation(safeListing.location);
+      if (geoResult) {
+        safeListing.coordinates = geoResult;
+      }
+    }
+
     const listing = new Listing(safeListing);
     const validationError = listing.validateSync();
 
@@ -261,7 +178,7 @@ export const createListing = async (req, res) => {
   }
 };
 
-// PUT update listing
+// PUT /api/listings/:id — update a listing (ownership checked by middleware)
 export const updateListing = async (req, res) => {
   try {
     const updates = req.body?.listing;
@@ -273,22 +190,23 @@ export const updateListing = async (req, res) => {
       });
     }
 
-    // Ownership is already checked by middleware (requireOwnership)
-    // req.resource contains the existing listing
-
-    // Whitelist updates
-    ALLOWED_UPDATE_FIELDS.forEach((field) => {
+    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
       if (updates[field] !== undefined) {
         req.resource[field] = updates[field];
       }
     });
 
-    // Save will trigger Mongoose validators
-    await req.resource.save();
+    // Re-geocode if location changed without explicit coordinates
+    if (updates.location && !updates.coordinates) {
+      const geoResult = await geocodeLocation(updates.location);
+      if (geoResult) {
+        req.resource.coordinates = geoResult;
+      }
+    }
 
+    await req.resource.save();
     res.status(200).json({ success: true, listing: req.resource });
   } catch (error) {
-    // Check if it's a Mongoose validation error
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
@@ -305,12 +223,10 @@ export const updateListing = async (req, res) => {
   }
 };
 
-// DELETE listing
+// DELETE /api/listings/:id — delete a listing (ownership checked by middleware)
 export const deleteListing = async (req, res) => {
   try {
-    // Ownership is already checked by middleware
     await Listing.findByIdAndDelete(req.resource._id);
-
     res
       .status(200)
       .json({ success: true, msg: "Listing deleted successfully" });
@@ -323,18 +239,78 @@ export const deleteListing = async (req, res) => {
   }
 };
 
-// PATCH update listing status (e.g. mark as sold)
+// PATCH /api/listings/:id/status — update listing status (e.g. mark as sold)
 export const updateStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, buyerId } = req.body;
 
     if (!["active", "sold", "cancelled"].includes(status)) {
       return res.status(400).json({ success: false, msg: "Invalid status" });
     }
 
-    // Ownership is already checked by middleware
     req.resource.status = status;
+
+    if (status === "sold" && buyerId) {
+      if (!isValidObjectId(buyerId)) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Invalid buyer ID" });
+      }
+
+      // BUYER LOCK: If listing already has a buyerId, it cannot be changed to a different one
+      if (
+        req.resource.buyerId &&
+        req.resource.buyerId.toString() !== buyerId.toString()
+      ) {
+        return res.status(400).json({
+          success: false,
+          msg: "Listing is already locked to a different buyer from a previous transaction.",
+        });
+      }
+
+      req.resource.buyerId = buyerId;
+    } else if (status !== "sold") {
+      // Note: We keep req.resource.buyerId if it's already set to preserve the "Lock"
+      // but if the status becomes active again, we technically don't use it.
+      // However, the user request says "if he reactivate it he cant choose another user when mark as sold again"
+      // So we must NOT nullify it if we want to enforce the lock later.
+      // req.resource.buyerId = null; // REMOVED to maintain lock
+    }
+
     await req.resource.save();
+
+    // Create a notification for the buyer about review permission
+    if (status === "sold" && buyerId) {
+      try {
+        const recipient = await User.findById(buyerId).select(
+          "notificationSettings",
+        );
+
+        if (recipient?.notificationSettings?.reviews !== false) {
+          const notification = await Notification.create({
+            recipientId: buyerId,
+            senderId: req.resource.ownerId,
+            type: "review_permission",
+            listingId: req.resource._id,
+            title: "Review Seller Access",
+            body: `You can now review your purchase: ${req.resource.title}`,
+            link: `/listings/${req.resource._id}`,
+          });
+          emitNotification(buyerId, notification);
+        }
+      } catch (notifErr) {
+        logError(notifErr);
+      }
+    }
+
+    // Live broadcast to anyone viewing the listing
+    const io = req.app.get("io");
+    if (io) {
+      io.to(req.resource._id.toString()).emit("listing_status_updated", {
+        status: req.resource.status,
+        buyerId: req.resource.buyerId,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -350,13 +326,11 @@ export const updateStatus = async (req, res) => {
   }
 };
 
-// GET listing facets (min/max price, brands, categories) for UI initialization
+// GET /api/listings/facets — price range, brands, and categories for filter UI
 export const getListingFacets = async (req, res) => {
   try {
     const stats = await Listing.aggregate([
-      {
-        $match: { status: "active" }, // Only aggregate active listings
-      },
+      { $match: { status: "active" } },
       {
         $facet: {
           priceRange: [
@@ -375,21 +349,21 @@ export const getListingFacets = async (req, res) => {
     ]);
 
     const result = stats[0];
-    // Handle empty results gracefully
     const hasPriceRange =
-      stats[0] &&
-      stats[0].priceRange &&
-      Array.isArray(stats[0].priceRange) &&
-      stats[0].priceRange.length > 0;
+      result?.priceRange &&
+      Array.isArray(result.priceRange) &&
+      result.priceRange.length > 0;
 
     const priceRange = hasPriceRange
-      ? stats[0].priceRange[0]
+      ? result.priceRange[0]
       : { minPrice: 0, maxPrice: 0 };
 
-    if (priceRange.minPrice && priceRange.minPrice.toString)
+    if (priceRange.minPrice?.toString) {
       priceRange.minPrice = parseFloat(priceRange.minPrice.toString());
-    if (priceRange.maxPrice && priceRange.maxPrice.toString)
+    }
+    if (priceRange.maxPrice?.toString) {
       priceRange.maxPrice = parseFloat(priceRange.maxPrice.toString());
+    }
 
     res.status(200).json({
       success: true,
@@ -400,16 +374,99 @@ export const getListingFacets = async (req, res) => {
         .map((b) => ({ name: b._id, count: b.count })),
       categories: result.categories
         .filter((c) => c._id != null)
-        .map((c) => ({
-          name: c._id,
-          count: c.count,
-        })),
+        .map((c) => ({ name: c._id, count: c.count })),
     });
   } catch (error) {
     logError(error);
-    res.status(500).json({
-      success: false,
-      msg: "Unable to get filter facets",
+    res
+      .status(500)
+      .json({ success: false, msg: "Unable to get filter facets" });
+  }
+};
+
+// GET /api/listings/:id/candidates — users who chatted about a listing (owner only)
+export const getCandidates = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    if (listing.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        msg: "Not authorized to view candidates for this listing",
+      });
+    }
+
+    const distinctUserIds = await Message.distinct("senderId", {
+      listingId: id,
+      senderId: { $ne: req.user._id },
     });
+
+    const distinctReceiverIds = await Message.distinct("receiverId", {
+      listingId: id,
+      receiverId: { $ne: req.user._id },
+    });
+
+    const allCandidateIds = [
+      ...new Set([
+        ...distinctUserIds.map((id) => id.toString()),
+        ...distinctReceiverIds.map((id) => id.toString()),
+      ]),
+    ];
+
+    if (allCandidateIds.length === 0) {
+      return res.status(200).json({ success: true, result: [] });
+    }
+
+    const candidates = await mongoose
+      .model("users")
+      .find({ _id: { $in: allCandidateIds } })
+      .select("name email avatarUrl");
+
+    res.status(200).json({ success: true, result: candidates });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to get candidates" });
+  }
+};
+
+// PATCH /api/listings/:id/view — increment view count
+export const incrementViews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid listing ID" });
+    }
+
+    // Optional: Only increment if the viewer is NOT the owner
+    // We check this here if req.user is available via optionalAuth
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ success: false, msg: "Listing not found" });
+    }
+
+    if (req.user && listing.ownerId.toString() === req.user.id) {
+      // Don't increment for owner, but return success 200 to silence client
+      return res.status(200).json({ success: true, msg: "Owner view ignored" });
+    }
+
+    await Listing.findByIdAndUpdate(id, { $inc: { views: 1 } });
+    res.status(200).json({ success: true, msg: "View count incremented" });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Internal server error" });
   }
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { AuthContext } from "./AuthContextProvider";
 
@@ -6,19 +6,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const hasCheckedRef = useRef(false);
   // Check session on mount
   useEffect(() => {
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
     const checkSession = async () => {
       try {
         const response = await fetch("/api/users/me", {
           credentials: "include",
         });
-        if (response.ok) {
-          const data = await response.json();
+        const data = await response.json();
+        if (response.ok && data.success) {
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       } catch {
-        // Session check failed, user not logged in. Silence to keep console clean.
+        // AbortError or Network error
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -27,11 +33,11 @@ export const AuthProvider = ({ children }) => {
     checkSession();
   }, []);
 
-  const login = (userData) => {
+  const login = useCallback((userData) => {
     setUser(userData);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await fetch("/api/users/logout", {
         method: "POST",
@@ -41,13 +47,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, isLoading, login, logout }),
+    [user, isLoading, login, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 AuthProvider.propTypes = {

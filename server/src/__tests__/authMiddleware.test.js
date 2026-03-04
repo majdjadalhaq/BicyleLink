@@ -1,32 +1,36 @@
 // Verified Auth Middleware Logic
 import { jest } from "@jest/globals";
-import jwt from "jsonwebtoken";
-import {
-  authenticate,
-  requireVerified,
-  requireOwnership,
-  optionalAuth,
-} from "../middleware/auth.js";
-import User from "../models/User.js";
-import mongoose from "mongoose";
 
 // Mock dependencies
-jest.mock("jsonwebtoken");
-jest.mock("../models/User.js");
-jest.mock("mongoose", () => {
-  const original = jest.requireActual("mongoose");
-  return {
-    ...original,
+jest.unstable_mockModule("jsonwebtoken", () => ({
+  default: {
+    verify: jest.fn(),
+    sign: jest.fn(),
+  },
+}));
+jest.unstable_mockModule("../models/User.js", () => ({
+  default: {
+    findById: jest.fn(),
+  },
+}));
+jest.unstable_mockModule("mongoose", () => ({
+  default: {
     Types: {
       ObjectId: {
         isValid: jest.fn(),
       },
     },
-  };
-});
-jest.mock("../util/logging.js", () => ({
+  },
+}));
+jest.unstable_mockModule("../utils/logging.js", () => ({
   logError: jest.fn(),
 }));
+
+const jwt = (await import("jsonwebtoken")).default;
+const User = (await import("../models/User.js")).default;
+const mongoose = (await import("mongoose")).default;
+const { authenticate, optionalAuth, requireVerified, requireOwnership } =
+  await import("../middleware/auth.js");
 
 // Mock process.env
 process.env.JWT_SECRET = "test-secret";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 /**
  * Our useFetch hook should be used for all communication with the server.
@@ -18,11 +18,12 @@ const useFetch = (route, onReceived, onError) => {
   /**
    * We use the AbortController which is supported by all modern browsers to handle cancellations
    * For more info: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+   * Stored in a ref so the same instance is shared between performFetch and cancelFetch.
    */
-  const controller = new AbortController();
-  const signal = controller.signal;
+  const controllerRef = useRef(null);
+
   const cancelFetch = () => {
-    controller.abort();
+    controllerRef.current?.abort();
   };
 
   let actualRoute = route;
@@ -45,37 +46,40 @@ const useFetch = (route, onReceived, onError) => {
     setError(null);
     setIsLoading(true);
 
+    // Create a fresh controller for each fetch
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     const baseOptions = {
       method: "GET",
       headers: {
         "content-type": "application/json",
       },
+      credentials: "include",
     };
 
     const fetchData = async () => {
-      // We add the /api subsection here to make it a single point of change if our configuration changes
       const url = `/api${actualRoute}`;
       const res = await fetch(url, { ...baseOptions, ...options, signal });
 
-      if (!res.ok) {
-        setError(
-          `Fetch for ${url} returned an invalid status (${
-            res.status
-          }). Received: ${JSON.stringify(res)}`,
-        );
+      let jsonResult;
+      try {
+        jsonResult = await res.json();
+      } catch (e) {
+        if (!res.ok) {
+          throw new Error(`Fetch failed with status ${res.status}`);
+        }
+        throw e;
       }
 
-      const jsonResult = await res.json();
-
-      if (jsonResult.success === true) {
+      if (res.ok && jsonResult.success === true) {
         onReceived(jsonResult);
       } else {
         if (onError) onError(jsonResult);
         setError(
           jsonResult.msg ||
-            `The result from our API did not have an error message. Received: ${JSON.stringify(
-              jsonResult,
-            )}`,
+            jsonResult.errors?.[0]?.message ||
+            `Error: ${res.status} ${res.statusText}`,
         );
       }
 
@@ -83,7 +87,10 @@ const useFetch = (route, onReceived, onError) => {
     };
 
     fetchData().catch((error) => {
-      setError(error);
+      // Ignore AbortError — it's an intentional cancellation
+      if (error.name !== "AbortError") {
+        setError(error);
+      }
       setIsLoading(false);
     });
   };

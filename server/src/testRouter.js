@@ -4,7 +4,7 @@ import User from "./models/User.js";
 import Listing from "./models/Listing.js";
 import bcrypt from "bcrypt";
 
-import { logError } from "./util/logging.js";
+import { logError } from "./utils/logging.js";
 
 const testRouter = express.Router();
 
@@ -29,7 +29,7 @@ testRouter.post("/seed", async (req, res) => {
         {
           name: "Seller Sam",
           email: "seller@test.com",
-          password: "Password123!",
+          password: "Password123",
           city: "Amsterdam",
           country: "Netherlands",
           agreedToTerms: true,
@@ -38,20 +38,31 @@ testRouter.post("/seed", async (req, res) => {
         {
           name: "Buyer Ben",
           email: "buyer@test.com",
-          password: "Password123!",
+          password: "Password123",
           city: "Rotterdam",
           country: "Netherlands",
           agreedToTerms: true,
           isVerified: true,
         },
         {
-          name: "Teammate Tom",
-          email: "teammate@test.com",
-          password: "Password123!",
+          name: "System Admin",
+          email: "bicyclel2026@gmail.com",
+          password: "AdminRide2026!",
           city: "Amsterdam",
           country: "Netherlands",
           agreedToTerms: true,
           isVerified: true,
+          role: "admin",
+        },
+        {
+          name: "Teammate Tom",
+          email: "teammate@test.com",
+          password: "Password123",
+          city: "Amsterdam",
+          country: "Netherlands",
+          agreedToTerms: true,
+          isVerified: true,
+          role: "admin",
         },
       ],
     };
@@ -74,8 +85,13 @@ testRouter.post("/seed", async (req, res) => {
       description: "A beautiful vintage Gazelle bike in excellent condition.",
       price: 250,
       location: "Amsterdam",
+      coordinates: {
+        type: "Point",
+        coordinates: [4.8952, 52.3702], // Amsterdam [lng, lat]
+      },
       brand: "Gazelle",
       condition: "good",
+      category: "City",
       ownerId: createdUsers[0]._id, // Sam
     });
 
@@ -113,6 +129,41 @@ testRouter.post("/seed", async (req, res) => {
         listings: finalListings,
       },
     });
+  }
+});
+
+testRouter.post("/verify-user", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOneAndUpdate(
+      { email },
+      { isVerified: true },
+      { new: true },
+    );
+    // eslint-disable-next-line no-console
+    console.log(`[TEST] Verified user: ${email}, found: ${!!user}`);
+    res.status(200).json({ success: true, found: !!user });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`[TEST] Verification error: ${err.message}`);
+    res.status(500).json({ success: false });
+  }
+});
+
+testRouter.get("/get-last-code", async (req, res) => {
+  const { email } = req.query;
+  try {
+    const user = await User.findOne({ email }).select(
+      "+verificationCode +securityCode +passwordResetCode",
+    );
+    res.status(200).json({
+      success: true,
+      verificationCode: user?.verificationCode,
+      securityCode: user?.securityCode,
+      passwordResetCode: user?.passwordResetCode,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to seed test users" });
   }
 });
 

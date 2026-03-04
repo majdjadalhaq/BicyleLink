@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema(
     listingId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "listings",
-      required: true,
+      required: false,
     },
     content: {
       type: String,
@@ -42,9 +42,19 @@ const messageSchema = new mongoose.Schema(
       lng: Number,
       address: String,
     },
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
+
+// Index for efficient inquiry tracking and fetching listing messages
+messageSchema.index({ listingId: 1, senderId: 1 });
+
+// Index for efficient inbox memory sorting
+messageSchema.index({ room: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 

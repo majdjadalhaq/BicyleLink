@@ -628,3 +628,49 @@
     font-size: 30px;
   }
 }
+
+/* System Warning Styles */
+.systemWarning {
+  width: 100%;
+  max-width: 600px;
+  margin: 10px auto;
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.warningHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #b45309;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.warningIcon {
+  font-size: 18px;
+}
+
+.warningContent {
+  color: #451a03;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+body.theme-dark .systemWarning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-left-color: #f59e0b;
+}
+
+body.theme-dark .warningHeader {
+  color: #fcd34d;
+}
+
+body.theme-dark .warningContent {
+  color: #e5e7eb;
+}

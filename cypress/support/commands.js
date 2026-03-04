@@ -33,9 +33,19 @@ Cypress.Commands.add("getByElementId", (id) => {
 });
 
 Cypress.Commands.add("clickByTestId", (id, ...args) => {
-  return cy.getByTestId(id).click(...args);
+  return cy
+    .getByTestId(id)
+    .filter(":visible")
+    .click(...args);
 });
 
 Cypress.Commands.add("requestFromDatabase", (url) => {
   return cy.task("db:grabData", url);
+});
+
+Cypress.Commands.add("seedDatabase", () => {
+  return cy
+    .request("POST", "/api/test/seed")
+    .its("status")
+    .should("equal", 201);
 });
