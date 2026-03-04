@@ -33,41 +33,44 @@ const emailTemplate = (content, _title) => `
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-    .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding-bottom: 40px; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; margin-top: 40px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
-    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 48px 40px; text-align: center; color: #ffffff; }
-    .header h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.025em; text-transform: uppercase; }
-    .content { padding: 48px 40px; color: #1e293b; line-height: 1.6; }
-    .footer { padding: 32px 40px; text-align: center; color: #64748b; font-size: 14px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0; }
-    .code-box { background-color: #f8fafc; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 2px dashed #cbd5e1; }
-    .code { font-size: 42px; font-weight: 900; color: #4f46e5; letter-spacing: 0.1em; margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; line-height: 1; }
-    .copy-tip { font-size: 13px; color: #94a3b8; margin-top: 16px; font-weight: 500; }
-    .social-links { margin-top: 24px; padding-top: 24px; border-top: 1px solid #cbd5e1; }
-    .social-link { color: #4f46e5; text-decoration: none; margin: 0 12px; font-weight: 600; }
-    .fine-print { font-size: 12px; color: #94a3b8; margin-top: 24px; }
-    p { margin-bottom: 24px; font-size: 16px; }
-    h2 { font-size: 24px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 24px; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0fdf4; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    .wrapper { width: 100%; table-layout: fixed; background-color: #f0fdf4; padding-bottom: 40px; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; margin-top: 40px; box-shadow: 0 10px 30px -5px rgba(16, 183, 127, 0.15); border: 1px solid #d1fae5; }
+    .header { background: linear-gradient(135deg, #10B77F 0%, #059669 100%); padding: 40px 40px 36px; text-align: center; color: #ffffff; }
+    .header-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; }
+    .header-sub { margin: 6px 0 0; font-size: 13px; font-weight: 500; opacity: 0.85; letter-spacing: 0.05em; }
+    .content { padding: 48px 40px; color: #1e293b; line-height: 1.7; }
+    .footer { padding: 28px 40px; text-align: center; color: #64748b; font-size: 13px; background-color: #f8fffe; border-top: 1px solid #d1fae5; }
+    .code-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 16px; padding: 32px; text-align: center; margin: 32px 0; border: 2px solid #6ee7b7; }
+    .code { font-size: 46px; font-weight: 900; color: #059669; letter-spacing: 0.15em; margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; line-height: 1; }
+    .copy-tip { font-size: 13px; color: #6b7280; margin-top: 14px; font-weight: 500; }
+    .social-links { margin-top: 20px; padding-top: 20px; border-top: 1px solid #d1fae5; }
+    .social-link { color: #10B77F; text-decoration: none; margin: 0 12px; font-weight: 700; }
+    .fine-print { font-size: 12px; color: #9ca3af; margin-top: 16px; }
+    p { margin-bottom: 20px; font-size: 16px; }
+    h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="wrapper">
     <div class="container">
       <div class="header">
+        <span class="header-icon">🚲</span>
         <h1>BiCycleL</h1>
+        <p class="header-sub">The pre-loved bicycle marketplace</p>
       </div>
       <div class="content">
         ${content}
       </div>
       <div class="footer">
         <div class="social-links">
-          <a href="https://bicyclel.nl" class="social-link">Website</a>
-          <a href="mailto:support@bicyclel.nl" class="social-link">Support</a>
+          <a href="https://bicyclel.nl" class="social-link">Visit BiCycleL</a>
+          <a href="mailto:hello@bicyclel.nl" class="social-link">Contact Support</a>
         </div>
         <div class="fine-print">
-          <p>&copy; 2026 BiCycleL Platform. All rights reserved.</p>
-          <p>BiCycleL HQ • 123 Tech Avenue • Innovation City, IC 54321</p>
-          <p>This is an automated security notification. For your protection, do not reply to this email.</p>
+          <p>&copy; 2026 BiCycleL. All rights reserved.</p>
+          <p>This is an automated message. Please do not reply to this email.</p>
         </div>
       </div>
     </div>
