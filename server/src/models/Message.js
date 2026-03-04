@@ -53,6 +53,9 @@ const messageSchema = new mongoose.Schema(
 // Index for efficient inquiry tracking and fetching listing messages
 messageSchema.index({ listingId: 1, senderId: 1 });
 
+// Index for efficient inbox memory sorting
+messageSchema.index({ room: 1, createdAt: -1 });
+
 const Message = mongoose.model("Message", messageSchema);
 
 export default Message;

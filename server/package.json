@@ -10,8 +10,8 @@
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --detectOpenHandles --forceExit",
     "setup": "npm ci --include=dev",
     "start": "node ./src/index",
     "dev": "nodemon ./src/index",
@@ -60,8 +60,5 @@
     "nodemon": "^3.1.0",
     "prettier": "^3.5.1",
     "supertest": "^7.0.0"
-  },
-  "overrides": {
-    "minimatch": "^10.2.1"
   }
 }

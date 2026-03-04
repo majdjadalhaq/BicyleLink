@@ -47,7 +47,7 @@ const EditListing = () => {
     const route =
       user?.role === "admin" ? `/admin/listings/${id}` : `/listings/${id}`;
     const data = await executeUpdate(route, {
-      method: "PATCH",
+      method: "PUT",
       body: { listing: formData },
     });
 

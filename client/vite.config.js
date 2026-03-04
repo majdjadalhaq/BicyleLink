@@ -28,6 +28,16 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      port: 4173,
+      proxy: {
+        "/api": backendProxyTarget,
+        "/socket.io": {
+          target: backendProxyTarget,
+          ws: true,
+        },
+      },
+    },
     build: {
       chunkSizeWarningLimit: 600,
       rollupOptions: {

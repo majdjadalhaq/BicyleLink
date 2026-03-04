@@ -43,16 +43,14 @@ const useUnreadCount = (user, intervalMs = 30000) => {
     if (socket && user) {
       socket.emit("join_room", { userId: user._id, room: `user_${user._id}` });
       socket.on("receive_message", fetchCount);
-      socket.on("messages_read", () => {
-        // If we get a signal that messages were read in a room, refresh the total
-        fetchCount();
-      });
+      socket.on("messages_read", fetchCount);
     }
 
     return () => {
       clearInterval(id);
       if (socket) {
         socket.off("receive_message", fetchCount);
+        socket.off("messages_read", fetchCount);
       }
     };
   }, [user, intervalMs, socket]);

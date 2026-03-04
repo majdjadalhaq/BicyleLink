@@ -3,6 +3,7 @@ import Message from "../models/Message.js";
 import Listing from "../models/Listing.js";
 import ConversationStatus from "../models/ConversationStatus.js";
 import Notification from "../models/Notification.js";
+import User from "../models/User.js";
 import { logError } from "../utils/logging.js";
 
 import jwt from "jsonwebtoken";
@@ -14,7 +15,7 @@ export const initSocket = (io) => {
   ioInstance = io;
 
   // --- Socket JWT Authentication Middleware ---
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const rawCookie = socket.request.headers.cookie;
       if (!rawCookie) {
@@ -36,6 +37,16 @@ export const initSocket = (io) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // DB connection check for block status
+      const user = await User.findById(decoded.id).select("isBlocked");
+      if (!user) {
+        return next(new Error("Authentication error: User not found"));
+      }
+      if (user.isBlocked) {
+        return next(new Error("Authentication error: User is blocked"));
+      }
+
       socket.data.userId = decoded.id;
       next();
     } catch {
@@ -116,6 +127,7 @@ export const initSocket = (io) => {
 
         const savedMessage = await Message.create(msg);
         io.to(msg.room).emit("receive_message", savedMessage);
+        io.to(`user_${msg.receiverId}`).emit("receive_message", savedMessage);
 
         // --- INQUIRY TRACKING ---
         const listing = await Listing.findById(msg.listingId);

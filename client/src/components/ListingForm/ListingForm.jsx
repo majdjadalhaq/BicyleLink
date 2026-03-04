@@ -243,19 +243,36 @@ const ListingForm = ({
     return true;
   };
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    if (e) e.preventDefault();
     if (validateStep()) {
       setStep((prev) => prev + 1);
     }
   };
 
-  const handlePrev = () => {
+  const jumpToStep = (e, targetStep) => {
+    if (e) e.preventDefault();
+    // Only allow jumping to steps if moving backward OR if the current step is valid
+    if (targetStep < step || validateStep()) {
+      setStep(targetStep);
+    }
+  };
+
+  const handlePrev = (e) => {
+    if (e) e.preventDefault();
     setFormError("");
     setStep((prev) => prev - 1);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    
+    // Hard check: we MUST be on step 3 to actually perform the DB update
+    if (step < totalSteps) {
+      handleNext();
+      return;
+    }
+
     if (!validateStep()) return;
 
     if (existingImages.length === 0 && newFiles.length === 0) {
@@ -286,7 +303,10 @@ const ListingForm = ({
   const totalImages = existingImages.length + newFiles.length;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-7 w-full">
+    <form
+      onSubmit={(e) => e.preventDefault()}
+      className="flex flex-col gap-7 w-full"
+    >
       {/* Stepper Progress Indicator */}
       <div className="flex items-center justify-between mb-4 relative z-0">
         <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-dark-border -z-10 translate-y-[-50%] rounded-full overflow-hidden">
@@ -296,13 +316,15 @@ const ListingForm = ({
           />
         </div>
         {[1, 2, 3].map((num) => (
-          <div
+          <button
             key={num}
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 border-4 border-white dark:border-dark-surface
-              ${step >= num ? "bg-emerald-500 text-white" : "bg-gray-200 dark:bg-dark-input text-gray-500"}`}
+            type="button"
+            onClick={(e) => jumpToStep(e, num)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-4 border-white dark:border-dark-surface cursor-pointer hover:scale-110 active:scale-95
+              ${step >= num ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "bg-gray-200 dark:bg-dark-input text-gray-500"}`}
           >
             {num}
-          </div>
+          </button>
         ))}
       </div>
       <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
@@ -724,8 +746,11 @@ const ListingForm = ({
                   />
                   <button
                     type="button"
-                    className="absolute top-2 right-2 bg-red-500/90 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-red-600 hover:scale-105 transition-all opacity-0 group-hover:opacity-100"
-                    onClick={() => removeExistingImage(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-red-600 hover:scale-105 active:scale-90 transition-all sm:opacity-0 sm:group-hover:opacity-100 opacity-100 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeExistingImage(index);
+                    }}
                     aria-label="Remove image"
                   >
                     ×
@@ -745,8 +770,11 @@ const ListingForm = ({
                   />
                   <button
                     type="button"
-                    className="absolute top-2 right-2 bg-red-500/90 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-red-600 hover:scale-105 transition-all opacity-0 group-hover:opacity-100"
-                    onClick={() => removeNewFile(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-red-600 hover:scale-105 active:scale-90 transition-all sm:opacity-0 sm:group-hover:opacity-100 opacity-100 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeNewFile(index);
+                    }}
                     aria-label="Remove image"
                   >
                     ×
@@ -805,7 +833,8 @@ const ListingForm = ({
           </button>
         ) : (
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             className="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold text-lg transition-all hover:-translate-y-1 shadow-lg hover:shadow-xl disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed shadow-indigo-500/30"
             disabled={isLoading || isUploading}
           >

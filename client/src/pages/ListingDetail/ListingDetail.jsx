@@ -5,7 +5,7 @@ import ReviewModal from "../../components/ReviewModal/ReviewModal";
 import ReviewsList from "../../components/ReviewsList/ReviewsList";
 import ListingImageCarousel from "../../components/ListingImageCarousel/ListingImageCarousel";
 import SellerCard from "../../components/SellerCard/SellerCard";
-import MarkAsSoldModal from "./components/MarkAsSoldModal";
+import MarkAsSoldModal from "../../components/MarkAsSoldModal";
 
 const LocationMap = lazy(() => import("../../components/Map/LocationMap"));
 

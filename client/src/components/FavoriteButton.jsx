@@ -36,6 +36,10 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
     };
   }, [listingId, user]);
 
+  if (!user) {
+    return null;
+  }
+
   const handleToggle = async (e) => {
     if (e) {
       e.preventDefault();

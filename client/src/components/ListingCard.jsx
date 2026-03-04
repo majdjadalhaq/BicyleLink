@@ -5,6 +5,7 @@ import FavoriteButton from "./FavoriteButton";
 import { optimiseCloudinaryUrl } from "../utils/cloudinary";
 import useApi from "../hooks/useApi";
 import useToast from "../hooks/useToast";
+import MarkAsSoldModal from "./MarkAsSoldModal";
 
 /* ─── Mini Image Carousel (inside card) ──────────────────────── */
 const CardCarousel = ({ images, title }) => {
@@ -135,6 +136,10 @@ const ListingCard = ({
   const { _id, title, images, location, condition } = listing;
   const [isUpdating, setIsUpdating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+  const [selectedBuyerId, setSelectedBuyerId] = useState("");
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
   const deleteTimerRef = useRef(null);
   const { execute: executeApi } = useApi();
   const { showToast } = useToast();
@@ -166,20 +171,49 @@ const ListingCard = ({
     [pendingDelete, _id, executeApi, onUpdated, showToast],
   );
 
-  const handleStatusToggle = useCallback(
-    async (e) => {
-      e.preventDefault();
+  const handleStatusUpdate = useCallback(
+    async (newStatus) => {
       setIsUpdating(true);
-      const newStatus = listing.status === "active" ? "sold" : "active";
+      const buyerId =
+        newStatus === "sold" && selectedBuyerId !== "other"
+          ? selectedBuyerId
+          : null;
+
       const data = await executeApi(`/api/listings/${_id}/status`, {
         method: "PATCH",
-        body: { status: newStatus },
+        body: { status: newStatus, ...(buyerId ? { buyerId } : {}) },
       });
       setIsUpdating(false);
-      if (data?.success) onUpdated?.();
-      else showToast("Failed to update status", "error");
+      if (data?.success) {
+        setStatusModalOpen(false);
+        onUpdated?.();
+      } else {
+        showToast("Failed to update status", "error");
+      }
     },
-    [listing.status, _id, executeApi, onUpdated, showToast],
+    [_id, executeApi, onUpdated, showToast, selectedBuyerId],
+  );
+
+  const handleStatusClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (listing.status === "active") {
+        setStatusModalOpen(true);
+        // Fetch candidates immediately
+        const fetchCandidates = async () => {
+          setIsLoadingCandidates(true);
+          const data = await executeApi(`/api/listings/${_id}/candidates`);
+          if (data?.success) {
+            setCandidates(data.result);
+          }
+          setIsLoadingCandidates(false);
+        };
+        fetchCandidates();
+      } else {
+        handleStatusUpdate("active");
+      }
+    },
+    [listing.status, _id, executeApi, handleStatusUpdate],
   );
 
   return (
@@ -374,7 +408,7 @@ const ListingCard = ({
               </svg>
             </Link>
             <button
-              onClick={handleStatusToggle}
+              onClick={handleStatusClick}
               disabled={isUpdating}
               className="flex-1 h-9 flex items-center justify-center rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-[#10B77F] text-white shadow-lg shadow-[#10B77F]/20 hover:bg-[#0EA572]"
               title={listing.status === "sold" ? "Relist Item" : "Mark as Sold"}
@@ -419,6 +453,18 @@ const ListingCard = ({
           />
         )}
       </div>
+      {/* Buyer Selection Modal */}
+      {isOwnerView && (
+        <MarkAsSoldModal
+          isOpen={statusModalOpen}
+          candidates={candidates}
+          isLoading={isLoadingCandidates}
+          selectedBuyerId={selectedBuyerId}
+          onBuyerChange={setSelectedBuyerId}
+          onConfirm={() => handleStatusUpdate("sold")}
+          onClose={() => setStatusModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

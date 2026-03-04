@@ -127,6 +127,9 @@ listingSchema.index(
   },
 );
 
+// Add compound index for faster feed filtering
+listingSchema.index({ status: 1, category: 1 });
+
 const Listing = mongoose.model("listings", listingSchema);
 
 export default Listing;
