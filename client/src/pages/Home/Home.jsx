@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
 import { ListingCardSkeleton } from "../../components/ui/SkeletonLoaders.jsx";
 import TEST_ID from "./Home.testid";
-import QuickViewDrawer from "../../components/QuickViewDrawer/QuickViewDrawer.jsx";
+
 
 const ListingCard = lazy(() => import("../../components/ListingCard.jsx"));
 const HeroFilter = lazy(
@@ -38,7 +38,7 @@ const Home = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [selectedListing, setSelectedListing] = useState(null);
+
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
@@ -454,7 +454,6 @@ const Home = () => {
                       >
                         <ListingCard
                           listing={listing}
-                          onQuickView={setSelectedListing}
                         />
                       </motion.div>
                     );
@@ -485,13 +484,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Quick View Drawer — desktop only */}
-      <div className="hidden md:block">
-        <QuickViewDrawer
-          listing={selectedListing}
-          onClose={() => setSelectedListing(null)}
-        />
-      </div>
+
     </div>
   );
 };

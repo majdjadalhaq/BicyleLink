@@ -131,7 +131,6 @@ const ListingCard = ({
   listing,
   isOwnerView = false,
   onUpdated,
-  onQuickView,
 }) => {
   const { _id, title, images, location, condition } = listing;
   const [isUpdating, setIsUpdating] = useState(false);
@@ -279,32 +278,6 @@ const ListingCard = ({
           <FavoriteButton listingId={_id} />
         </div>
 
-        {/* Quick View button — desktop only */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onQuickView?.(listing);
-          }}
-          className="hidden md:flex absolute bottom-0 left-0 right-0 z-20 py-2.5 items-center justify-center gap-2 bg-black/65 backdrop-blur-sm text-white text-xs font-black uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
-          aria-label="Quick view listing"
-          title="Quick view"
-        >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-          Quick View
-        </button>
       </div>
 
       {/* ── Content Section ── */}
@@ -386,7 +359,7 @@ const ListingCard = ({
 
         {/* Owner Actions */}
         {isOwnerView && (
-          <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+          <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-white/5 relative z-20">
             <Link
               to={`/listings/${_id}/edit`}
               className="flex-1 h-9 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-[#10B77F] hover:bg-[#10B77F]/5 dark:hover:bg-[#10B77F]/10 transition-all border border-transparent hover:border-[#10B77F]/30"
@@ -444,14 +417,12 @@ const ListingCard = ({
           </div>
         )}
 
-        {/* Full-card click (non-owner) */}
-        {!isOwnerView && (
-          <Link
-            to={`/listings/${_id}`}
-            className="absolute inset-0 z-0"
-            aria-label={`View details for ${title}`}
-          />
-        )}
+        {/* Full-card click */}
+        <Link
+          to={`/listings/${_id}`}
+          className="absolute inset-0 z-10"
+          aria-label={`View details for ${title}`}
+        />
       </div>
       {/* Buyer Selection Modal */}
       {isOwnerView && (
@@ -490,7 +461,6 @@ ListingCard.propTypes = {
   }).isRequired,
   isOwnerView: PropTypes.bool,
   onUpdated: PropTypes.func,
-  onQuickView: PropTypes.func,
 };
 
 export default memo(ListingCard);
