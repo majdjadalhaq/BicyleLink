@@ -266,7 +266,7 @@ const ListingForm = ({
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    
+
     // Hard check: we MUST be on step 3 to actually perform the DB update
     if (step < totalSteps) {
       handleNext();
