@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import InputField from "../../components/form/InputField";
 import SubmitButton from "../../components/form/SubmitButton";
 import useFetch from "../../hooks/useFetch";

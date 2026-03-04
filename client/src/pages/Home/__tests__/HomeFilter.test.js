@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "../Home";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 
 // Mock global fetch — Home uses direct fetch in useEffect
 const mockFetch = jest.fn();

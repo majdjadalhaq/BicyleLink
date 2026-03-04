@@ -7,7 +7,7 @@ import {
   waitForElementToBeRemoved,
   act,
 } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 import CreateUser from "../CreateUser";
 import TEST_ID_CREATE_USER from "../CreateUser.testid";

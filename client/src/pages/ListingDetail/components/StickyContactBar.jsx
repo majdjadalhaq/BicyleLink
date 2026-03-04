@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const StickyContactBar = ({ listing, displayPrice, isOwner, user, id }) => {
   const navigate = useNavigate();

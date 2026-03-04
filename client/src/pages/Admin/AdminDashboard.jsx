@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import StatCard from "../../components/Admin/StatCard";
 import ActivityGraph from "../../components/Admin/ActivityGraph";
 

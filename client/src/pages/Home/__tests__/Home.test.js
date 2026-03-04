@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 
 import Home from "../Home";
 import TEST_ID_HOME from "../Home.testid";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 
 jest.mock("../../../hooks/useToast", () => () => ({
   showToast: jest.fn(),

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import useApi from "../../hooks/useApi";
 import ListingForm from "../../components/ListingForm/ListingForm";
 import TEST_ID from "./CreateListing.testid";

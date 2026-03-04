@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import useNotifications from "../../hooks/useNotifications";
 import PropTypes from "prop-types";
 

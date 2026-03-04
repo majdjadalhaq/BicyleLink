@@ -5,7 +5,7 @@ import {
   screen,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 import UserList from "../UserList";
 import TEST_ID_USER_LIST from "../UserList.testid";

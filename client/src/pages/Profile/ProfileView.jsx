@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense, useRef } from "react";
 import { motion } from "framer-motion";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 import useFetch from "../../hooks/useFetch";
 

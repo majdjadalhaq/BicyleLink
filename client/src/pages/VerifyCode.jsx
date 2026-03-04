@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router";
 import TEST_ID from "./VerifyCode.testid";
 
 const VerifyCode = () => {

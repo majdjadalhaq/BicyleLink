@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import PropTypes from "prop-types";
 import FavoriteButton from "./FavoriteButton";
 import { optimiseCloudinaryUrl } from "../utils/cloudinary";
