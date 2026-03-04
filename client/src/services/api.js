@@ -39,12 +39,15 @@ export const api = {
         window.dispatchEvent(new CustomEvent("auth:unauthorized"));
       }
 
-      throw new Error(
+      const error = new Error(
         data?.message ||
           data?.msg ||
           data?.errors?.[0]?.message ||
           `API Error: ${response.status} ${response.statusText}`,
       );
+      error.data = data;
+      error.status = response.status;
+      throw error;
     }
 
     return data;

@@ -22,7 +22,7 @@ const useApi = () => {
       return data;
     } catch (err) {
       setError(err.message);
-      return { success: false, message: err.message };
+      return err.data || { success: false, message: err.message };
     } finally {
       setIsLoading(false);
     }
