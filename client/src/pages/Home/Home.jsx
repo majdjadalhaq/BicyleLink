@@ -485,11 +485,13 @@ const Home = () => {
         </div>
       </div>
 
-      {/* ── Quick View Drawer ── */}
-      <QuickViewDrawer
-        listing={selectedListing}
-        onClose={() => setSelectedListing(null)}
-      />
+      {/* Quick View Drawer — desktop only */}
+      <div className="hidden md:block">
+        <QuickViewDrawer
+          listing={selectedListing}
+          onClose={() => setSelectedListing(null)}
+        />
+      </div>
     </div>
   );
 };

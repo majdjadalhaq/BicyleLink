@@ -279,14 +279,14 @@ const ListingCard = ({
           <FavoriteButton listingId={_id} />
         </div>
 
-        {/* Quick View button */}
+        {/* Quick View button — desktop only */}
         <button
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onQuickView?.(listing);
           }}
-          className="absolute bottom-0 left-0 right-0 z-20 py-2.5 flex items-center justify-center gap-2 bg-black/65 backdrop-blur-sm text-white text-xs font-black uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
+          className="hidden md:flex absolute bottom-0 left-0 right-0 z-20 py-2.5 items-center justify-center gap-2 bg-black/65 backdrop-blur-sm text-white text-xs font-black uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
           aria-label="Quick view listing"
           title="Quick view"
         >

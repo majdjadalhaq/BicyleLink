@@ -42,9 +42,10 @@ const emailTemplate = (content, _title) => `
     .header-sub { margin: 6px 0 0; font-size: 13px; font-weight: 500; opacity: 0.85; letter-spacing: 0.05em; }
     .content { padding: 48px 40px; color: #1e293b; line-height: 1.7; }
     .footer { padding: 28px 40px; text-align: center; color: #64748b; font-size: 13px; background-color: #f8fffe; border-top: 1px solid #d1fae5; }
-    .code-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 16px; padding: 32px; text-align: center; margin: 32px 0; border: 2px solid #6ee7b7; }
-    .code { font-size: 46px; font-weight: 900; color: #059669; letter-spacing: 0.15em; margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; line-height: 1; }
-    .copy-tip { font-size: 13px; color: #6b7280; margin-top: 14px; font-weight: 500; }
+    .code-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 16px; padding: 32px; text-align: center; margin: 32px 0; border: 2px solid #6ee7b7; cursor: pointer; }
+    .code { font-size: 46px; font-weight: 900; color: #059669; letter-spacing: 0.2em; margin: 0; font-family: 'Courier New', Courier, monospace; line-height: 1; user-select: all; -webkit-user-select: all; }
+    .copy-tip { font-size: 12px; color: #6b7280; margin-top: 14px; font-weight: 500; }
+    .copy-btn { display: inline-block; margin-top: 16px; background-color: #059669; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 24px; border-radius: 999px; letter-spacing: 0.05em; }
     .social-links { margin-top: 20px; padding-top: 20px; border-top: 1px solid #d1fae5; }
     .social-link { color: #10B77F; text-decoration: none; margin: 0 12px; font-weight: 700; }
     .fine-print { font-size: 12px; color: #9ca3af; margin-top: 16px; }
@@ -131,8 +132,8 @@ export const sendVerificationEmail = async (email, code) => {
     <h2>Welcome to BiCycleL!</h2>
     <p>We're thrilled to have you join our community of cycling enthusiasts. To get started, please verify your email address by entering the code below:</p>
     <div class="code-box">
-      <p class="code">${code}</p>
-      <p class="copy-tip">This code will expire in 15 minutes</p>
+      <p class="code" id="code">${code}</p>
+      <p class="copy-tip">Tap the code above to select it &bull; Expires in 15 minutes</p>
     </div>
     <p>If you didn't create an account with us, you can safely ignore this email.</p>
     <p>Happy cycling,<br>The BiCycleL Team</p>
@@ -154,7 +155,7 @@ export const sendPasswordResetEmail = async (email, code) => {
     <p>We received a request to reset your password for your BiCycleL account. Use the secure code below to proceed:</p>
     <div class="code-box">
       <p class="code">${code}</p>
-      <p class="copy-tip">This code is valid for 15 minutes</p>
+      <p class="copy-tip">Tap the code above to select it &bull; Valid for 15 minutes</p>
     </div>
     <p>If you didn't request a password reset, please ensure your account security or contact our support team.</p>
     <p>Stay secure,<br>The BiCycleL Security Team</p>
@@ -176,7 +177,7 @@ export const sendSecurityCodeEmail = async (email, code) => {
     <p>A sensitive action was requested on your BiCycleL account. For your protection, please verify this action using the following security code:</p>
     <div class="code-box" style="background-color: #fff1f2; border-color: #fecdd3; border-style: solid;">
       <p class="code" style="color: #e11d48;">${code}</p>
-      <p class="copy-tip" style="color: #fb7185;">This code will expire in 15 minutes</p>
+      <p class="copy-tip" style="color: #fb7185;">Tap the code above to select it &bull; Expires in 15 minutes</p>
     </div>
     <p style="font-weight: 600;">If you did not request this, please change your password immediately and secure your account.</p>
     <p>Sincerely,<br>The BiCycleL Security Team</p>
