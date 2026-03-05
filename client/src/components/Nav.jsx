@@ -174,10 +174,10 @@ const Nav = () => {
                 <Link
                   to="/about"
                   aria-label="About BiCycleL"
-                  className="group/aboutlink hidden md:flex items-center h-9 px-3 rounded-xl text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all duration-200"
+                  className="group/aboutlink hidden md:flex items-center h-9 px-3 rounded-xl text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-white/5 focus-visible:text-emerald-600 dark:focus-visible:text-emerald-400 focus-visible:bg-gray-100 dark:focus-visible:bg-white/5 transition-all duration-200"
                 >
                   <span className="flex-shrink-0">{Icons.about(16)}</span>
-                  <span className="overflow-hidden max-w-0 group-hover/aboutlink:max-w-[60px] opacity-0 group-hover/aboutlink:opacity-100 transition-all duration-200 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/aboutlink:ml-1.5">
+                  <span className="overflow-hidden max-w-0 group-hover/aboutlink:max-w-[60px] group-focus-within/aboutlink:max-w-[60px] opacity-0 group-hover/aboutlink:opacity-100 group-focus-within/aboutlink:opacity-100 transition-all duration-200 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/aboutlink:ml-1.5 group-focus-within/aboutlink:ml-1.5">
                     About
                   </span>
                 </Link>
@@ -406,20 +406,9 @@ const Nav = () => {
                               to="/about"
                               className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                              </svg>
+                              <span className="flex items-center justify-center opacity-70">
+                                {Icons.about({ className: "w-4 h-4" })}
+                              </span>
                               About BiCycleL
                             </Link>
                             <Link
@@ -517,21 +506,8 @@ const Nav = () => {
                 onClick={() => setIsMobileSettingsOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 mb-1 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors"
               >
-                <span className="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-xl">
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+                <span className="w-9 h-9 flex items-center justify-center text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 rounded-xl">
+                  {Icons.about(18)}
                 </span>
                 <span>About BiCycleL</span>
               </Link>

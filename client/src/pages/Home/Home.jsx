@@ -146,10 +146,7 @@ const Home = () => {
     setSearchTerm(e.target.value);
     setPage(1);
   };
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    setPage(1);
-  };
+
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setPage(1);
@@ -264,7 +261,6 @@ const Home = () => {
                   filters={filters}
                   onApply={handleApplyFilters}
                   onClear={handleClearFilters}
-                  onClearSearch={handleClearSearch}
                   isSidebar={true}
                 />
               </Suspense>
@@ -304,10 +300,7 @@ const Home = () => {
                   filters={filters}
                   onApply={handleApplyFilters}
                   onClear={handleClearFilters}
-                  onClearSearch={handleClearSearch}
                   isSidebar={true}
-                  searchTerm={searchTerm}
-                  onSearchChange={handleSearch}
                 />
               </div>
             </div>
