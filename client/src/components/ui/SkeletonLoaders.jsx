@@ -38,18 +38,6 @@ export const ListingCardSkeleton = () => (
   </div>
 );
 
-// This general loading state can be used for route changes
-export const LoadingState = () => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#FAFAF8] dark:bg-[#121212]">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-      <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 animate-pulse">
-        Loading BiCycleL
-      </span>
-    </div>
-  </div>
-);
-
 export const ListingDetailSkeleton = () => (
   <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#121212] pt-6 px-4 md:px-6">
     <div className="max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[38%_1fr] lg:grid-cols-[40%_1fr] xl:grid-cols-[1fr_580px] gap-8 md:gap-14">

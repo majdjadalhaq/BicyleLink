@@ -57,7 +57,7 @@ const ListingGrid = ({
               viewport={{ once: true, margin: "0px 0px -50px 0px" }}
               transition={{
                 duration: 0.5,
-                delay: Math.min((row * 0.1) + (col * 0.05), 0.5), // Cap delay for many items
+                delay: Math.min(row * 0.1 + col * 0.05, 0.5), // Cap delay for many items
                 ease: "easeOut",
               }}
               className="h-full"
@@ -70,7 +70,10 @@ const ListingGrid = ({
         {/* Render skeleton loaders when fetching more */}
         {isLoading &&
           [...Array(gridCols || 4)].map((_, i) => (
-            <div key={`skeleton-${i}`} className="animate-in fade-in duration-500">
+            <div
+              key={`skeleton-${i}`}
+              className="animate-in fade-in duration-500"
+            >
               <ListingCardSkeleton />
             </div>
           ))}

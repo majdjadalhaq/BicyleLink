@@ -1,4 +1,12 @@
-import { useEffect, useState, useMemo, lazy, Suspense, useRef, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  lazy,
+  Suspense,
+  useRef,
+  useCallback,
+} from "react";
 import { ListingCardSkeleton } from "../../components/ui/SkeletonLoaders.jsx";
 import TEST_ID from "./Home.testid";
 
@@ -314,7 +322,8 @@ const Home = () => {
             <div className="relative min-h-[400px]">
               {error && (
                 <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-6 rounded-3xl text-center font-medium mb-10 shadow-sm">
-                  Failed to load listings. Please check your connection and try again.
+                  Failed to load listings. Please check your connection and try
+                  again.
                 </div>
               )}
 
@@ -323,11 +332,15 @@ const Home = () => {
                 <div
                   className="grid gap-5 mb-10 p-1"
                   style={{
-                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(240px, 1fr))",
                   }}
                 >
                   {[...Array(8)].map((_, i) => (
-                    <div key={`loading-skeleton-${i}`} className="animate-in fade-in duration-500">
+                    <div
+                      key={`loading-skeleton-${i}`}
+                      className="animate-in fade-in duration-500"
+                    >
                       <ListingCardSkeleton />
                     </div>
                   ))}
@@ -361,4 +374,3 @@ const Home = () => {
 };
 
 export default Home;
-
