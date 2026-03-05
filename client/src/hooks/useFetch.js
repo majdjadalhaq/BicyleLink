@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 /**
  * Our useFetch hook should be used for all communication with the server.
@@ -22,9 +22,9 @@ const useFetch = (route, onReceived, onError) => {
    */
   const controllerRef = useRef(null);
 
-  const cancelFetch = () => {
+  const cancelFetch = useCallback(() => {
     controllerRef.current?.abort();
-  };
+  }, []);
 
   let actualRoute = route;
   if (route.startsWith("/api/")) {
@@ -42,58 +42,61 @@ const useFetch = (route, onReceived, onError) => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Add any args given to the function to the fetch function
-  const performFetch = (options) => {
-    setError(null);
-    setIsLoading(true);
+  const performFetch = useCallback(
+    (options) => {
+      setError(null);
+      setIsLoading(true);
 
-    // Create a fresh controller for each fetch
-    controllerRef.current = new AbortController();
-    const signal = controllerRef.current.signal;
+      // Create a fresh controller for each fetch
+      controllerRef.current = new AbortController();
+      const signal = controllerRef.current.signal;
 
-    const baseOptions = {
-      method: "GET",
-      headers: {
-        "content-type": "application/json",
-      },
-      credentials: "include",
-    };
+      const baseOptions = {
+        method: "GET",
+        headers: {
+          "content-type": "application/json",
+        },
+        credentials: "include",
+      };
 
-    const fetchData = async () => {
-      const url = `/api${actualRoute}`;
-      const res = await fetch(url, { ...baseOptions, ...options, signal });
+      const fetchData = async () => {
+        const url = `/api${actualRoute}`;
+        const res = await fetch(url, { ...baseOptions, ...options, signal });
 
-      let jsonResult;
-      try {
-        jsonResult = await res.json();
-      } catch (e) {
-        if (!res.ok) {
-          throw new Error(`Fetch failed with status ${res.status}`);
+        let jsonResult;
+        try {
+          jsonResult = await res.json();
+        } catch (e) {
+          if (!res.ok) {
+            throw new Error(`Fetch failed with status ${res.status}`);
+          }
+          throw e;
         }
-        throw e;
-      }
 
-      if (res.ok && jsonResult.success === true) {
-        onReceived(jsonResult);
-      } else {
-        if (onError) onError(jsonResult);
-        setError(
-          jsonResult.msg ||
-            jsonResult.errors?.[0]?.message ||
-            `Error: ${res.status} ${res.statusText}`,
-        );
-      }
+        if (res.ok && jsonResult.success === true) {
+          if (onReceived) onReceived(jsonResult);
+        } else {
+          if (onError) onError(jsonResult);
+          setError(
+            jsonResult.msg ||
+              jsonResult.errors?.[0]?.message ||
+              `Error: ${res.status} ${res.statusText}`,
+          );
+        }
 
-      setIsLoading(false);
-    };
+        setIsLoading(false);
+      };
 
-    fetchData().catch((error) => {
-      // Ignore AbortError — it's an intentional cancellation
-      if (error.name !== "AbortError") {
-        setError(error);
-      }
-      setIsLoading(false);
-    });
-  };
+      fetchData().catch((error) => {
+        // Ignore AbortError — it's an intentional cancellation
+        if (error.name !== "AbortError") {
+          setError(error);
+        }
+        setIsLoading(false);
+      });
+    },
+    [actualRoute, onReceived, onError],
+  );
 
   return { isLoading, error, performFetch, cancelFetch };
 };

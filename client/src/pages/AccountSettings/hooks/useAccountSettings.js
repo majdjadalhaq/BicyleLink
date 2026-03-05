@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import useFetch from "../../../hooks/useFetch";
 import { useAuth } from "../../../hooks/useAuth";
@@ -21,10 +21,19 @@ export const useAccountSettings = () => {
   const [deleteCode, setDeleteCode] = useState("");
   const [isDeleteCodeSent, setIsDeleteCodeSent] = useState(false);
 
+  const successTimeout = useRef(null);
+
   const showSuccess = (msg) => {
     setSuccess(msg);
-    setTimeout(() => setSuccess(""), 5000);
+    if (successTimeout.current) clearTimeout(successTimeout.current);
+    successTimeout.current = setTimeout(() => setSuccess(""), 5000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (successTimeout.current) clearTimeout(successTimeout.current);
+    };
+  }, []);
 
   const onPasswordChanged = () => {
     setPasswordCode("");

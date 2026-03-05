@@ -247,7 +247,7 @@ const About = () => {
               The Process
             </p>
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white">
-              From Listing to Leading
+              From Listing to Riding
             </h2>
           </motion.div>
 

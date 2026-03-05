@@ -25,10 +25,13 @@ const ConversationCard = ({
       }
       role="button"
       tabIndex={0}
-      onKeyDown={(e) =>
-        e.key === "Enter" &&
-        (selectionType ? onToggleSelection(conv.room) : onOpenChat(conv))
-      }
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          if (selectionType) onToggleSelection(conv.room);
+          else onOpenChat(conv);
+        }
+      }}
       aria-label={
         selectionType
           ? `Select conversation with ${conv.otherUser?.name || "User"}`
