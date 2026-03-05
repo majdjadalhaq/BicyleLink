@@ -157,7 +157,9 @@ const Inbox = () => {
               ))}
             </div>
           ) : filteredConversations.length === 0 ? (
-            <div className={`py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 transition-opacity duration-300 ${isRefreshing ? "opacity-60" : "opacity-100"}`}>
+            <div
+              className={`py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 transition-opacity duration-300 ${isRefreshing ? "opacity-60" : "opacity-100"}`}
+            >
               <EmptyState
                 title={
                   searchQuery

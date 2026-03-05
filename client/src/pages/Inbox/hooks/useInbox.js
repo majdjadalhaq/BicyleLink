@@ -54,12 +54,15 @@ export const useInbox = () => {
     }
   }, [view, executeApi, handleResponse, isRefreshing]);
 
-  const handleSetView = useCallback((newView) => {
-    if (newView === view) return;
-    setIsInitialLoading(true);
-    setConversations([]);
-    setView(newView);
-  }, [view]);
+  const handleSetView = useCallback(
+    (newView) => {
+      if (newView === view) return;
+      setIsInitialLoading(true);
+      setConversations([]);
+      setView(newView);
+    },
+    [view],
+  );
 
   useEffect(() => {
     performFetch();

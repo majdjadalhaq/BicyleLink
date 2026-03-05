@@ -210,7 +210,9 @@ const ListingDetail = () => {
                   isSold={listing.status === "sold"}
                   onRate={() => setReviewModalOpen(true)}
                   onViewReviews={() => setReviewsListOpen(true)}
-                  onViewProfile={() => navigate(`/profile/${sellerData._id}?fromListing=${id}`)}
+                  onViewProfile={() =>
+                    navigate(`/profile/${sellerData._id}?fromListing=${id}`)
+                  }
                 />
               </div>
 
@@ -251,7 +253,9 @@ const ListingDetail = () => {
                 isSold={listing.status === "sold"}
                 onRate={() => setReviewModalOpen(true)}
                 onViewReviews={() => setReviewsListOpen(true)}
-                onViewProfile={() => navigate(`/profile/${sellerData._id}?fromListing=${id}`)}
+                onViewProfile={() =>
+                  navigate(`/profile/${sellerData._id}?fromListing=${id}`)
+                }
               />
             </FadeIn>
 
@@ -308,8 +312,6 @@ const ListingDetail = () => {
           isSubmitting={isSubmittingReport}
           targetTitle={listing.title}
         />
-
-
 
         {/* Sticky Mobile Bar */}
         <StickyContactBar

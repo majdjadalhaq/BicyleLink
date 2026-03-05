@@ -268,7 +268,6 @@ const ProfileView = () => {
 
             {/* Action buttons */}
             <div className="flex gap-2 sm:mb-1">
-
               {isOwnProfile && (
                 <Link
                   to="/profile/edit"
