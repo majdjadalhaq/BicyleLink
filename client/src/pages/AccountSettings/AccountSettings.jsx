@@ -1,281 +1,55 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import InputField from "../../components/form/InputField";
 import SubmitButton from "../../components/form/SubmitButton";
-import useFetch from "../../hooks/useFetch";
-import { useAuth } from "../../hooks/useAuth";
 import StatusMessage from "../../components/ui/StatusMessage";
-import ToggleSwitch from "../../components/ui/ToggleSwitch";
-
-/* ─── Sidebar Tab Button ──────────────────────────────────────── */
-const NavItem = ({ id, label, icon, activeTab, setActiveTab }) => {
-  const isActive = activeTab === id;
-  return (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-sm font-bold group ${
-        isActive
-          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white border border-transparent"
-      }`}
-      aria-current={isActive ? "page" : undefined}
-    >
-      <span
-        className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-          isActive
-            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-            : "bg-gray-100 dark:bg-white/5 text-gray-400 group-hover:text-emerald-500"
-        }`}
-      >
-        {icon}
-      </span>
-      <span>{label}</span>
-      {isActive && (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="ml-auto text-emerald-500"
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      )}
-    </button>
-  );
-};
-
-/* ─── Expandable Section ──────────────────────────────────────── */
-const ExpandableSection = ({ title, subtitle, icon, children, danger }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div
-      className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
-        danger
-          ? "border-red-200 dark:border-red-500/20"
-          : "border-gray-100 dark:border-white/5"
-      }`}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className={`w-full flex items-center gap-4 p-5 text-left transition-colors ${
-          danger
-            ? "hover:bg-red-50 dark:hover:bg-red-500/5"
-            : "hover:bg-gray-50 dark:hover:bg-white/5"
-        }`}
-      >
-        <div
-          className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            danger
-              ? "bg-red-500/10 text-red-500 border border-red-500/20"
-              : "bg-gray-100 dark:bg-white/5 text-emerald-500 border border-gray-200 dark:border-white/5"
-          }`}
-        >
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3
-            className={`text-sm font-black ${danger ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-white"}`}
-          >
-            {title}
-          </h3>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">
-            {subtitle}
-          </p>
-        </div>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="px-5 pb-6 border-t border-gray-100 dark:border-white/5 pt-5 animate-in slide-in-from-top-2 duration-200">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ─── Error Message ───────────────────────────────────────────── */
-
-/* ─── Toggle Row ──────────────────────────────────────────────── */
-const ToggleRow = ({ label, description, id, checked, onChange, disabled }) => (
-  <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
-    <div className="flex-1 pr-4">
-      <label
-        htmlFor={id}
-        className="text-sm font-bold text-gray-800 dark:text-gray-200 cursor-pointer"
-      >
-        {label}
-      </label>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-        {description}
-      </p>
-    </div>
-    <ToggleSwitch
-      id={id}
-      name={id}
-      checked={checked}
-      onChange={onChange}
-      disabled={disabled}
-    />
-  </div>
-);
+import NavItem from "./components/NavItem";
+import ExpandableSection from "./components/ExpandableSection";
+import ToggleRow from "./components/ToggleRow";
+import { useAccountSettings } from "./hooks/useAccountSettings";
 
 /* ─── Main Component ──────────────────────────────────────────── */
 const AccountSettings = () => {
-  const { user, login, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const [activeTab, setActiveTab] = useState("security");
-
-  const [passwordCode, setPasswordCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [isPasswordCodeSent, setIsPasswordCodeSent] = useState(false);
-
-  const [newEmail, setNewEmail] = useState("");
-  const [emailCode, setEmailCode] = useState("");
-  const [isEmailCodeSent, setIsEmailCodeSent] = useState(false);
-
-  const [deleteCode, setDeleteCode] = useState("");
-  const [isDeleteCodeSent, setIsDeleteCodeSent] = useState(false);
-  const [success, setSuccess] = useState("");
-
-  const showSuccess = (msg) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(""), 5000);
-  };
-
-  const onPasswordChanged = () => {
-    setPasswordCode("");
-    setNewPassword("");
-    setIsPasswordCodeSent(false);
-    showSuccess("Password updated successfully!");
-  };
-
-  const onEmailVerified = (data) => {
-    if (data?.user) login(data.user);
-    setNewEmail("");
-    setEmailCode("");
-    setIsEmailCodeSent(false);
-    showSuccess("Email updated successfully!");
-  };
-
-  const onDeleted = async () => {
-    await logout();
-    navigate("/login");
-  };
-
   const {
-    isLoading: isChangingPassword,
-    error: passwordError,
-    performFetch: performPasswordChange,
-  } = useFetch("/users/password", onPasswordChanged);
-  const {
-    isLoading: isVerifyingEmail,
-    error: emailVerifyError,
-    performFetch: performEmailVerify,
-  } = useFetch("/users/verify-email-change", onEmailVerified);
-  const {
-    isLoading: isDeleting,
-    error: deleteError,
-    performFetch: performDelete,
-  } = useFetch("/users/account", onDeleted);
-  const {
-    isLoading: isRequestingPassCode,
-    error: passReqError,
-    performFetch: performPassCodeReq,
-  } = useFetch("/users/request-security-code", () =>
-    setIsPasswordCodeSent(true),
-  );
-  const {
-    isLoading: isRequestingDeleteCode,
-    error: deleteReqError,
-    performFetch: performDeleteCodeReq,
-  } = useFetch("/users/request-security-code", () => setIsDeleteCodeSent(true));
-  const {
-    isLoading: isRequestingEmail,
-    error: emailReqError,
-    performFetch: performEmailReq,
-  } = useFetch("/users/request-email-change", () => setIsEmailCodeSent(true));
-
-  const { isLoading: isUpdatingSettings, performFetch: performSettingsUpdate } =
-    useFetch("/users/notification-settings", (data) => {
-      if (data?.settings) {
-        login({ ...user, notificationSettings: data.settings });
-        showSuccess("Preferences updated!");
-      }
-    });
-
-  const handleSettingsChange = (key, value) => {
-    performSettingsUpdate({
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ settings: { [key]: value } }),
-    });
-  };
-
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    if (!passwordCode || !newPassword) return;
-    performPasswordChange({
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: passwordCode, newPassword }),
-    });
-  };
-
-  const handleEmailRequest = (e) => {
-    e.preventDefault();
-    if (!newEmail || newEmail === user.email) return;
-    performEmailReq({
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ newEmail }),
-    });
-  };
-
-  const handleEmailVerify = (e) => {
-    e.preventDefault();
-    if (!emailCode || emailCode.length !== 6) return;
-    performEmailVerify({
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: emailCode }),
-    });
-  };
-
-  const handleDeleteAccount = (e) => {
-    e.preventDefault();
-    if (!deleteCode) return;
-    if (
-      window.confirm(
-        "Are you absolutely sure you want to delete your account? This cannot be undone.",
-      )
-    ) {
-      performDelete({
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: deleteCode }),
-      });
-    }
-  };
+    user,
+    activeTab,
+    setActiveTab,
+    success,
+    passwordCode,
+    setPasswordCode,
+    newPassword,
+    setNewPassword,
+    isPasswordCodeSent,
+    setIsPasswordCodeSent,
+    isChangingPassword,
+    passwordError,
+    isRequestingPassCode,
+    passReqError,
+    performPassCodeReq,
+    handlePasswordChange,
+    newEmail,
+    setNewEmail,
+    emailCode,
+    setEmailCode,
+    isEmailCodeSent,
+    setIsEmailCodeSent,
+    isRequestingEmail,
+    emailReqError,
+    isVerifyingEmail,
+    emailVerifyError,
+    handleEmailRequest,
+    handleEmailVerify,
+    deleteCode,
+    setDeleteCode,
+    isDeleteCodeSent,
+    setIsDeleteCodeSent,
+    isRequestingDeleteCode,
+    deleteReqError,
+    isDeleting,
+    deleteError,
+    performDeleteCodeReq,
+    handleDeleteAccount,
+    isUpdatingSettings,
+    handleSettingsChange,
+  } = useAccountSettings();
 
   const tabs = [
     {
