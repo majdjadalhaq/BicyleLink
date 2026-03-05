@@ -31,7 +31,7 @@ const Chat = lazy(() => import("./pages/Chat/Chat"));
 const Inbox = lazy(() => import("./pages/Inbox/Inbox"));
 const EditListing = lazy(() => import("./pages/EditListing/EditListing"));
 const MyListings = lazy(() => import("./pages/MyListings/MyListings"));
-
+const About = lazy(() => import("./pages/About/About"));
 const CreateListing = lazy(() => import("./pages/CreateListing/CreateListing"));
 const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
 const UserManagement = lazy(() => import("./pages/Admin/UserManagement"));
@@ -53,6 +53,7 @@ const App = () => {
                     <Suspense fallback={<LoadingState />}>
                       <Routes>
                         {/* Public routes */}
+                        <Route path="/about" element={<About />} />
                         <Route path="/" element={<Home />} />
                         <Route
                           path="/listings"
