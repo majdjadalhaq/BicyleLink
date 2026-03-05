@@ -1,16 +1,38 @@
+const Shimmer = () => (
+  <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5" />
+);
+
 const Skeleton = ({ className = "" }) => (
-  <div className={`animate-pulse bg-gray-200 dark:bg-[#2a2a2a] ${className}`} />
+  <div
+    className={`relative overflow-hidden bg-gray-200 dark:bg-[#1f2923] ${className}`}
+  >
+    <Shimmer />
+  </div>
 );
 
 export const ListingCardSkeleton = () => (
-  <div className="flex flex-col h-full bg-white dark:bg-[#1a1a1a] rounded-[2rem] overflow-hidden border border-gray-100 dark:border-white/5 shadow-sm">
+  <div className="flex flex-col h-full bg-white dark:bg-[#10221C]/50 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-[#10B77F]/10 shadow-sm">
+    {/* Image area skeleton */}
     <Skeleton className="w-full aspect-[3/2]" />
+
+    {/* Content area skeleton */}
     <div className="p-4 sm:p-5 flex flex-col flex-grow gap-3">
-      <Skeleton className="h-6 w-3/4 rounded-lg" />
-      <Skeleton className="h-5 w-1/2 rounded-lg" />
+      {/* Title skeleton */}
+      <Skeleton className="h-6 w-3/4 rounded-xl" />
+
+      {/* Price and location skeleton */}
+      <div className="flex items-center justify-between mb-1">
+        <Skeleton className="h-7 w-20 rounded-lg" />
+        <Skeleton className="h-4 w-24 rounded-lg" />
+      </div>
+
+      {/* Footer stats skeleton */}
       <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-white/5">
-        <Skeleton className="h-4 w-16 rounded" />
-        <Skeleton className="h-4 w-20 rounded" />
+        <div className="flex gap-3">
+          <Skeleton className="h-3 w-8 rounded" />
+          <Skeleton className="h-3 w-8 rounded" />
+        </div>
+        <Skeleton className="h-3 w-16 rounded" />
       </div>
     </div>
   </div>

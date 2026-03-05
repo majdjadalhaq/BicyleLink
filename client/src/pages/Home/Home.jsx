@@ -1,9 +1,20 @@
-import { useEffect, useState, useMemo, lazy, Suspense, useRef } from "react";
-import { motion } from "framer-motion";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  lazy,
+  Suspense,
+  useRef,
+  useCallback,
+} from "react";
 import { ListingCardSkeleton } from "../../components/ui/SkeletonLoaders.jsx";
 import TEST_ID from "./Home.testid";
 
-const ListingCard = lazy(() => import("../../components/ListingCard.jsx"));
+// Sub-components
+import HomeHero from "./components/HomeHero.jsx";
+import NoResults from "./components/NoResults.jsx";
+import ListingGrid from "./components/ListingGrid.jsx";
+
 const HeroFilter = lazy(
   () => import("../../components/HeroFilter/HeroFilter.jsx"),
 );
@@ -16,7 +27,6 @@ const useGridCols = (gridRef) => {
     const measure = () => {
       const el = gridRef.current;
       if (!el) return;
-      // getComputedStyle gives us the actual repeat count
       const style = window.getComputedStyle(el);
       const colsStr = style.getPropertyValue("grid-template-columns");
       if (colsStr && colsStr !== "none") {
@@ -141,7 +151,12 @@ const Home = () => {
     return () => controller.abort();
   }, [query]);
 
-  const handleLoadMore = () => setPage((prev) => prev + 1);
+  const handleLoadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  }, [isLoading, hasMore]);
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
@@ -152,10 +167,12 @@ const Home = () => {
     setPage(1);
     setIsFilterOpen(false);
   };
-  const handleClearFilters = () => {
+
+  const handleClearFilters = useCallback(() => {
     setFilters({});
+    setSearchTerm("");
     setPage(1);
-  };
+  }, []);
 
   const activeFilterCount = Object.keys(filters).filter((key) => {
     if (["lat", "lng", "radius"].includes(key)) return false;
@@ -170,68 +187,10 @@ const Home = () => {
       className="w-full min-h-screen bg-[#FAFAF8] dark:bg-[#121212] pb-24"
       data-testid={TEST_ID.container}
     >
-      {/* Hero — full-bleed cycling image */}
-      <div
-        className="relative overflow-hidden text-white text-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1571068316344-75bc76f77890?q=80&w=2070&auto=format&fit=crop')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 40%",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-[#FAFAF8] dark:from-gray-950/70 dark:via-gray-950/50 dark:to-[#121212]" />
+      {/* ── Hero Section ── */}
+      <HomeHero searchTerm={searchTerm} onSearch={handleSearch} />
 
-        <div className="relative z-10 px-4 pt-14 pb-20 sm:pt-20 sm:pb-28 max-w-4xl mx-auto">
-          <p className="text-emerald-400 text-xs sm:text-sm font-bold uppercase tracking-[0.2em] mb-3">
-            Pre-loved bicycle marketplace
-          </p>
-          <h1 className="text-4xl sm:text-6xl font-black mb-4 tracking-tight leading-[1.1]">
-            Every ride
-            <br />
-            <span className="text-emerald-400">starts here.</span>
-          </h1>
-          <p className="text-gray-300 text-sm sm:text-lg mb-10 max-w-lg mx-auto">
-            Buy and sell quality second-hand bikes in your area. Road, mountain,
-            city, e-bikes &amp; more.
-          </p>
-
-          {/* Search bar */}
-          <div className="max-w-xl mx-auto">
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <label htmlFor="hero-search" className="sr-only">
-                Search bikes, brands, and locations
-              </label>
-              <input
-                id="hero-search"
-                name="hero-search"
-                type="text"
-                placeholder="Search bikes, brands, locations..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="w-full pl-12 pr-4 py-4 text-sm sm:text-base rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-all shadow-xl shadow-black/5 focus:bg-white/20 dark:focus:bg-white/15 focus:ring-4 focus:ring-[#10B77F]/10 focus:border-[#10B77F]"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
+      {/* ── Main Content Area ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar - Desktop Only */}
@@ -307,7 +266,7 @@ const Home = () => {
           )}
 
           <div className="flex-1 min-w-0">
-            {/* Mobile Filter Button (Sticky independently under the nav bar) */}
+            {/* Mobile Filter Trigger */}
             <div className="md:hidden sticky top-[56px] z-50 bg-[#FAFAF8] dark:bg-[#121212] py-2 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100 dark:border-[#2a2a2a]/50 shadow-sm backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
               <button
                 onClick={() => setIsFilterOpen(true)}
@@ -339,7 +298,7 @@ const Home = () => {
               </button>
             </div>
 
-            {/* Section header */}
+            {/* Results Title Area */}
             <div className="mb-6 mt-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -350,122 +309,60 @@ const Home = () => {
                         ? "Filtered Results"
                         : "Featured Bikes"}
                   </h2>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium tracking-wide">
                     {listings.length > 0
-                      ? `Showing ${listings.length} bike${listings.length !== 1 ? "s" : ""} available now`
-                      : "No bikes found with current criteria"}
+                      ? `Showing ${listings.length} bike${listings.length !== 1 ? "s" : ""} currently available`
+                      : "Finding the perfect bikes for you..."}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Listings grid */}
-            <div>
+            {/* ── Listings Display ── */}
+            <div className="relative min-h-[400px]">
               {error && (
-                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-center font-medium mb-6">
-                  Error loading listings: {error.toString()}
+                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-6 rounded-3xl text-center font-medium mb-10 shadow-sm">
+                  Failed to load listings. Please check your connection and try
+                  again.
                 </div>
               )}
 
+              {/* Initial Loading Skeletons */}
               {isLoading && page === 1 && (
                 <div
-                  className="grid gap-5 mb-6"
+                  className="grid gap-5 mb-10 p-1"
                   style={{
                     gridTemplateColumns:
                       "repeat(auto-fill, minmax(240px, 1fr))",
                   }}
                 >
                   {[...Array(8)].map((_, i) => (
-                    <ListingCardSkeleton key={`loading-skeleton-${i}`} />
+                    <div
+                      key={`loading-skeleton-${i}`}
+                      className="animate-in fade-in duration-500"
+                    >
+                      <ListingCardSkeleton />
+                    </div>
                   ))}
                 </div>
               )}
 
-              {!isLoading && !error && listings.length === 0 && (
-                <div className="text-center py-20 px-4">
-                  <div className="flex justify-center mb-4 text-gray-300 dark:text-gray-700">
-                    <svg
-                      width="64"
-                      height="64"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                  </div>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {debouncedSearchTerm || activeFilterCount > 0
-                      ? "No bikes match your search"
-                      : "No bikes listed yet"}
-                  </p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
-                    {debouncedSearchTerm || activeFilterCount > 0
-                      ? "Try a different filter or search term."
-                      : "Be the first to list your ride and kickstart the community!"}
-                  </p>
-                </div>
-              )}
-
-              <div
-                ref={gridRef}
-                className="grid gap-5 p-1"
-                style={{
-                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                }}
-              >
-                <Suspense
-                  fallback={
-                    <>
-                      {[...Array(8)].map((_, i) => (
-                        <ListingCardSkeleton key={`lazy-skeleton-${i}`} />
-                      ))}
-                    </>
-                  }
-                >
-                  {listings.map((listing, i) => {
-                    const row = Math.floor(i / gridCols);
-                    const col = i % gridCols;
-                    return (
-                      <motion.div
-                        key={listing._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "0px 0px -80px 0px" }}
-                        transition={{
-                          duration: 0.55,
-                          delay: row * 0.18 + col * 0.08,
-                          ease: [0.2, 0.8, 0.2, 1],
-                        }}
-                        className="h-full"
-                      >
-                        <ListingCard listing={listing} />
-                      </motion.div>
-                    );
-                  })}
-                </Suspense>
-              </div>
-
-              {hasMore && (
-                <div className="text-center mt-12 pb-32 sm:pb-8">
-                  <button
-                    className="px-10 py-3.5 bg-emerald-800 dark:bg-emerald-600 hover:bg-emerald-900 dark:hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-full shadow-glow disabled:opacity-50 transition-all active:scale-95"
-                    onClick={handleLoadMore}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Loading...
-                      </div>
-                    ) : (
-                      "Show More Bikes"
-                    )}
-                  </button>
+              {/* Grid or Empty State */}
+              {!isLoading && listings.length === 0 && !error ? (
+                <NoResults
+                  searchTerm={debouncedSearchTerm}
+                  activeFilterCount={activeFilterCount}
+                  onClearFilters={handleClearFilters}
+                />
+              ) : (
+                <div ref={gridRef}>
+                  <ListingGrid
+                    listings={listings}
+                    isLoading={isLoading && page > 1}
+                    hasMore={hasMore}
+                    onLoadMore={handleLoadMore}
+                    gridCols={gridCols}
+                  />
                 </div>
               )}
             </div>
