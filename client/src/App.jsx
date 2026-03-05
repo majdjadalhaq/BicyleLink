@@ -91,10 +91,6 @@ const App = () => {
                           />
                           <Route path="/my-listings" element={<MyListings />} />
                           <Route path="/profile" element={<ProfileView />} />
-                          <Route
-                            path="/profile/:username"
-                            element={<ProfileView />}
-                          />
                           <Route path="/profile/edit" element={<Profile />} />
                           <Route
                             path="/profile/setup"
@@ -118,6 +114,11 @@ const App = () => {
                             }
                           />
                         </Route>
+
+                        <Route
+                          path="/profile/:username"
+                          element={<ProfileView />}
+                        />
 
                         {/* Admin Routes */}
                         <Route element={<AdminRoute />}>

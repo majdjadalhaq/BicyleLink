@@ -9,6 +9,8 @@ export const useInbox = () => {
   const [conversations, setConversations] = useState([]);
   const [view, setView] = useState("active");
   const [onlineStatuses, setOnlineStatuses] = useState({});
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [typingRooms, setTypingRooms] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectionType, setSelectionType] = useState(null); // 'archive', 'delete', or null
@@ -18,11 +20,12 @@ export const useInbox = () => {
   const { execute: executeApi } = useApi();
   const socket = useSocket();
 
-  const { isLoading, error, performFetch, cancelFetch } = useFetch(
-    `/messages/inbox?archived=${view === "archived"}`,
+  const handleResponse = useCallback(
     (response) => {
       const convs = response.result || [];
       setConversations(convs);
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
       if (socket) {
         convs.forEach((c) => {
           if (c.otherUser?._id) {
@@ -31,12 +34,37 @@ export const useInbox = () => {
         });
       }
     },
+    [socket],
   );
+  const { error, performFetch, cancelFetch } = useFetch(
+    `/messages/inbox?archived=${view === "archived"}`,
+    handleResponse,
+  );
+
+  const refreshInbox = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    const data = await executeApi(
+      `/api/messages/inbox?archived=${view === "archived"}`,
+    );
+    if (data?.success) {
+      handleResponse(data);
+    } else {
+      setIsRefreshing(false);
+    }
+  }, [view, executeApi, handleResponse, isRefreshing]);
+
+  const handleSetView = useCallback((newView) => {
+    if (newView === view) return;
+    setIsInitialLoading(true);
+    setConversations([]);
+    setView(newView);
+  }, [view]);
 
   useEffect(() => {
     performFetch();
     return () => cancelFetch();
-  }, [view, performFetch, cancelFetch]);
+  }, [performFetch, cancelFetch]);
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -50,7 +78,7 @@ export const useInbox = () => {
       }));
     });
     socket.on("receive_message", () => {
-      performFetch();
+      refreshInbox();
     });
     socket.on("online_status_result", (data) => {
       setOnlineStatuses((prev) => ({ ...prev, [data.userId]: data.isOnline }));
@@ -158,7 +186,7 @@ export const useInbox = () => {
   return {
     conversations,
     view,
-    setView,
+    setView: handleSetView,
     onlineStatuses,
     typingRooms,
     searchQuery,
@@ -167,7 +195,8 @@ export const useInbox = () => {
     setSelectionType,
     selectedRooms,
     setSelectedRooms,
-    isLoading,
+    isLoading: isInitialLoading,
+    isRefreshing,
     error,
     toggleRoomSelection,
     handleMarkAllRead,

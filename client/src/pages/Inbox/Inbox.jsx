@@ -18,6 +18,7 @@ const Inbox = () => {
     selectedRooms,
     setSelectedRooms,
     isLoading,
+    isRefreshing,
     error,
     toggleRoomSelection,
     handleMarkAllRead,
@@ -28,22 +29,8 @@ const Inbox = () => {
     totalUnread,
   } = useInbox();
 
-  if (isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">
-            Messages
-          </h1>
-        </div>
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} type="inbox" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // No early return for loading to avoid layout shift (shaking)
+  // We'll show skeletons inside the content area instead
 
   if (error) {
     return (
@@ -162,9 +149,15 @@ const Inbox = () => {
         )}
 
         {/* Conversation List */}
-        <div className="flex flex-col gap-2">
-          {filteredConversations.length === 0 ? (
-            <div className="py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5">
+        <div className="flex flex-col gap-2 min-h-[400px]">
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} type="inbox" />
+              ))}
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className={`py-12 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 transition-opacity duration-300 ${isRefreshing ? "opacity-60" : "opacity-100"}`}>
               <EmptyState
                 title={
                   searchQuery
@@ -197,26 +190,28 @@ const Inbox = () => {
               />
             </div>
           ) : (
-            filteredConversations.map((conv) => {
-              const isTyping = typingRooms[conv.room];
-              const isOnline = onlineStatuses[conv.otherUser?._id];
-              const hasUnread = conv.unreadCount > 0;
+            <div className="flex flex-col gap-2 transition-all duration-500">
+              {filteredConversations.map((conv) => {
+                const isTyping = typingRooms[conv.room];
+                const isOnline = onlineStatuses[conv.otherUser?._id];
+                const hasUnread = conv.unreadCount > 0;
 
-              return (
-                <ConversationCard
-                  key={conv.room}
-                  conv={conv}
-                  isSelected={selectedRooms.has(conv.room)}
-                  hasUnread={hasUnread}
-                  isTyping={isTyping}
-                  isOnline={isOnline}
-                  selectionType={selectionType}
-                  onToggleSelection={toggleRoomSelection}
-                  onOpenChat={openChat}
-                  formatTime={formatTime}
-                />
-              );
-            })
+                return (
+                  <ConversationCard
+                    key={conv.room}
+                    conv={conv}
+                    isSelected={selectedRooms.has(conv.room)}
+                    hasUnread={hasUnread}
+                    isTyping={isTyping}
+                    isOnline={isOnline}
+                    selectionType={selectionType}
+                    onToggleSelection={toggleRoomSelection}
+                    onOpenChat={openChat}
+                    formatTime={formatTime}
+                  />
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
