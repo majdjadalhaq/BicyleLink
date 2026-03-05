@@ -403,20 +403,18 @@ const Nav = () => {
                               Favorites
                             </Link>
                             <Link
-                              to="/about"
-                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                            >
-                              <span className="flex items-center justify-center opacity-70">
-                                {Icons.about({ className: "w-4 h-4" })}
-                              </span>
-                              About BiCycleL
-                            </Link>
-                            <Link
                               to="/account-settings"
                               className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                               <SettingsIcon />
                               Account Settings
+                            </Link>
+                            <Link
+                              to="/about"
+                              className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            >
+                              {Icons.about(16)}
+                              About BiCycleL
                             </Link>
                             <div className="my-1.5 mx-3 border-t border-gray-100 dark:border-white/5" />
                             <button

@@ -24,6 +24,7 @@ export const getNavLinks = (user) => {
         path: "/about",
         label: "About",
         iconKey: "about",
+        rightZone: true,
       },
     ];
   }
