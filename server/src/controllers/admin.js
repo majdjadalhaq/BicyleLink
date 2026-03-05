@@ -5,11 +5,27 @@ import Report from "../models/Report.js";
 import Message from "../models/Message.js";
 import { logError } from "../utils/logging.js";
 import { getIO } from "../socket/socketHandler.js";
-import { ALLOWED_LISTING_WRITE_FIELDS } from "../utils/listingConstants.js";
 
-// Helper to check if value is a non-null, non-array object
-const isPlainObject = (val) =>
-  val != null && typeof val === "object" && !Array.isArray(val);
+// --- Shared Helpers ---
+
+/** Find a document by ID or return 404 */
+const findOrFail = async (Model, id, res, label = "Resource") => {
+  const doc = await Model.findById(id);
+  if (!doc) {
+    res.status(404).json({ success: false, msg: `${label} not found` });
+    return null;
+  }
+  return doc;
+};
+
+/** Prevent admin from modifying their own account */
+const preventSelfAction = (userId, currentUserId, res, action = "modify") => {
+  if (userId.toString() === currentUserId.toString()) {
+    res.status(400).json({ success: false, msg: `Cannot ${action} yourself` });
+    return true;
+  }
+  return false;
+};
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -96,17 +112,10 @@ export const getUsers = async (req, res) => {
 
 export const toggleUserRole = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ success: false, msg: "User not found" });
-    }
-
-    // Prevent removing your own admin rights accidentally
-    if (user._id.toString() === req.user._id.toString()) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Cannot change your own role" });
-    }
+    const user = await findOrFail(User, req.params.id, res, "User");
+    if (!user) return;
+    if (preventSelfAction(user._id, req.user._id, res, "change your own role"))
+      return;
 
     user.role = user.role === "admin" ? "user" : "admin";
     await user.save();
@@ -120,17 +129,10 @@ export const toggleUserRole = async (req, res) => {
 
 export const toggleUserBlock = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ success: false, msg: "User not found" });
-    }
-
-    // Prevent blocking yourself
-    if (user._id.toString() === req.user._id.toString()) {
-      return res
-        .status(400)
-        .json({ success: false, msg: "Cannot block yourself" });
-    }
+    const user = await findOrFail(User, req.params.id, res, "User");
+    if (!user) return;
+    if (preventSelfAction(user._id, req.user._id, res, "block yourself"))
+      return;
 
     user.isBlocked = !user.isBlocked;
     await user.save();
@@ -153,10 +155,8 @@ export const toggleUserBlock = async (req, res) => {
 
 export const toggleUserVerify = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ success: false, msg: "User not found" });
-    }
+    const user = await findOrFail(User, req.params.id, res, "User");
+    if (!user) return;
 
     user.isVerified = !user.isVerified;
     await user.save();
@@ -243,10 +243,8 @@ export const getListings = async (req, res) => {
 
 export const toggleListingFeatured = async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
-    if (!listing) {
-      return res.status(404).json({ success: false, msg: "Listing not found" });
-    }
+    const listing = await findOrFail(Listing, req.params.id, res, "Listing");
+    if (!listing) return;
 
     listing.isFeatured = !listing.isFeatured;
     await listing.save();
@@ -262,10 +260,8 @@ export const toggleListingFeatured = async (req, res) => {
 
 export const deleteListingByAdmin = async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
-    if (!listing) {
-      return res.status(404).json({ success: false, msg: "Listing not found" });
-    }
+    const listing = await findOrFail(Listing, req.params.id, res, "Listing");
+    if (!listing) return;
 
     await Listing.findByIdAndDelete(req.params.id);
 
@@ -301,38 +297,6 @@ export const getAdminSentWarnings = async (req, res) => {
   } catch (error) {
     logError(error);
     res.status(500).json({ success: false, msg: "Unable to fetch warnings" });
-  }
-};
-
-export const updateListingByAdmin = async (req, res) => {
-  try {
-    const updates = req.body?.listing;
-    const { id } = req.params;
-
-    if (!isPlainObject(updates)) {
-      return res.status(400).json({
-        success: false,
-        msg: "You need to provide a 'listing' object with updates.",
-      });
-    }
-
-    const listing = await Listing.findById(id);
-    if (!listing) {
-      return res.status(404).json({ success: false, msg: "Listing not found" });
-    }
-
-    // Use shared ALLOWED_LISTING_WRITE_FIELDS from listingConstants.js
-    ALLOWED_LISTING_WRITE_FIELDS.forEach((field) => {
-      if (updates[field] !== undefined) {
-        listing[field] = updates[field];
-      }
-    });
-
-    await listing.save();
-    res.status(200).json({ success: true, listing });
-  } catch (error) {
-    logError(error);
-    res.status(500).json({ success: false, msg: "Unable to update listing" });
   }
 };
 

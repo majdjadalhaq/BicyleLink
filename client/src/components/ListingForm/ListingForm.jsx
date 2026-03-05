@@ -3,10 +3,7 @@ import PropTypes from "prop-types";
 import InputField from "../form/InputField";
 import SelectField from "../form/SelectField";
 import LocationMap from "../LocationMap";
-import {
-  CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_UPLOAD_PRESET,
-} from "../../utils/config";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 import { CATEGORY_OPTIONS, CONDITION_OPTIONS } from "../../utils/constants";
 
@@ -211,15 +208,7 @@ const ListingForm = ({
   }, []);
 
   const uploadImageToCloudinary = async (file) => {
-    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-    const response = await fetch(url, { method: "POST", body: data });
-    if (!response.ok) throw new Error("Image upload failed");
-    const json = await response.json();
-    return json.secure_url;
+    return uploadToCloudinary(file);
   };
 
   const validateStep = () => {

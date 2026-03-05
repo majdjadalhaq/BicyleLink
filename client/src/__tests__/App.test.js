@@ -3,7 +3,6 @@ import { MemoryRouter } from "react-router";
 
 import App from "../App";
 import TEST_ID_HOME from "../pages/Home/Home.testid";
-import TEST_ID_USER_LIST from "../pages/User/UserList.testid";
 import TEST_ID_CREATE_USER from "../pages/User/CreateUser.testid";
 import { getUsersSuccessMock } from "../__testUtils__/fetchUserMocks";
 

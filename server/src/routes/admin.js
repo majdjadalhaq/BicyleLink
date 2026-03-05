@@ -11,7 +11,6 @@ import {
   toggleListingFeatured,
   deleteListingByAdmin,
   getAdminSentWarnings,
-  updateListingByAdmin,
   getReportsByAdmin,
   updateReportStatusByAdmin,
 } from "../controllers/admin.js";
@@ -35,7 +34,6 @@ adminRouter.get("/users/:id/warnings", getAdminSentWarnings);
 // Listing Moderation
 adminRouter.get("/listings", getListings);
 adminRouter.patch("/listings/:id/featured", toggleListingFeatured);
-adminRouter.patch("/listings/:id", updateListingByAdmin);
 adminRouter.delete("/listings/:id", deleteListingByAdmin);
 
 // Report Management

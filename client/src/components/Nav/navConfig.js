@@ -19,6 +19,13 @@ export const getNavLinks = (user) => {
       { path: "/", label: "Home", iconKey: "home" },
       { path: "/login", label: "Login", iconKey: "login" },
       { path: "/signup", label: "Sign Up", iconKey: "signup" },
+      // About: desktop right zone + mobile bottom bar
+      {
+        path: "/about",
+        label: "About",
+        iconKey: "about",
+        rightZone: true,
+      },
     ];
   }
 
@@ -110,6 +117,13 @@ export const getNavLinks = (user) => {
       testId: "linkToCreateListing",
       rightZone: true, // Appears in right zone on PC
       desktopOnly: true, // shown on desktop right zone only
+    },
+    // About — desktop profile dropdown + mobile settings sheet only
+    {
+      path: "/about",
+      label: "About BiCycleL",
+      iconKey: "about",
+      profileDropdownOnly: true,
     },
     // Inbox (Now in Profile Dropdown only on PC)
     {

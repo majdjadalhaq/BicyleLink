@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
-import {
-  CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_UPLOAD_PRESET,
-} from "../../../utils/config";
+import { uploadToCloudinary } from "../../../utils/cloudinary";
 
 const useChat = (listingId, user, receiverId, roomParam) => {
   const [messages, setMessages] = useState([]);
@@ -160,17 +157,8 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     setIsUploading(true);
     setUploadProgress(10);
     try {
-      const data = new FormData();
-      data.append("file", file);
-      data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: data },
-      );
-      if (!response.ok) throw new Error("Image upload failed");
-      const json = await response.json();
-      const optimizedUrl = json.secure_url.replace(
+      const secureUrl = await uploadToCloudinary(file);
+      const optimizedUrl = secureUrl.replace(
         "/upload/",
         "/upload/w_800,c_limit,q_auto,f_auto/",
       );

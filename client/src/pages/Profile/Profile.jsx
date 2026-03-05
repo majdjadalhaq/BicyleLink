@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_UPLOAD_PRESET,
-} from "../../utils/config";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 import ImageCropper from "../../components/ImageCropper/ImageCropper";
 import SelectField from "../../components/form/SelectField";
 import TextAreaField from "../../components/form/TextAreaField";
@@ -223,14 +220,7 @@ const Profile = () => {
   };
 
   const uploadImageToCloudinary = async (file) => {
-    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    const response = await fetch(url, { method: "POST", body: data });
-    if (!response.ok) throw new Error("Failed to upload image");
-    const json = await response.json();
-    return json.secure_url;
+    return uploadToCloudinary(file);
   };
 
   const handleSubmit = async (e) => {

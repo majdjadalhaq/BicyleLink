@@ -13,13 +13,10 @@ import {
   buildListingSort,
 } from "../utils/listingHelpers.js";
 import { ALLOWED_LISTING_WRITE_FIELDS } from "../utils/listingConstants.js";
+import { isPlainObject } from "../utils/helpers.js";
 
 // Helper to validate MongoDB ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-
-// Helper to check if value is a non-null, non-array object
-const isPlainObject = (val) =>
-  val != null && typeof val === "object" && !Array.isArray(val);
 
 // GET /api/listings — paginated list with filtering, searching, and sorting
 export const getListings = async (req, res) => {

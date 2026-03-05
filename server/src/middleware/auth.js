@@ -129,8 +129,11 @@ export const requireOwnership = (Model, param = "id") => {
           .json({ success: false, msg: "Resource not found" });
       }
 
-      // Check ownership
-      if (resource.ownerId.toString() !== req.user.id) {
+      // Allow admins to bypass ownership check
+      const isOwner = resource.ownerId.toString() === req.user.id;
+      const isAdmin = req.user.role === "admin";
+
+      if (!isOwner && !isAdmin) {
         return res.status(403).json({
           success: false,
           msg: "Not authorized to access this resource",

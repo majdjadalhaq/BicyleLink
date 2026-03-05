@@ -44,9 +44,7 @@ const EditListing = () => {
   }, [listingData, user, navigate]);
 
   const handleEditSubmit = async (formData) => {
-    const route =
-      user?.role === "admin" ? `/admin/listings/${id}` : `/listings/${id}`;
-    const data = await executeUpdate(route, {
+    const data = await executeUpdate(`/listings/${id}`, {
       method: "PUT",
       body: { listing: formData },
     });

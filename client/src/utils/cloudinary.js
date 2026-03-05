@@ -32,3 +32,25 @@ export const optimiseCloudinaryUrl = (url, options = {}) => {
 
   return url.replace("/upload/", `/upload/${transforms.join(",")}/`);
 };
+
+/**
+ * Uploads a file to Cloudinary and returns the secure URL.
+ *
+ * @param {File|Blob} file - The file to upload.
+ * @param {string} [uploadPreset] - Override upload preset (defaults to CLOUDINARY_UPLOAD_PRESET from config).
+ * @returns {Promise<string>} The secure URL of the uploaded image.
+ */
+export const uploadToCloudinary = async (file, uploadPreset) => {
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } =
+    await import("./config");
+
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset || CLOUDINARY_UPLOAD_PRESET);
+
+  const response = await fetch(url, { method: "POST", body: formData });
+  if (!response.ok) throw new Error("Failed to upload image");
+  const data = await response.json();
+  return data.secure_url;
+};

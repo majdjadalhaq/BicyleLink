@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import StatCard from "../../components/Admin/StatCard";
 import ActivityGraph from "../../components/Admin/ActivityGraph";
+import {
+  WarnIcon,
+  PromoteIcon,
+  StarIcon,
+  ArrowRightIcon,
+} from "./components/AdminIcons";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -113,20 +119,7 @@ const AdminDashboard = () => {
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${stats.pendingReports > 0 ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30" : "bg-gray-100 dark:bg-white/5 text-gray-400"}`}
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
+              <WarnIcon size={20} />
             </div>
           </Link>
         </div>
@@ -137,23 +130,7 @@ const AdminDashboard = () => {
         <StatCard
           title="Global Citizens"
           value={stats.totalUsers}
-          icon={
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          }
+          icon={<PromoteIcon size={24} />}
           color="primary"
         />
         <StatCard
@@ -181,20 +158,7 @@ const AdminDashboard = () => {
           <StatCard
             title="Premium Slot"
             value={stats.featuredListings}
-            icon={
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            }
+            icon={<StarIcon size={24} />}
             color="warning"
           />
         </div>
@@ -217,60 +181,30 @@ const AdminDashboard = () => {
                 className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all group font-bold text-sm"
               >
                 <span>User Registry</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                <ArrowRightIcon
                   strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
+                />
               </Link>
               <Link
                 to="/admin/listings"
                 className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all group font-bold text-sm"
               >
                 <span>Catalogue Manager</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                <ArrowRightIcon
                   strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
+                />
               </Link>
               <Link
                 to="/admin/reports"
                 className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all group font-bold text-sm"
               >
                 <span>Justice Console</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                <ArrowRightIcon
                   strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
+                />
               </Link>
             </div>
           </div>
