@@ -1,64 +1,61 @@
-# BiCycleL Architecture
+# BiCycleL Architecture Overview
 
-## Overview
+BiCycleL is built using the MERN stack (MongoDB, Express, React, Node.js), following a modern client-server architecture with real-time data synchronization.
 
-BiCycleL is a MERN-stack marketplace for buying and selling bicycles. The application follows a client-server architecture with a React SPA, Express REST API, and MongoDB database. Real-time features use Socket.IO.
+## System Architecture
 
-## High-Level Diagram
+```mermaid
+graph TD
+    User((User))
+    Client[React SPA]
+    Server[Express API]
+    DB[(MongoDB Atlas)]
+    Socket[Socket.IO Server]
+    Cloud[Cloudinary / Resend]
 
+    User <--> Client
+    Client <-->|REST API| Server
+    Client <-->|WebSockets| Socket
+    Server <--> DB
+    Socket <--> Server
+    Server <--> Cloud
 ```
-[Client - React/Vite]  <--HTTP/REST-->  [Server - Express]
-        |                                      |
-        |<-------- Socket.IO ----------------->|
-        |                                      |
-        v                                      v
-   [Local Storage]                      [MongoDB]
-```
 
-## Client Architecture
+## Frontend Architecture
 
-- **Entry**: `client/src/main.jsx` mounts the app with providers (Theme, Auth, Toast, Socket, Notification)
-- **Routing**: React Router v7 with public, protected, and admin routes
-- **State**: Context for auth, theme, notifications, toast; local state elsewhere
-- **API**: Centralized `useApi` hook and `api.js` service for HTTP requests
-- **Real-time**: Socket.IO client via `SocketProvider`; used for chat, notifications, online status
+The frontend is a single-page application (SPA) built with React and Vite. It utilizes a provider-based pattern for global state management.
 
-### Key Directories
+- **Routing**: Managed by React Router v7 with role-based access control.
+- **State Management**: Context Providers handle Authentication, Theme, Notifications, and Real-time Sockets.
+- **Real-time Sync**: The `NotificationProvider` listens for server-side socket events (`new_notification`, `notifications_updated`) to update the UI instantly without page refreshes.
+- **API Layer**: Centralized custom hooks (`useApi`) ensure consistent error handling and authentication header management.
 
-| Path | Purpose |
-|------|---------|
-| `src/components` | Shared UI components, Nav, forms, modals |
-| `src/pages` | Route-level pages with page-specific components |
-| `src/contexts` | Auth, Theme, Toast, Socket, Notification providers |
-| `src/hooks` | useAuth, useApi, useFetch, useCountryStateCity, useNotifications, useUnreadCount |
-| `src/services` | API client (fetch wrapper with credentials) |
-| `src/utils` | Config, formatDate, formatPrice, cloudinary helpers |
+## Backend Architecture
 
-## Server Architecture
+The backend is a Node.js Express server designed for scalability and security.
 
-- **Entry**: `server/src/index.js` creates HTTP server, attaches Socket.IO, connects DB, serves client in production
-- **Routing**: Express routers mounted under `/api/*`
-- **Auth**: JWT in httpOnly cookies; `authenticate` middleware
-- **Real-time**: Socket.IO handler for chat, typing, read status, online status
+- **Authentication**: Stateless JWT-based authentication using `httpOnly` secure cookies for CSRF protection.
+- **Socket.IO Integration**: Integrated into the HTTP server to share the same authentication context. It manages real-time chat, typing indicators, and account-wide notification broadcasts.
+- **Security Middleware**: Includes global rate limiting, helmet for secure headers, and NoSQL injection sanitization.
+- **Business Logic**: Controllers are modularized by domain (Listings, Users, Messages, Notifications).
 
-### Key Directories
+## Real-time Notification Flow
 
-| Path | Purpose |
-|------|---------|
-| `src/controllers` | Business logic per domain (user split into authHandlers, profileHandlers, accountHandlers) |
-| `src/models` | Mongoose schemas |
-| `src/routes` | Route definitions and middleware wiring |
-| `src/middleware` | Auth, admin, validation, rate limiting |
-| `src/socket` | Socket.IO event handlers |
+1. **Trigger**: An event occurs (e.g., a new message is sent).
+2. **Server Action**: The server saves the message and creates a notification record in MongoDB.
+3. **Socket Broadcast**: The `socketHandler` identifies the recipient and emits a `new_notification` event to their specific private room (`user_${userId}`).
+4. **Client Update**: The client-side `NotificationProvider` receives the event and updates the unread count and notification dropdown in real-time.
 
-## Deployment
+## Deployment Strategy
 
-- **Production**: Node serves built client from `client/dist`; API at `/api/*`
-- **Heroku**: Uses `heroku-postbuild` to run setup and client build
-- **Environment**: `NODE_ENV=production`, `PORT` from Heroku, `MONGODB_URL`, `JWT_SECRET`, etc.
+- **Production Build**: The React application is compiled into static assets and served by the Express server in production.
+- **Hosting**: Deployed on Heroku with automatic builds triggered by Git pushes.
+- **Infrastructure**: Uses MongoDB Atlas for managed database state and Cloudinary for optimized media delivery.
 
-## Related
+---
+
+## Related Documentation
 
 - [API Reference](./API.md)
-- [Database Structure](./DATABASE.md)
-- [Tech Stack](./TECH_STACK.md)
+- [Database Schema](./DATABASE.md)
+- [Tech Stack Details](./TECH_STACK.md)

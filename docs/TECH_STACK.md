@@ -1,61 +1,51 @@
-# BiCycleL Tech Stack
+# BiCycleL Technical Stack
 
-## Core
+A comprehensive overview of the technologies, libraries, and infrastructure powering the BiCycleL marketplace.
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19, Vite 7 |
-| Backend | Node.js 20, Express 5 |
-| Database | MongoDB, Mongoose 9 |
-| Real-time | Socket.IO 4 |
+## Core Technologies
 
-## Client Libraries
+| Layer         | Technology            | Icons                                                                                                                                                                                           |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**  | React 19, Vite 7      | ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)               |
+| **Backend**   | Node.js 20, Express 5 | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white) |
+| **Database**  | MongoDB, Mongoose 9   | ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=flat&logo=mongodb&logoColor=white)                                                                                                 |
+| **Real-time** | Socket.IO 4           | ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=flat&logo=socket.io&logoColor=white)                                                                                           |
 
-| Purpose | Library |
-|---------|---------|
-| Routing | react-router-dom 7 |
-| Styling | Tailwind CSS 3 |
-| State | React Context |
-| HTTP | Fetch (custom api.js + useApi) |
-| Maps | react-leaflet, leaflet |
-| Image crop | react-easy-crop |
-| Charts | recharts |
-| OAuth | @react-oauth/google |
-| Location data | country-state-city (code-split via dynamic import) |
-| Utils | date-fns, lodash, clsx, tailwind-merge |
+## Client-Side Libraries
 
-## Server Libraries
+- **State Management**: React Context API
+- **Routing**: React Router v7
+- **Styling**: Tailwind CSS v3
+- **Data Fetching**: Native Fetch API with custom `useApi` abstraction
+- **Maps & Location**: Leaflet, React Leaflet, OpenStreetMap
+- **Utilities**: Date-fns, Lodash, Clsx, Tailwind-merge
+- **Media**: React-easy-crop, Recharts, @react-oauth/google
 
-| Purpose | Library |
-|---------|---------|
-| Auth | jsonwebtoken, bcrypt |
-| Validation | express-validator |
-| Security | helmet, cors, express-rate-limit |
-| Email | nodemailer, resend |
-| Logging | morgan, winston |
+## Server-Side Libraries
 
-## Development
+- **Authentication**: JSON Web Token (JWT), Bcrypt.js
+- **Middleware**: Helmet, CORS, Express Rate Limit
+- **Validation**: Express Validator
+- **Communication**: Nodemailer, Resend API
+- **Logging**: Winston, Morgan
 
-| Purpose | Tool |
-|---------|------|
-| Lint | ESLint 9 |
-| Format | Prettier |
-| Tests | Jest, React Testing Library |
-| E2E | Cypress 13 |
-| Hooks | Husky (pre-commit) |
+## Development & Tooling
+
+- **Testing**: Jest, React Testing Library, Cypress (E2E)
+- **Quality**: ESLint v9, Prettier
+- **Git Hooks**: Husky
+- **Workflow**: Concurrently, MongoDB Memory Server
 
 ## Infrastructure
 
-| Purpose | Service |
-|---------|---------|
-| Hosting | Heroku |
-| Database | MongoDB Atlas |
-| Images | Cloudinary |
-| Email | Resend |
-| Maps | OpenStreetMap (Nominatim, tiles) |
+- **Cloud Hosting**: Heroku (PaaS)
+- **Database Hosting**: MongoDB Atlas (DBaaS)
+- **Media Storage**: Cloudinary
+- **Email Service**: Resend
+- **Geocoding**: Nominatim (OpenStreetMap)
 
-## Related
+## Related Documentation
 
-- [Architecture](./ARCHITECTURE.md)
-- [API](./API.md)
-- [Database](./DATABASE.md)
+- [Architecture Overview](./ARCHITECTURE.md)
+- [API Reference](./API.md)
+- [Database Schema](./DATABASE.md)

@@ -1,5 +1,11 @@
 # BiCycleL - Premium Second-Hand Bike Marketplace
 
+![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+
 BiCycleL is a community-driven marketplace for high-quality second-hand bikes in the Netherlands. Built with the MERN stack, this platform features dynamic search, real-time messaging via WebSockets, and a modern responsive interface.
 
 This project was developed as part of the HackYourFuture curriculum using Agile methodologies.

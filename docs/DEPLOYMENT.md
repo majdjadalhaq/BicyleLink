@@ -1,4 +1,4 @@
-# BiCycleL Deployment Guide
+# BiCycleL Deployment Strategy
 
 ## Production Checklist
 
