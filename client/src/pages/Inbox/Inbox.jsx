@@ -29,10 +29,24 @@ const Inbox = () => {
     totalUnread,
   } = useInbox();
 
-  // No early return for loading to avoid layout shift (shaking)
-  // We'll show skeletons inside the content area instead
+  if (isLoading && conversations.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">
+            Messages
+          </h1>
+        </div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} type="inbox" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  if (error) {
+  if (error && conversations.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex flex-col items-center gap-3 py-16 text-center">
@@ -150,7 +164,7 @@ const Inbox = () => {
 
         {/* Conversation List */}
         <div className="flex flex-col gap-2 min-h-[400px]">
-          {isLoading ? (
+          {isLoading && filteredConversations.length === 0 ? (
             <div className="space-y-3">
               {[...Array(6)].map((_, i) => (
                 <Skeleton key={i} type="inbox" />

@@ -28,6 +28,8 @@ const InboxToolbar = ({
           </svg>
         </span>
         <input
+          id="inbox-search"
+          name="search"
           type="text"
           placeholder="Search by name or listing…"
           value={searchQuery}
