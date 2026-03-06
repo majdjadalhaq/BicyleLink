@@ -84,9 +84,19 @@ export const initSocket = (io) => {
       // data can be just room string or { room }
       const room = typeof data === "string" ? data : data.room;
 
+      if (currentUserId) {
+        // Always join personal room for app-wide notifications (Inbox, etc.)
+        socket.join(`user_${currentUserId}`);
+      }
+
       // Security check: Room ID format is listingId_userId1_userId2
       // User can only join if their ID is part of the room string
-      if (currentUserId && !room.includes(currentUserId)) {
+      if (
+        currentUserId &&
+        room &&
+        room.includes("_") &&
+        !room.includes(currentUserId)
+      ) {
         logError(
           new Error(
             `Unauthorized room join attempt: User ${currentUserId} -> Room ${room}`,
@@ -95,12 +105,11 @@ export const initSocket = (io) => {
         return;
       }
 
-      socket.join(room);
+      if (room) {
+        socket.join(room);
+      }
 
       if (currentUserId) {
-        // Join personal room for app-wide notifications (Inbox, etc.)
-        socket.join(`user_${currentUserId}`);
-
         if (!onlineUsers.has(currentUserId)) {
           onlineUsers.set(currentUserId, new Set());
           // Notify shared contacts about new online status
@@ -130,35 +139,40 @@ export const initSocket = (io) => {
         io.to(`user_${msg.receiverId}`).emit("receive_message", savedMessage);
 
         // --- INQUIRY TRACKING ---
-        const listing = await Listing.findById(msg.listingId);
-        if (listing && listing.ownerId.toString() !== msg.senderId) {
-          // Check if this is the first message from this sender for this listing
-          const existingMessages = await Message.countDocuments({
-            listingId: msg.listingId,
-            senderId: msg.senderId,
-            _id: { $ne: savedMessage._id },
-          });
-
-          if (existingMessages === 0) {
-            // First message from a potential buyer! Increment inquiries.
-            await Listing.findByIdAndUpdate(msg.listingId, {
-              $inc: { inquiries: 1 },
+        // Robust check for valid listing ID to avoid crash
+        if (msg.listingId && mongoose.Types.ObjectId.isValid(msg.listingId)) {
+          const listing = await Listing.findById(msg.listingId);
+          if (listing && listing.ownerId.toString() !== msg.senderId) {
+            // Check if this is the first message from this sender for this listing
+            const existingMessages = await Message.countDocuments({
+              listingId: msg.listingId,
+              senderId: msg.senderId,
+              _id: { $ne: savedMessage._id },
             });
+
+            if (existingMessages === 0) {
+              // First message from a potential buyer! Increment inquiries.
+              await Listing.findByIdAndUpdate(msg.listingId, {
+                $inc: { inquiries: 1 },
+              });
+            }
           }
         }
 
         // --- NOTIFICATION ---
         // Create notification for receiver
-        const receiver = await mongoose
-          .model("users")
-          .findById(msg.receiverId)
-          .select("notificationSettings");
+        const receiver = await User.findById(msg.receiverId).select(
+          "notificationSettings",
+        );
 
         if (receiver?.notificationSettings?.messages !== false) {
           const notification = await Notification.create({
             recipientId: msg.receiverId,
             senderId: msg.senderId,
-            listingId: msg.listingId,
+            listingId:
+              msg.listingId && mongoose.Types.ObjectId.isValid(msg.listingId)
+                ? msg.listingId
+                : null,
             type: "message",
             title: "New message",
             body:
@@ -170,10 +184,7 @@ export const initSocket = (io) => {
           });
 
           // Emit real-time notification to the receiver's personal room
-          io.to(`user_${msg.receiverId}`).emit(
-            "new_notification",
-            notification,
-          );
+          emitNotification(msg.receiverId, notification);
         }
       } catch (error) {
         logError(error);

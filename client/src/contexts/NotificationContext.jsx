@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { NotificationContext } from "./NotificationContextRegistry";
 import useApi from "../hooks/useApi";
@@ -38,8 +38,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [user, execute]);
 
-  const initialLoadRef = useRef(false);
-
   // Initial load
   // Fixed: always call fetchNotifications safely
   useEffect(() => {
@@ -54,8 +52,7 @@ export const NotificationProvider = ({ children }) => {
     let isMounted = true;
 
     async function loadData() {
-      if (user && isMounted && !initialLoadRef.current) {
-        initialLoadRef.current = true;
+      if (user && isMounted) {
         await fetchNotifications();
         await fetchUnread();
       }
@@ -88,12 +85,22 @@ export const NotificationProvider = ({ children }) => {
       }
     };
 
+    const handleSync = () => {
+      fetchUnread();
+      fetchNotifications();
+    };
+
     // Join personal room for real-time notifications
     socket.emit("join_room", { userId: user._id, room: `user_${user._id}` });
 
     socket.on("new_notification", handleNewNotification);
+    socket.on("notifications_updated", handleSync);
+    socket.on("messages_read", handleSync);
+
     return () => {
       socket.off("new_notification", handleNewNotification);
+      socket.off("notifications_updated", handleSync);
+      socket.off("messages_read", handleSync);
     };
   }, [socket, user, showToast]);
 
