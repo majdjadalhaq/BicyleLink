@@ -27,17 +27,24 @@ export const useHeroFilter = ({ filters, onApply, idPrefix = "" }) => {
 
   // Section visibility state
   const [expandedSections, setExpandedSections] = useState({
-    category: true,
-    condition: true,
+    category: false,
+    condition: false,
     price: false,
     year: false,
   });
 
   const toggleSection = useCallback((section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setExpandedSections((prev) => {
+      const isCurrentlyExpanded = prev[section];
+      // Close all others and toggle the clicked one
+      return {
+        category: false,
+        condition: false,
+        price: false,
+        year: false,
+        [section]: !isCurrentlyExpanded,
+      };
+    });
   }, []);
 
   // Sync local state when external filters change

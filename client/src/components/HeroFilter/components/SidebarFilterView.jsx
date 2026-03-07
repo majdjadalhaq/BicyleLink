@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import FilterSectionTitle from "../sections/FilterSectionTitle";
 import DualRangeSlider from "../../ui/DualRangeSlider";
 import CitySearchInput from "../CitySearchInput";
 import { CATEGORY_OPTIONS, CONDITION_OPTIONS } from "../../../utils/constants";
@@ -38,109 +37,69 @@ const SidebarFilterView = ({
           ))}
         </div>
       </div>
-      <div className="flex flex-col gap-8 pb-20">
-        {/* Categories */}
-        <div className="flex flex-col gap-4">
-          <FilterSectionTitle
-            title="Category"
-            name="category"
-            expandedSections={expandedSections}
-            toggleSection={toggleSection}
-            groupClassName="pr-1"
-          />
-          {expandedSections.category && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              {CATEGORY_OPTIONS.map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => handleChipToggle("category", cat.value)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
-                    localFilters.category?.includes(cat.value)
-                      ? "bg-emerald-800 dark:bg-emerald-600 border-emerald-800 dark:border-emerald-600 text-white shadow-glow"
-                      : "bg-white dark:bg-[#1e1e1e] border-gray-100 dark:border-[#2a2a2a] text-gray-600 dark:text-gray-400 hover:border-emerald-200 dark:hover:border-emerald-500/30"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Condition */}
-        <div className="flex flex-col gap-4">
-          <FilterSectionTitle
-            title="Condition"
-            name="condition"
-            expandedSections={expandedSections}
-            toggleSection={toggleSection}
-            groupClassName="pr-1"
-          />
-          {expandedSections.condition && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              {CONDITION_OPTIONS.map((cond) => (
-                <button
-                  key={cond.value}
-                  onClick={() => handleChipToggle("condition", cond.value)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
-                    localFilters.condition?.includes(cond.value)
-                      ? "bg-emerald-800 dark:bg-emerald-600 border-emerald-800 dark:border-emerald-600 text-white shadow-glow"
-                      : "bg-white dark:bg-[#1e1e1e] border-gray-100 dark:border-[#2a2a2a] text-gray-600 dark:text-gray-400 hover:border-emerald-200 dark:hover:border-emerald-500/30"
-                  }`}
-                >
-                  {cond.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Location */}
-        <CitySearchInput
-          id={`${uniquePrefix}city-search`}
-          citySearch={citySearch}
-          cityOptions={cityOptions}
-          showCityDropdown={showCityDropdown}
-          isLoadingLocation={isLoadingLocation}
-          onSearchChange={handleCitySearchChange}
-          onFocus={() => citySearch.length > 2 && setShowCityDropdown(true)}
-          onSelect={handleCitySelect}
-          onUseGPS={handleUseMyLocation}
-          dropdownRef={dropdownRef}
-        />
-
-        {/* Distance Slider - Directly under Location */}
-        <div className="flex flex-col gap-4 scroll-mt-20">
-          <label
-            htmlFor={`${uniquePrefix}radius-slider`}
-            className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest px-1"
+      <div className="flex flex-col gap-6 pb-24">
+        {/* Filter Triggers Grid (2x2) - Now at Top */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {/* Category Trigger */}
+          <button
+            onClick={() => toggleSection("category")}
+            className={`p-3.5 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 group/btn ${
+              expandedSections.category || localFilters.category?.length > 0
+                ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                : "bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-emerald-500 hover:text-emerald-500"
+            }`}
           >
-            Distance Range
-          </label>
-          <div className="flex items-center gap-4 px-1">
-            <input
-              id={`${uniquePrefix}radius-slider`}
-              name={`${uniquePrefix}radius-slider`}
-              type="range"
-              min="0"
-              max="200"
-              value={localFilters.radius || 50}
-              onChange={(e) =>
-                handleRangeChange("radius", Number(e.target.value))
-              }
-              className="flex-1 h-1.5 bg-gray-200 dark:bg-white/5 rounded-full appearance-none cursor-pointer accent-emerald-500"
-            />
-            <span className="text-[10px] font-bold text-emerald-500 min-w-12 text-right">
-              {localFilters.radius || 50} km
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <span className="text-[9px] font-black uppercase tracking-widest">
+              Category
             </span>
-          </div>
-        </div>
+          </button>
 
-        {/* Dual Range Side-by-Side Triggers */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Condition Trigger */}
+          <button
+            onClick={() => toggleSection("condition")}
+            className={`p-3.5 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 group/btn ${
+              expandedSections.condition || localFilters.condition?.length > 0
+                ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                : "bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-emerald-500 hover:text-emerald-500"
+            }`}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span className="text-[9px] font-black uppercase tracking-widest">
+              Condition
+            </span>
+          </button>
+
+          {/* Price Trigger */}
           <button
             onClick={() => toggleSection("price")}
-            className={`p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2 group/btn ${
+            className={`p-3.5 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 group/btn ${
               expandedSections.price ||
               localFilters.minPrice > 0 ||
               localFilters.maxPrice < 10000
@@ -149,8 +108,8 @@ const SidebarFilterView = ({
             }`}
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -165,9 +124,11 @@ const SidebarFilterView = ({
               Price
             </span>
           </button>
+
+          {/* Year Trigger */}
           <button
             onClick={() => toggleSection("year")}
-            className={`p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2 group/btn ${
+            className={`p-3.5 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1.5 group/btn ${
               expandedSections.year ||
               localFilters.minYear > 1990 ||
               localFilters.maxYear < currentYear
@@ -176,8 +137,8 @@ const SidebarFilterView = ({
             }`}
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -196,46 +157,140 @@ const SidebarFilterView = ({
           </button>
         </div>
 
-        {/* Price Range Slider - Collapsible */}
-        {expandedSections.price && (
-          <div className="px-1 py-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <DualRangeSlider
-              label="Price Range"
-              min={0}
-              max={10000}
-              step={50}
-              value={[
-                localFilters.minPrice || 0,
-                localFilters.maxPrice || 10000,
-              ]}
-              onChange={([min, max]) => {
-                handleRangeChange("minPrice", min);
-                handleRangeChange("maxPrice", max);
-              }}
-              formatValue={(v) => `€${v.toLocaleString()}`}
-            />
-          </div>
-        )}
+        {/* Collapsible Content Area - Immediately below Triggers */}
+        <div className="bg-gray-50/50 dark:bg-white/5 rounded-3xl overflow-hidden min-h-0 border border-gray-100/50 dark:border-white/5">
+          {/* Categories - Compacted */}
+          {expandedSections.category && (
+            <div className="p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-2.5 pl-0.5">
+                Category
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => handleChipToggle("category", cat.value)}
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border truncate text-center ${
+                      localFilters.category?.includes(cat.value)
+                        ? "bg-emerald-800 dark:bg-emerald-600 border-emerald-800 dark:border-emerald-600 text-white shadow-glow"
+                        : "bg-white dark:bg-[#1e1e1e] border-gray-100 dark:border-[#2a2a2a] text-gray-600 dark:text-gray-400 hover:border-emerald-200 dark:hover:border-emerald-500/30"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {/* Year Range Slider - Collapsible */}
-        {expandedSections.year && (
-          <div className="px-1 py-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <DualRangeSlider
-              label="Model Year"
-              min={1990}
-              max={currentYear}
-              step={1}
-              value={[
-                localFilters.minYear || 1990,
-                localFilters.maxYear || currentYear,
-              ]}
-              onChange={([min, max]) => {
-                handleRangeChange("minYear", min);
-                handleRangeChange("maxYear", max);
-              }}
+          {/* Condition - Compacted */}
+          {expandedSections.condition && (
+            <div className="p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest block mb-2.5 pl-0.5">
+                Condition
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CONDITION_OPTIONS.map((cond) => (
+                  <button
+                    key={cond.value}
+                    onClick={() => handleChipToggle("condition", cond.value)}
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border truncate text-center ${
+                      localFilters.condition?.includes(cond.value)
+                        ? "bg-emerald-800 dark:bg-emerald-600 border-emerald-800 dark:border-emerald-600 text-white shadow-glow"
+                        : "bg-white dark:bg-[#1e1e1e] border-gray-100 dark:border-[#2a2a2a] text-gray-600 dark:text-gray-400 hover:border-emerald-200 dark:hover:border-emerald-400/30"
+                    }`}
+                  >
+                    {cond.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Price Range Slider */}
+          {expandedSections.price && (
+            <div className="p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <DualRangeSlider
+                label="Price Range"
+                min={0}
+                max={10000}
+                step={50}
+                value={[
+                  localFilters.minPrice || 0,
+                  localFilters.maxPrice || 10000,
+                ]}
+                onChange={([min, max]) => {
+                  handleRangeChange("minPrice", min);
+                  handleRangeChange("maxPrice", max);
+                }}
+                formatValue={(v) => `€${v.toLocaleString()}`}
+              />
+            </div>
+          )}
+
+          {/* Year Range Slider */}
+          {expandedSections.year && (
+            <div className="p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <DualRangeSlider
+                label="Model Year"
+                min={1990}
+                max={currentYear}
+                step={1}
+                value={[
+                  localFilters.minYear || 1990,
+                  localFilters.maxYear || currentYear,
+                ]}
+                onChange={([min, max]) => {
+                  handleRangeChange("minYear", min);
+                  handleRangeChange("maxYear", max);
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Location Section - Now at Bottom */}
+        <div className="flex flex-col gap-5 pt-2 border-t border-gray-100 dark:border-white/5">
+          <CitySearchInput
+            id={`${uniquePrefix}city-search`}
+            citySearch={citySearch}
+            cityOptions={cityOptions}
+            showCityDropdown={showCityDropdown}
+            isLoadingLocation={isLoadingLocation}
+            onSearchChange={handleCitySearchChange}
+            onFocus={() => citySearch.length > 2 && setShowCityDropdown(true)}
+            onSelect={handleCitySelect}
+            onUseGPS={handleUseMyLocation}
+            dropdownRef={dropdownRef}
+          />
+
+          {/* Distance Slider */}
+          <div className="flex flex-col gap-3.5 px-0.5">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor={`${uniquePrefix}radius-slider`}
+                className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest"
+              >
+                Distance Range
+              </label>
+              <span className="text-[9px] font-bold text-emerald-500">
+                {localFilters.radius || 50} km
+              </span>
+            </div>
+            <input
+              id={`${uniquePrefix}radius-slider`}
+              name={`${uniquePrefix}radius-slider`}
+              type="range"
+              min="0"
+              max="200"
+              value={localFilters.radius || 50}
+              onChange={(e) =>
+                handleRangeChange("radius", Number(e.target.value))
+              }
+              className="w-full h-1 bg-gray-200 dark:bg-white/5 rounded-full appearance-none cursor-pointer accent-emerald-500"
             />
           </div>
-        )}
+        </div>
       </div>
 
       {/* Sticky Action Footer */}
