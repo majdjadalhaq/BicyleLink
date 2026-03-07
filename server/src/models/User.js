@@ -106,6 +106,24 @@ export const validateUser = (userObject) => {
 
   if (userObject.password == null) {
     errorList.push("password is a required field");
+  } else {
+    if (userObject.password.length < 8) {
+      errorList.push("password must be at least 8 characters long");
+    }
+    if (!/[A-Z]/.test(userObject.password)) {
+      errorList.push("password must contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(userObject.password)) {
+      errorList.push("password must contain at least one lowercase letter");
+    }
+    if (!/[0-9]/.test(userObject.password)) {
+      errorList.push("password must contain at least one number");
+    }
+    if (!/[@$!%*?&]/.test(userObject.password)) {
+      errorList.push(
+        "password must contain at least one special character (@$!%*?&)",
+      );
+    }
   }
 
   /* Removed required checks for city/country to allow streamlined signup */

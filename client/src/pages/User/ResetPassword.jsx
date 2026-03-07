@@ -38,8 +38,12 @@ const ResetPassword = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setValidationError("Password must be at least 8 characters");
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      setValidationError(
+        "Password must have min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol",
+      );
       return;
     }
 
