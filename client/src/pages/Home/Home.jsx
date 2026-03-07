@@ -278,7 +278,7 @@ const Home = () => {
 
           <div className="flex-1 min-w-0">
             {/* Mobile Filter Trigger */}
-            <div className="md:hidden sticky top-[56px] z-50 bg-[#FAFAF8] dark:bg-[#121212] py-2 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100 dark:border-[#2a2a2a]/50 shadow-sm backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+            <div className="md:hidden sticky top-[64px] z-40 bg-[#FAFAF8] dark:bg-[#121212] py-2 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100 dark:border-[#2a2a2a]/50 shadow-sm backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
               <button
                 onClick={() => setIsFilterOpen(true)}
                 className="w-full flex items-center justify-center gap-2.5 px-5 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] rounded-xl text-xs font-black uppercase tracking-widest text-gray-800 dark:text-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)] active:scale-[0.98] transition-all"
