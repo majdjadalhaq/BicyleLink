@@ -8,19 +8,18 @@ import { SocketProvider } from "./contexts/SocketProvider.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { LoadingState } from "./components/ui";
-
-const Favorites = lazy(() => import("./pages/Favorites/Favorites"));
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+
+// Lazy loaded pages
+const Favorites = lazy(() => import("./pages/Favorites/Favorites"));
 const Profile = lazy(() => import("./pages/Profile/Profile"));
 const ProfileView = lazy(() => import("./pages/Profile/ProfileView"));
 const ProfileSetup = lazy(() => import("./pages/Profile/ProfileSetup"));
 const AccountSettings = lazy(
   () => import("./pages/AccountSettings/AccountSettings"),
 );
-
-// Lazy loaded components
 const Home = lazy(() => import("./pages/Home/Home"));
 const CreateUser = lazy(() => import("./pages/User/CreateUser"));
 const Login = lazy(() => import("./pages/User/Login"));
@@ -64,8 +63,6 @@ const App = () => {
                           path="/listings/:id"
                           element={<ListingDetail />}
                         />
-                        <Route path="/chat/:id" element={<Chat />} />
-                        <Route path="/inbox" element={<Inbox />} />
                         <Route path="/verify-code" element={<VerifyCode />} />
 
                         {/* Public Only Routes */}
@@ -80,6 +77,8 @@ const App = () => {
 
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
+                          <Route path="/chat/:id" element={<Chat />} />
+                          <Route path="/inbox" element={<Inbox />} />
                           <Route path="/favorites" element={<Favorites />} />
                           <Route
                             path="/listing/create"

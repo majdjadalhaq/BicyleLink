@@ -18,7 +18,7 @@ testRouter.post("/seed", async (req, res) => {
     logError(msg);
 
     res.status(400).json({
-      sucess: false,
+      success: false,
       msg,
     });
   } else {
@@ -46,8 +46,8 @@ testRouter.post("/seed", async (req, res) => {
         },
         {
           name: "System Admin",
-          email: "bicyclel2026@gmail.com",
-          password: "AdminRide2026!",
+          email: process.env.TEST_ADMIN_EMAIL || "bicyclel2026@gmail.com",
+          password: process.env.TEST_ADMIN_PASSWORD || "AdminRide2026!",
           city: "Amsterdam",
           country: "Netherlands",
           agreedToTerms: true,

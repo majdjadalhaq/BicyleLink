@@ -10,9 +10,8 @@ const useApi = () => {
     setError(null);
 
     try {
-      // api.js automatically prepends /api internally, but if the caller manually passes
-      // /api/... we let api.js handle it (api.js actually just prepends /api blindly right now)
-      // Wait, let's strip '/api' if passed, so it routes correctly.
+      // api.js prepends /api internally, so strip it from the url if the caller
+      // already included it to avoid ending up with /api/api/users.
       let parsedUrl = url;
       if (url.startsWith("/api")) {
         parsedUrl = url.substring(4);

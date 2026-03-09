@@ -16,6 +16,7 @@ import reportRouter from "./routes/report.js";
 import emailRouter from "./routes/email.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.js";
+import { ALLOWED_ORIGINS } from "./config/allowedOrigins.js";
 
 // Create an express server
 const app = express();
@@ -88,14 +89,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-      "http://localhost:5176",
-      "https://bicyclel.nl",
-      "https://www.bicyclel.nl",
-    ],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   }),
 );

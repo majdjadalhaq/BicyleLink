@@ -1,31 +1,21 @@
-// Load our .env variables
+// Load .env before anything else
 import dotenv from "dotenv";
-import express from "express";
 dotenv.config();
 
+import express from "express";
 import app from "./app.js";
 import { logInfo, logError } from "./utils/logging.js";
-
-logInfo(" [DEBUG] Index.js loaded. Starting startup sequence...");
-
 import connectDB from "./db/connectDB.js";
 import testRouter from "./testRouter.js";
 import http from "http";
 import { Server } from "socket.io";
 import { initSocket } from "./socket/socketHandler.js";
+import { ALLOWED_ORIGINS } from "./config/allowedOrigins.js";
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-      "http://localhost:5176",
-      "https://bicyclel.nl",
-      "https://www.bicyclel.nl",
-      "https://c54b.hyf.dev",
-    ],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   },
 });
@@ -38,9 +28,10 @@ const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "RESEND_API_KEY"];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  // eslint-disable-next-line no-console
-  console.error(
-    `❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`,
+  logError(
+    new Error(
+      `❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`,
+    ),
   );
   process.exit(1);
 }
