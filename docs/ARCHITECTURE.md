@@ -1,8 +1,8 @@
 # BiCycleL Architecture Overview
 
-BiCycleL is built using the MERN stack (MongoDB, Express, React, Node.js), following a modern client-server architecture with real-time data synchronization.
+BiCycleL is a MERN stack application with a client-server architecture and real-time communication over WebSockets.
 
-## System Architecture
+## System Diagram
 
 ```mermaid
 graph TD
@@ -21,36 +21,80 @@ graph TD
     Server <--> Cloud
 ```
 
-## Frontend Architecture
+---
 
-The frontend is a single-page application (SPA) built with React and Vite. It utilizes a provider-based pattern for global state management.
+## Frontend
 
-- **Routing**: Managed by React Router v7 with role-based access control.
-- **State Management**: Context Providers handle Authentication, Theme, Notifications, and Real-time Sockets.
-- **Real-time Sync**: The `NotificationProvider` listens for server-side socket events (`new_notification`, `notifications_updated`) to update the UI instantly without page refreshes.
-- **API Layer**: Centralized custom hooks (`useApi`) ensure consistent error handling and authentication header management.
+The frontend is a single-page application built with React 19 and Vite 7.
 
-## Backend Architecture
+**Routing**
+- React Router 7 handles all navigation
+- Three route guard wrappers: `ProtectedRoute` (auth required), `PublicOnlyRoute` (redirects logged-in users), `AdminRoute` (admin role required)
 
-The backend is a Node.js Express server designed for scalability and security.
+**Global State**
+- Five context providers, each scoped to a single concern:
+  - `AuthContext` — current user, login/logout, session refresh
+  - `ThemeContext` — dark/light mode with localStorage persistence
+  - `ToastContext` — app-wide toast notification queue
+  - `SocketProvider` — Socket.IO client instance, shared across the app
+  - `NotificationContext` — unread count and notification list, updated in real time via socket
 
-- **Authentication**: Stateless JWT-based authentication using `httpOnly` secure cookies for CSRF protection.
-- **Socket.IO Integration**: Integrated into the HTTP server to share the same authentication context. It manages real-time chat, typing indicators, and account-wide notification broadcasts.
-- **Security Middleware**: Includes global rate limiting, helmet for secure headers, and NoSQL injection sanitization.
-- **Business Logic**: Controllers are modularized by domain (Listings, Users, Messages, Notifications).
+**Data Fetching**
+- `useFetch` — callback-based hook for data that loads on component mount (listings, profiles, reviews)
+- `useApi` — promise-based hook for imperative calls (form submissions, status updates, review actions)
+
+---
+
+## Backend
+
+The backend is a Node.js 20 / Express 5 server, running as a single process with the HTTP server and Socket.IO server sharing the same port.
+
+**Authentication**
+- Stateless JWT stored in an `httpOnly` `Secure` cookie — no token stored in client memory
+- `authenticate` middleware validates the cookie on every protected route
+- `requireVerified` middleware blocks unverified accounts from creating or editing listings
+- `requireOwnership` middleware factory used on update/delete routes to enforce resource ownership
+
+**Socket.IO**
+- The `io` instance is attached to the Express app (`app.set("io", io)`) so controllers can emit events
+- Each authenticated user joins a private room: `user_{userId}` — used for targeted notification delivery
+- Chat rooms follow the format `{listingId}_{userId1}_{userId2}` — deterministic, collision-free
+- Security check on `send_message`: server verifies the sender is actually a participant in the room
+
+**Security Middleware Stack**
+- Helmet 8 — sets Content Security Policy, CORP, COOP, and other secure headers
+- CORS — origin list shared between Express and Socket.IO via `config/allowedOrigins.js`
+- `express-rate-limit` — global limit on all `/api` routes, stricter limit on sensitive operations (verify, reset)
+- `express-validator` — validation rules defined as route middleware, not inside controllers
+
+---
+
+## Review Flow
+
+The review system is intentionally gated through the full transaction lifecycle:
+
+1. Buyer sends a message from the listing page — the message is saved with `listingId` in the database
+2. Seller opens "Mark as Sold" — server queries `Message` collection to find all users who chatted about that listing, presents them as candidates
+3. Seller selects the buyer and confirms — `listing.buyerId` is set and locked (cannot be changed to a different user)
+4. Server emits a `review_permission` notification to the buyer
+5. Buyer visits the listing — `canRate` is true when `user._id === listing.buyerId` and `listing.status === "sold"` and the user has not already reviewed
+6. Buyer submits a review — server re-validates all three conditions before saving
+
+---
 
 ## Real-time Notification Flow
 
-1. **Trigger**: An event occurs (e.g., a new message is sent).
-2. **Server Action**: The server saves the message and creates a notification record in MongoDB.
-3. **Socket Broadcast**: The `socketHandler` identifies the recipient and emits a `new_notification` event to their specific private room (`user_${userId}`).
-4. **Client Update**: The client-side `NotificationProvider` receives the event and updates the unread count and notification dropdown in real-time.
+1. An event occurs server-side (new message, review posted, listing sold, etc.)
+2. The controller saves a `Notification` document to MongoDB
+3. `emitNotification(recipientId, notification)` is called — this emits to the recipient's private room
+4. The client-side `NotificationContext` receives `new_notification` and appends it to the list, incrementing the unread count
+5. When the user opens the notification dropdown, `notifications_updated` is emitted back to sync read state across tabs
 
-## Deployment Strategy
+---
 
-- **Production Build**: The React application is compiled into static assets and served by the Express server in production.
-- **Hosting**: Deployed on Heroku with automatic builds triggered by Git pushes.
-- **Infrastructure**: Uses MongoDB Atlas for managed database state and Cloudinary for optimized media delivery.
+## Production Build
+
+In production, Express serves the compiled React app from `client/dist` as static files. There is no separate frontend server — everything runs on a single Heroku dyno.
 
 ---
 
