@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import InputField from "../../form/InputField";
-import LocationMap from "../../LocationMap";
+import LocationMap from "../../Map/LocationMap";
 
 const StepDetails = ({
   formData,
