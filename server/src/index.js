@@ -2,6 +2,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import { logInfo, logError } from "./utils/logging.js";
+
 // Handle uncaught exceptions and rejections for better production debugging
 process.on("uncaughtException", (err) => {
   logError("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -20,29 +22,18 @@ process.on("unhandledRejection", (err) => {
 logInfo("Starting application...");
 
 import express from "express";
-import app from "./app.js";
-import { logInfo, logError } from "./utils/logging.js";
-import connectDB from "./db/connectDB.js";
-
-// Handle uncaught exceptions and rejections for better production debugging
-process.on("uncaughtException", (err) => {
-  logError("UNCAUGHT EXCEPTION! 💥 Shutting down...");
-  logError(`${err.name}: ${err.message}`);
-  logError(err.stack);
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (err) => {
-  logError("UNHANDLED REJECTION! 💥 Shutting down...");
-  logError(`${err.name}: ${err.message}`);
-  logError(err.stack);
-  process.exit(1);
-});
-import testRouter from "./testRouter.js";
+import path from "path";
+import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
+import app from "./app.js";
+import connectDB from "./db/connectDB.js";
+import testRouter from "./testRouter.js";
 import { initSocket } from "./socket/socketHandler.js";
 import { ALLOWED_ORIGINS } from "./config/allowedOrigins.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -60,21 +51,11 @@ const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "RESEND_API_KEY"];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  logError(
-    new Error(
-      `❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`,
-    ),
-  );
+  logError(`❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`);
   process.exit(1);
 }
 
-// The environment should set the port
-const port = process.env.PORT;
-
-if (port == null) {
-  // If this fails, make sure you have created a `.env` file in the right place with the PORT set
-  logError(new Error("Cannot find a PORT number, did you create a .env file?"));
-}
+const port = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
@@ -84,16 +65,11 @@ const startServer = async () => {
     });
   } catch (error) {
     logError(error);
+    process.exit(1);
   }
 };
 
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/****** Host our client code for Heroku *****/
+/****** Host our client code for Heroku/Render *****/
 if (process.env.NODE_ENV === "production") {
   const clientDistPath = path.resolve(__dirname, "../../client/dist");
 
@@ -108,16 +84,16 @@ if (process.env.NODE_ENV === "production") {
   });
 
   // Catch-all handler for SPA (Express 5 compatibility)
-  // This ensures that all sub-routes (e.g. /listings/123) correctly serve the React app
-  app.get("/:any*", (req, res, next) => {
+  // Express 5 / path-to-regexp v8 requires a named parameter for wildcards
+  app.get("/:path*", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
-    res.sendFile(path.resolve(__dirname, "../../client/dist/index.html"));
+    res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
 
-/****** For cypress we want to provide an endpoint to seed our data ******/
+/****** For testing we provide an endpoint to seed our data ******/
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/test", testRouter);
 }
