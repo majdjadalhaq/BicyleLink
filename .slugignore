@@ -1,0 +1,26 @@
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+cypress/
+**/__tests__/
+**/*.test.js
+**/*.spec.js
+**/*.testid.js
+
+# Dev Tools
+.husky/
+.local-ai-scripts/
+generate_snapshot.js
+PROJECT_FULL_CODE.txt
+rules.md
+PR_PLAN.md
+DEV.md
+
+# Logs
+*.log
+server/*.log
+combined.log
+error.log

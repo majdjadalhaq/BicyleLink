@@ -6,5 +6,6 @@ export const ALLOWED_ORIGINS = [
   "http://localhost:5176",
   "https://bicyclel.nl",
   "https://www.bicyclel.nl",
+  "https://c54-group-b-9bd2b65bcb0b.herokuapp.com",
   "https://c54b.hyf.dev",
 ];

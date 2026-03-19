@@ -37,6 +37,28 @@ Copy `server/.env.example` to `server/.env` and fill in all values before deploy
 
 ---
 
+## Render Deployment (100% Free)
+
+### 1. Create a New Web Service
+1. Connect your GitHub repository.
+2. Select the repository and set the following:
+   - **Environment**: `Node`
+   - **Build Command**: `npm run heroku-postbuild`
+   - **Start Command**: `cd server && npm start`
+
+### 2. Config Vars
+Add the same environment variables as Heroku (except `PORT`):
+- `MONGODB_URL`
+- `JWT_SECRET`
+- `RESEND_API_KEY`
+- `NODE_ENV=production`
+- `VITE_GOOGLE_CLIENT_ID`
+
+### 3. Custom Domain
+Add `bicyclel.nl` in **Settings → Custom Domains** and follow the DNS instructions provided by Render.
+
+---
+
 ## Heroku Deployment
 
 ### 1. Set config vars

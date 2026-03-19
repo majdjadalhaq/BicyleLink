@@ -56,3 +56,6 @@ rules.md
 server/combined.log
 server/error.log
 server/*.log
+# Dev Only
+PROJECT_FULL_CODE.txt
+generate_snapshot.js
