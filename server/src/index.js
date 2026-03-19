@@ -2,6 +2,23 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Handle uncaught exceptions and rejections for better production debugging
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.error(`${err.name}: ${err.message}`);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.error(`${err.name}: ${err.message}`);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+console.log("Starting application...");
+
 import express from "express";
 import app from "./app.js";
 import { logInfo, logError } from "./utils/logging.js";
