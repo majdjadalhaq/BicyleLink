@@ -8,7 +8,19 @@ export function useCountryStateCity() {
   const [module, setModule] = useState(null);
 
   useEffect(() => {
-    import("country-state-city").then((m) => setModule(m));
+    // We only need NL cities for this project to keep the bundle small.
+    // If global support is needed, we should fetch from a dedicated API.
+    import("../data/nl_cities.json").then((m) => {
+      const cities = m.default || m;
+      setModule({
+        Country: {
+          getAllCountries: () => [{ isoCode: "NL", name: "Netherlands" }],
+        },
+        City: {
+          getCitiesOfCountry: (code) => (code === "NL" ? cities : []),
+        },
+      });
+    });
   }, []);
 
   return {

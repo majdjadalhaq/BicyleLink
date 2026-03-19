@@ -64,11 +64,11 @@ export const useHeroFilter = ({ filters, onApply, idPrefix = "" }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Dynamically load Dutch cities (keeps country-state-city in separate chunk)
+  // Use static Dutch cities data (only 108KB instead of 8.7MB library)
   const [allCities, setAllCities] = useState([]);
   useEffect(() => {
-    import("country-state-city").then(({ City }) => {
-      setAllCities(City.getAllCities().filter((c) => c.countryCode === "NL"));
+    import("../../../data/nl_cities.json").then((m) => {
+      setAllCities(m.default || m);
     });
   }, []);
 

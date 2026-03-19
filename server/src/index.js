@@ -82,8 +82,8 @@ if (process.env.NODE_ENV === "production") {
   });
 
   // Catch-all handler for SPA (Express 5 compatibility)
-  // Express 5 / path-to-regexp v8 requires a named parameter for wildcards
-  app.get("/:path*", (req, res, next) => {
+  // Express 5 / path-to-regexp v8+ requires {*path} syntax for unnamed wildcards
+  app.get("/{*path}", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }

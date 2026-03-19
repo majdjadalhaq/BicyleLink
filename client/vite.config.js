@@ -50,9 +50,11 @@ export default defineConfig(({ mode }) => {
             // Maps (Large footprint)
             'vendor-maps': ['leaflet', 'react-leaflet'],
             // UI Components and Charts
-            'vendor-ui': ['lucide-react', 'recharts', 'react-icons', 'react-easy-crop'],
-            // Utility Libraries (Country JSON, Lodash, etc.)
-            'vendor-utils': ['country-state-city', 'lodash', 'date-fns'],
+            'vendor-ui': ['lucide-react', 'recharts', 'react-easy-crop'],
+            // Icons are massive (83MB in node_modules)
+            'vendor-icons': ['react-icons'],
+            // Remaining utils
+            'vendor-utils': ['lodash', 'date-fns'],
           },
         },
       },
