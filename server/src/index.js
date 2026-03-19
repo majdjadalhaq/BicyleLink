@@ -109,11 +109,11 @@ if (process.env.NODE_ENV === "production") {
 
   // Catch-all handler for SPA (Express 5 compatibility)
   // This ensures that all sub-routes (e.g. /listings/123) correctly serve the React app
-  app.get("(.*)", (req, res, next) => {
+  app.get("/:any*", (req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
-    res.sendFile(path.join(clientDistPath, "index.html"));
+    res.sendFile(path.resolve(__dirname, "../../client/dist/index.html"));
   });
 }
 
