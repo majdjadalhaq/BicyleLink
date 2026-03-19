@@ -6,15 +6,11 @@ import { logInfo, logError } from "./utils/logging.js";
 
 // Handle uncaught exceptions and rejections for better production debugging
 process.on("uncaughtException", (err) => {
-  logError("UNCAUGHT EXCEPTION! 💥 Shutting down...");
-  logError(`${err.name}: ${err.message}`);
-  logError(err.stack);
+  logError(err, "UNCAUGHT EXCEPTION! 💥 Shutting down...");
   process.exit(1);
 });
 
 process.on("unhandledRejection", (err) => {
-  logError("UNHANDLED REJECTION! 💥 Shutting down...");
-  logError(`${err.name}: ${err.message}`);
   logError(err.stack);
   process.exit(1);
 });
@@ -46,12 +42,14 @@ const io = new Server(server, {
 app.set("io", io);
 initSocket(io);
 
-// Check for required environment variables
+// Check for required environment variables at startup
 const requiredEnv = ["JWT_SECRET", "MONGODB_URL", "RESEND_API_KEY"];
 const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  logError(`❌ CRITICAL: Missing environment variables: ${missing.join(", ")}`);
+  const errorMsg = `❌ CRITICAL STARTUP FAILURE: Missing environment variables: ${missing.join(", ")}`;
+  console.error(errorMsg); // Use console directly for immediate visibility
+  logError(errorMsg);
   process.exit(1);
 }
 

@@ -42,13 +42,17 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
-          // framer-motion is now fully lazy (only used inside React.lazy() pages).
-          // Splitting it into a dedicated chunk is safe — it will only be downloaded
-          // when the first lazy route that needs it is navigated to.
-          // socket.io-client is NOT split here because SocketProvider imports it
-          // synchronously at app startup — splitting it would cause a load-order error.
           manualChunks: {
-            "vendor-animations": ["framer-motion"],
+            // Core React and Routing
+            'vendor-react': ['react', 'react-dom', 'react-router'],
+            // Animations
+            'vendor-animations': ['framer-motion'],
+            // Maps (Large footprint)
+            'vendor-maps': ['leaflet', 'react-leaflet'],
+            // UI Components and Charts
+            'vendor-ui': ['lucide-react', 'recharts', 'react-icons', 'react-easy-crop'],
+            // Utility Libraries (Country JSON, Lodash, etc.)
+            'vendor-utils': ['country-state-city', 'lodash', 'date-fns'],
           },
         },
       },
