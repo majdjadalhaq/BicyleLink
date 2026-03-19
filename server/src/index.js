@@ -6,6 +6,21 @@ import express from "express";
 import app from "./app.js";
 import { logInfo, logError } from "./utils/logging.js";
 import connectDB from "./db/connectDB.js";
+
+// Handle uncaught exceptions and rejections for better production debugging
+process.on("uncaughtException", (err) => {
+  logError("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  logError(`${err.name}: ${err.message}`);
+  logError(err.stack);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (err) => {
+  logError("UNHANDLED REJECTION! 💥 Shutting down...");
+  logError(`${err.name}: ${err.message}`);
+  logError(err.stack);
+  process.exit(1);
+});
 import testRouter from "./testRouter.js";
 import http from "http";
 import { Server } from "socket.io";
