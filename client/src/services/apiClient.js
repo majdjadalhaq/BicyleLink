@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+import { BACKEND_URL } from "../utils/config.js";
+
+const BASE_URL = BACKEND_URL || "";
 
 /**
  * Standard fetcher for TanStack Query
