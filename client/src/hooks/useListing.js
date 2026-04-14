@@ -25,7 +25,7 @@ export const useListing = (id) => {
         queryKey: ["listings"],
       });
 
-      for (const [key, data] of listingsData) {
+      for (const [, data] of listingsData) {
         if (!data?.pages) continue;
         for (const page of data.pages) {
           const listing = page.result.find((l) => l._id === id);

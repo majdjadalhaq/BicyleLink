@@ -33,15 +33,17 @@ const Nav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const settingsRef = useRef(null);
-
-  // Use a ref to track the previous pathname instead of an effect that calls setState
   const prevPathname = useRef(location.pathname);
-  if (prevPathname.current !== location.pathname) {
-    prevPathname.current = location.pathname;
-    if (isNotifOpen) setIsNotifOpen(false);
-    if (isProfileOpen) setIsProfileOpen(false);
-    if (isMobileSettingsOpen) setIsMobileSettingsOpen(false);
-  }
+
+  // Reset navigation states on route change
+  useEffect(() => {
+    if (prevPathname.current !== location.pathname) {
+      prevPathname.current = location.pathname;
+      setIsNotifOpen(false);
+      setIsProfileOpen(false);
+      setIsMobileSettingsOpen(false);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

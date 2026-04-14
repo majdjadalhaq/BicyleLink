@@ -1,11 +1,10 @@
-import { memo, useState, useEffect, useRef, useCallback } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import FavoriteButton from "./FavoriteButton";
 import { optimiseCloudinaryUrl } from "../utils/cloudinary";
 import { useUpdateListingStatus } from "../hooks/useListing";
-import useToast from "../hooks/useToast";
 import MarkAsSoldModal from "./MarkAsSoldModal";
 import { useListingCandidates } from "../hooks/useListing";
 
@@ -128,7 +127,6 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const { data: candidates = [], isLoading: isLoadingCandidates } =
     useListingCandidates(_id, statusModalOpen);
   const statusMutation = useUpdateListingStatus(_id);
-  const { showToast } = useToast();
 
   useEffect(() => {
     if (pendingDelete) {
