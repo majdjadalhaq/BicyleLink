@@ -3,8 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import TEST_ID from "./Nav.testid";
 
-import useUnreadCount from "../hooks/useUnreadCount";
-import useNotifications from "../hooks/useNotifications";
+import { useUnreadMessagesCount } from "../hooks/useMessages";
+import { useNotifications } from "../hooks/useNotifications";
 import useKeyboardFocus from "../hooks/useKeyboardFocus";
 import { DesktopNavLinks, MobileNavLinks } from "./Nav/NavLinks";
 import { Icons } from "./Nav/NavLinksIcons";
@@ -75,7 +75,8 @@ const Nav = () => {
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
   const isKeyboardOpen = useKeyboardFocus();
-  const unreadMessagesCount = useUnreadCount(user);
+  const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount();
+  // Call useNotifications to ensure the query is pre-fetched for the dropdown
   useNotifications();
 
   const navigate = useNavigate();

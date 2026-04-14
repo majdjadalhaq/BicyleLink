@@ -1,63 +1,34 @@
-import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import useFetch from "../hooks/useFetch";
 import { useAuth } from "../hooks/useAuth";
+import { useFavorite, useFavoriteIds } from "../hooks/useFavorite";
 
 const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
   const { user } = useAuth();
-  const [isFav, setIsFav] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { data: favoriteIds = [] } = useFavoriteIds();
+  
+  const isFav = favoriteIds.includes(listingId);
 
-  const { performFetch: fetchIds, cancelFetch: cancelIds } = useFetch(
-    "/favorites/ids",
-    (data) => {
-      const ids = data?.result || [];
-      setIsFav(ids.includes(listingId));
-    },
-  );
-
-  const { performFetch: toggleFav, cancelFetch: cancelToggle } = useFetch(
-    `/favorites/${listingId}/toggle`,
-    (data) => {
-      const favorited = data?.result?.favorited;
-      if (typeof favorited === "boolean") setIsFav(favorited);
-      onToggled?.();
-    },
-  );
-
-  useEffect(() => {
-    if (user) {
-      fetchIds({ method: "GET", credentials: "include" });
-    }
-
-    return () => {
-      cancelIds();
-      cancelToggle();
-    };
-  }, [listingId, user]);
+  const { mutate: toggleFavorite, isPending: loading } = useFavorite(listingId);
 
   if (!user) {
     return null;
   }
 
-  const handleToggle = async (e) => {
+  const handleToggle = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (loading) return;
-    setLoading(true);
+    
+    toggleFavorite({ isFavorited: isFav }, {
+      onSuccess: () => {
+        onToggled?.();
+      }
+    });
+  };
 
-    const prev = isFav;
-    setIsFav(!prev);
-
-    try {
-      await toggleFav({ method: "POST", credentials: "include" });
-    } catch {
-      setIsFav(prev);
-    } finally {
-      setLoading(false);
-    }
+  const colors = {
+    heart: variant === "heart" || variant === "icon" || variant === "action-overlay" ? "#ef4444" : "#10b981",
   };
 
   if (variant === "button") {
@@ -101,7 +72,6 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
       <button
         type="button"
         onClick={handleToggle}
-        disabled={loading}
         className="text-xl transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50"
         aria-label={isFav ? "Remove from Favorites" : "Add to Favorites"}
         title={isFav ? "Remove from Favorites" : "Add to Favorites"}
@@ -110,8 +80,8 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
           width="20"
           height="20"
           viewBox="0 0 24 24"
-          fill={isFav ? "#ef4444" : "none"}
-          stroke={isFav ? "#ef4444" : "currentColor"}
+          fill={isFav ? colors.heart : "none"}
+          stroke={isFav ? colors.heart : "currentColor"}
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -127,7 +97,6 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
       <button
         type="button"
         onClick={handleToggle}
-        disabled={loading}
         className="group flex items-center justify-center h-10 transition-all duration-300 rounded-full shadow-lg backdrop-blur-md bg-white/90 text-gray-800 dark:bg-[#1a1a1a]/90 dark:text-gray-200 hover:text-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto"
         title={isFav ? "Remove from Favorites" : "Add to Favorites"}
       >
@@ -136,8 +105,8 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
             width="18"
             height="18"
             viewBox="0 0 24 24"
-            fill={isFav ? "#ef4444" : "none"}
-            stroke={isFav ? "#ef4444" : "currentColor"}
+            fill={isFav ? colors.heart : "none"}
+            stroke={isFav ? colors.heart : "currentColor"}
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -160,7 +129,6 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
     <button
       type="button"
       onClick={handleToggle}
-      disabled={loading}
       className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 ${isFav ? "bg-red-500/10 animate-heartBeat" : "bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm shadow-sm"}`}
       aria-label={isFav ? "Remove from Favorites" : "Add to Favorites"}
       title={isFav ? "Remove from Favorites" : "Add to Favorites"}
@@ -169,8 +137,8 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
         width="18"
         height="18"
         viewBox="0 0 24 24"
-        fill={isFav ? "#ef4444" : "none"}
-        stroke={isFav ? "#ef4444" : "currentColor"}
+        fill={isFav ? colors.heart : "none"}
+        stroke={isFav ? colors.heart : "currentColor"}
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
