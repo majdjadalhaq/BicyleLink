@@ -22,6 +22,9 @@
     --color-emerald-dark: #10221c;
     --color-emerald-soft: rgba(16, 183, 127, 0.2);
     --color-glow-emerald: 16, 183, 127;
+    /* OKLCH High-Precision Tokens */
+    --brand-primary: oklch(70% 0.18 160);
+    --brand-surface: oklch(98% 0.01 160);
     /* Light mode surface: soft mint-white, not pure white */
     --bg-surface: #f6f9f7;
     --bg-surface-raised: #edf3f0;
@@ -54,6 +57,21 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    cursor: none;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      cursor: auto;
+    }
+  }
+
+  input, textarea, [contenteditable="true"] {
+    cursor: text;
+  }
+
+  button, a, [role="button"] {
+    cursor: none;
   }
 
   html {
