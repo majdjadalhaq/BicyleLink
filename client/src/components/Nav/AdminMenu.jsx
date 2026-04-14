@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import PropTypes from "prop-types";
 import { Icons } from "./NavLinksIcons";
 
 const AdminMenu = () => {
@@ -60,10 +59,6 @@ const AdminMenu = () => {
       </div>
     </div>
   );
-};
-
-AdminMenu.propTypes = {
-  // No props currently needed, but ready for future extensions
 };
 
 export default AdminMenu;

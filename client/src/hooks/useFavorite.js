@@ -79,7 +79,7 @@ export const useFavorite = (listingId) => {
         };
       });
 
-      return { previousListing };
+      return { previousListing, previousIds };
     },
 
     // 2. If the mutation fails, use the context returned from onMutate to roll back

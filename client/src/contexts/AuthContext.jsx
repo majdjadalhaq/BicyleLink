@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
         if (data.success) {
           setUser(data.user);
         }
-      } catch (err) {
+      } catch {
         // Silently clear user if session check fails
         setUser(null);
       } finally {
@@ -34,8 +34,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
-      // Optional: window.location.href = "/login";
-      // But usually handled by ProtectedRoute
     };
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
@@ -51,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await apiClient("/api/users/logout", { method: "POST" });
       setUser(null);
-    } catch (error) {
+    } catch {
       // Still clear local state even if server-side logout fails
       setUser(null);
     }
