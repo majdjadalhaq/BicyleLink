@@ -19,6 +19,8 @@ const HeroFilter = lazy(
   () => import("../../components/HeroFilter/HeroFilter.jsx"),
 );
 
+import { useListings } from "../../hooks/useListings.js";
+
 /* ─── Grid column detector ───────────────────────────────────────── */
 const useGridCols = (gridRef) => {
   const [cols, setCols] = useState(3);
@@ -42,12 +44,8 @@ const useGridCols = (gridRef) => {
 };
 
 const Home = () => {
-  const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
 
@@ -58,120 +56,44 @@ const Home = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const buildQuery = () => {
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: "12",
-      search: debouncedSearchTerm || "",
-    });
-    if (filters.minPrice != null)
-      params.set("minPrice", String(filters.minPrice));
-    if (filters.maxPrice != null)
-      params.set("maxPrice", String(filters.maxPrice));
-    if (filters.minYear != null) params.set("minYear", String(filters.minYear));
-    if (filters.maxYear != null) params.set("maxYear", String(filters.maxYear));
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    error,
+    hasNextPage,
+    fetchNextPage,
+  } = useListings({
+    ...filters,
+    search: debouncedSearchTerm,
+  });
 
-    const cats = filters.category?.length ? filters.category : [];
-    if (cats.length) params.set("category", cats.join(","));
-
-    if (filters.condition?.length)
-      params.set("condition", filters.condition.join(","));
-    if (filters.location) params.set("location", filters.location);
-    if (filters.lat) params.set("lat", filters.lat);
-    if (filters.lng) params.set("lng", filters.lng);
-    if (filters.radius) params.set("radius", filters.radius);
-    return params.toString();
-  };
-
-  const query = useMemo(buildQuery, [
-    page,
-    debouncedSearchTerm,
-    filters.category,
-    filters.condition,
-    filters.minPrice,
-    filters.maxPrice,
-    filters.minYear,
-    filters.maxYear,
-    filters.location,
-    filters.lat,
-    filters.lng,
-    filters.radius,
-  ]);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const listings = useMemo(
+    () => data?.pages.flatMap((page) => page.result) || [],
+    [data],
+  );
 
   const gridRef = useRef(null);
   const gridCols = useGridCols(gridRef);
 
-  // Fetch listings when query changes
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const fetchListings = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/listings?${query}`, {
-          method: "GET",
-          headers: { "content-type": "application/json" },
-          credentials: "include",
-          signal,
-        });
-        const jsonResult = await res.json();
-
-        if (!res.ok) {
-          throw new Error(
-            jsonResult.msg ||
-              jsonResult.errors?.[0]?.message ||
-              `Error: ${res.status} ${res.statusText}`,
-          );
-        }
-        if (!jsonResult.success) {
-          throw new Error(jsonResult.msg || "Request failed");
-        }
-
-        const { result, page: resPage, hasMore: resHasMore } = jsonResult;
-        const isFirstPage = resPage === 1;
-        if (isFirstPage) {
-          setListings(result || []);
-        } else {
-          setListings((prev) => [...(prev || []), ...(result || [])]);
-        }
-        setHasMore(!!resHasMore);
-      } catch (err) {
-        if (err.name !== "AbortError") setError(err);
-      } finally {
-        if (!signal.aborted) setIsLoading(false);
-      }
-    };
-
-    fetchListings();
-    return () => controller.abort();
-  }, [query]);
-
   const handleLoadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      setPage((prev) => prev + 1);
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [isLoading, hasMore]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setPage(1);
   };
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
-    setPage(1);
     setIsFilterOpen(false);
   };
 
   const handleClearFilters = useCallback(() => {
     setFilters({});
     setSearchTerm("");
-    setPage(1);
   }, []);
 
   const activeFilterCount = Object.keys(filters).filter((key) => {
@@ -339,7 +261,7 @@ const Home = () => {
               )}
 
               {/* Initial Loading Skeletons */}
-              {isLoading && page === 1 && (
+              {isLoading && listings.length === 0 && (
                 <div
                   className="grid gap-5 mb-10 p-1"
                   style={{
@@ -369,8 +291,8 @@ const Home = () => {
                 <div ref={gridRef}>
                   <ListingGrid
                     listings={listings}
-                    isLoading={isLoading && page > 1}
-                    hasMore={hasMore}
+                    isLoading={isFetchingNextPage}
+                    hasMore={hasNextPage}
                     onLoadMore={handleLoadMore}
                     gridCols={gridCols}
                   />

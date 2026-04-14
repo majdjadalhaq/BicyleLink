@@ -4,6 +4,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import Home from "../Home";
 import TEST_ID_HOME from "../Home.testid";
 import { BrowserRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 jest.mock("../../../hooks/useToast", () => () => ({
   showToast: jest.fn(),
@@ -11,6 +20,10 @@ jest.mock("../../../hooks/useToast", () => () => ({
 
 jest.mock("../../../contexts/ThemeContext", () => ({
   useTheme: () => ({ theme: "light" }),
+}));
+
+jest.mock("../../../utils/config.js", () => ({
+  BACKEND_URL: "http://localhost:3000",
 }));
 
 jest.mock("../../../hooks/useApi", () => () => ({
@@ -49,9 +62,11 @@ jest.mock("../../../components/HeroFilter/HeroFilter.jsx", () => {
 describe("Home", () => {
   it("Renders without a problem", async () => {
     render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>,
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Home />
+        </BrowserRouter>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
