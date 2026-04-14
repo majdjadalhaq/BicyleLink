@@ -4,7 +4,9 @@
  * Uses native fetch. Auth tokens are handled by httpOnly cookies via credentials: "include".
  */
 
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL
+  ? `${import.meta.env.VITE_BACKEND_URL}/api`
+  : "/api";
 
 export const api = {
   /**

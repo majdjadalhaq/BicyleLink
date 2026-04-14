@@ -100,6 +100,10 @@ app.use(
  * We use /api/ at the start of every route!
  * As we also host our client code on heroku we want to separate the API endpoints.
  */
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.use("/api/users", userRouter);
 app.use("/api/listings", listingRouter);
 app.use("/api/favorites", favoriteRouter);
