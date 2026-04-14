@@ -31,7 +31,7 @@ const apiClient = async (endpoint, options = {}) => {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      if (response.status === 401) {
+      if (response.status === 401 && typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("auth:unauthorized"));
       }
 
