@@ -37,6 +37,14 @@ const ActionIcon = ({
   );
 };
 
+ActionIcon.propTypes = {
+  onClick: PropTypes.func,
+  icon: PropTypes.node.isRequired,
+  label: PropTypes.string.isRequired,
+  variant: PropTypes.oneOf(["default", "primary", "danger", "sold"]),
+  disabled: PropTypes.bool,
+};
+
 const ListingActions = ({
   listing,
   isOwner,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
 const ReviewModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
   const [rating, setRating] = useState(5);
@@ -104,6 +105,13 @@ const ReviewModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
       </div>
     </div>
   );
+};
+
+ReviewModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isSubmitting: PropTypes.bool,
 };
 
 export default ReviewModal;

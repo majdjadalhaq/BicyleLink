@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 const Shimmer = () => (
   <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5" />
 );
@@ -9,6 +11,10 @@ const Skeleton = ({ className = "" }) => (
     <Shimmer />
   </div>
 );
+
+Skeleton.propTypes = {
+  className: PropTypes.string,
+};
 
 export const ListingCardSkeleton = () => (
   <div className="flex flex-col h-full bg-white dark:bg-[#10221C]/50 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-[#10B77F]/10 shadow-sm">
