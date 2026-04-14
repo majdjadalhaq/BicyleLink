@@ -39,6 +39,7 @@ const Nav = () => {
   useEffect(() => {
     if (prevPathname.current !== location.pathname) {
       prevPathname.current = location.pathname;
+      // eslint-disable-next-line
       setIsNotifOpen(false);
       setIsProfileOpen(false);
       setIsMobileSettingsOpen(false);
@@ -252,12 +253,14 @@ const Nav = () => {
         </div>
       )}
 
-      <MobileSettingsSheet
-        user={user}
-        profileHref={profileHref}
-        onLogout={handleLogout}
-        onClose={() => setIsMobileSettingsOpen(false)}
-      />
+      {isMobileSettingsOpen && (
+        <MobileSettingsSheet
+          user={user}
+          profileHref={profileHref}
+          onLogout={handleLogout}
+          onClose={() => setIsMobileSettingsOpen(false)}
+        />
+      )}
     </>
   );
 };
