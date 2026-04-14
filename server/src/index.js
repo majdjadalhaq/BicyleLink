@@ -48,7 +48,6 @@ const missing = requiredEnv.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
   const errorMsg = `❌ CRITICAL STARTUP FAILURE: Missing environment variables: ${missing.join(", ")}`;
-  console.error(errorMsg); // Use console directly for immediate visibility
   logError(errorMsg);
   process.exit(1);
 }
