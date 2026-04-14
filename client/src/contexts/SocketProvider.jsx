@@ -27,7 +27,8 @@ export const SocketProvider = ({ children }) => {
     }
 
     // Connect socket to the origin with explicit reconnection backoff logic
-    const s = io(window.location.origin, {
+    const socketUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+    const s = io(socketUrl, {
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,

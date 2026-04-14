@@ -9,4 +9,5 @@ export const ALLOWED_ORIGINS = [
   "https://c54-group-b-9bd2b65bcb0b.herokuapp.com",
   "https://c54b.hyf.dev",
   /https?:\/\/.*\.onrender\.com/,
+  /https?:\/\/.*\.vercel\.app/,
 ];
