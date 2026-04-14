@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import Lenis from "lenis";
 import { useLocation } from "react-router";
 
@@ -48,4 +49,8 @@ export const SmoothScroll = ({ children }) => {
   }, [location.pathname]);
 
   return <>{children}</>;
+};
+
+SmoothScroll.propTypes = {
+  children: PropTypes.node.isRequired,
 };
