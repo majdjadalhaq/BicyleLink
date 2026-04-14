@@ -1,27 +1,30 @@
 import { useState, useCallback } from "react";
-import api from "../services/api";
+import { apiClient } from "../services/apiClient";
 
+/**
+ * Compatibility hook for one-off API requests.
+ * Now powered by the high-performance apiClient for unified error handling.
+ */
 const useApi = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const execute = useCallback(async (url, options = {}) => {
+  const execute = useCallback(async (endpoint, options = {}) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // api.js prepends /api internally, so strip it from the url if the caller
-      // already included it to avoid ending up with /api/api/users.
-      let parsedUrl = url;
-      if (url.startsWith("/api")) {
-        parsedUrl = url.substring(4);
-      }
+      // Ensure we don't double-prefix /api if it's already there
+      const cleanEndpoint = endpoint.startsWith("/api")
+        ? endpoint.replace("/api", "")
+        : endpoint;
 
-      const data = await api.request(parsedUrl, options);
+      const data = await apiClient(cleanEndpoint, options);
       return data;
     } catch (err) {
-      setError(err.message);
-      return err.data || { success: false, message: err.message };
+      const errorMessage = err.message || "An unexpected error occurred";
+      setError(errorMessage);
+      return { success: false, message: errorMessage, ...err.data };
     } finally {
       setIsLoading(false);
     }

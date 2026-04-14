@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
@@ -96,7 +97,7 @@ const ReviewsList = ({
     <div className="overlay-backdrop" onClick={onClose}>
       <div className="flex items-center justify-center min-h-screen p-4">
         <div
-          className="overlay-panel w-full max-w-lg max-h-[80vh] flex flex-col relative"
+          className="overlay-panel w-full max-lg max-h-[80vh] flex flex-col relative"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -268,6 +269,15 @@ const ReviewsList = ({
       </div>
     </div>
   );
+};
+
+ReviewsList.propTypes = {
+  userId: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  userName: PropTypes.string,
+  refreshTrigger: PropTypes.number,
+  onReviewDeleted: PropTypes.func,
 };
 
 export default ReviewsList;

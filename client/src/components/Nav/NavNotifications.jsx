@@ -1,6 +1,10 @@
 import { useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
-import useNotifications from "../../hooks/useNotifications";
+import {
+  useNotifications,
+  useUnreadCountQuery,
+  useMarkAllAsRead,
+} from "../../hooks/useNotifications";
 import PropTypes from "prop-types";
 
 const BellIcon = () => (
@@ -22,11 +26,10 @@ const BellIcon = () => (
 );
 
 const NavNotifications = ({ user, isOpen, setIsOpen }) => {
-  const {
-    items: notifications,
-    unread,
-    markAllAsRead,
-  } = useNotifications(user);
+  const { data: notifications = [] } = useNotifications();
+  const { data: unread = 0 } = useUnreadCountQuery();
+  const markAllAsReadMutation = useMarkAllAsRead();
+
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -45,9 +48,9 @@ const NavNotifications = ({ user, isOpen, setIsOpen }) => {
   /* ── Auto-reset unread count when opened ── */
   useEffect(() => {
     if (isOpen && unread > 0) {
-      markAllAsRead();
+      markAllAsReadMutation.mutate();
     }
-  }, [isOpen, unread, markAllAsRead]);
+  }, [isOpen, unread]);
 
   const toggleOpen = () => setIsOpen(!isOpen);
 
@@ -87,7 +90,7 @@ const NavNotifications = ({ user, isOpen, setIsOpen }) => {
                 <button
                   type="button"
                   className="text-xs text-[#10B77F] hover:text-[#0EA572] transition-colors font-bold"
-                  onClick={markAllAsRead}
+                  onClick={() => markAllAsReadMutation.mutate()}
                 >
                   Mark all read
                 </button>

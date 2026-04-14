@@ -1,98 +1,136 @@
-import { Check, X } from "lucide-react";
+import { Check, X, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import PropTypes from "prop-types";
 
+/**
+ * Premium Password Strength Meter with kinetic feedback.
+ */
 const PasswordStrengthMeter = ({ password }) => {
   const requirements = [
     { label: "At least 8 characters", test: (p) => p.length >= 8 },
-    { label: "At least 1 uppercase letter", test: (p) => /[A-Z]/.test(p) },
-    { label: "At least 1 lowercase letter", test: (p) => /[a-z]/.test(p) },
-    { label: "At least 1 number", test: (p) => /[0-9]/.test(p) },
-    {
-      label: "At least 1 special character (@$!%*?&)",
-      test: (p) => /[@$!%*?&]/.test(p),
-    },
+    { label: "Uppercase letter", test: (p) => /[A-Z]/.test(p) },
+    { label: "Lowercase letter", test: (p) => /[a-z]/.test(p) },
+    { label: "Number check", test: (p) => /[0-9]/.test(p) },
+    { label: "Special character", test: (p) => /[@$!%*?&]/.test(p) },
   ];
 
-  const getStrength = (password) => {
-    return requirements.filter((req) => req.test(password)).length;
+  const strength = requirements.filter((req) => req.test(password)).length;
+
+  const getStrengthText = (s) => {
+    if (s === 0) return "Start typing...";
+    if (s <= 2) return "Vulnerable";
+    if (s <= 3) return "Average";
+    if (s <= 4) return "Secure";
+    return "Ironclad";
   };
 
-  const strength = getStrength(password);
-
-  const getStrengthText = (strength) => {
-    if (strength === 0) return "";
-    if (strength <= 2) return "Weak";
-    if (strength <= 3) return "Fair";
-    if (strength <= 4) return "Good";
-    return "Strong";
-  };
-
-  const strengthColors = {
-    bar: [
-      "bg-gray-300 dark:bg-white/10",
-      "bg-red-500",
-      "bg-red-500",
-      "bg-amber-500",
-      "bg-yellow-500",
-      "bg-emerald-500",
-    ],
-    text: [
-      "text-gray-400",
-      "text-red-500",
-      "text-red-500",
-      "text-amber-500",
-      "text-yellow-500",
-      "text-emerald-500",
-    ],
+  const getStrengthColor = (s) => {
+    if (s <= 2) return "oklch(65% 0.25 20)"; // Vivid Red
+    if (s <= 3) return "oklch(75% 0.2 60)"; // Amber
+    if (s <= 4) return "oklch(75% 0.2 120)"; // Lime/Green
+    return "oklch(70% 0.25 160)"; // Elite Emerald
   };
 
   if (!password) return null;
 
   return (
-    <div className="space-y-4 mb-6">
-      <div className="h-1.5 w-full bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ease-out ${strengthColors.bar[strength]}`}
-          style={{ width: `${(strength / 5) * 100}%` }}
-        />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-5 mb-8"
+    >
+      {/* Dynamic Bar */}
+      <div className="relative">
+        <div className="h-1.5 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            initial={{ width: 0 }}
+            animate={{
+              width: `${(strength / 5) * 100}%`,
+              backgroundColor: getStrengthColor(strength),
+            }}
+            transition={{ type: "spring", stiffness: 120, damping: 20 }}
+          />
+        </div>
+
+        {/* Animated Shield Marker */}
+        <AnimatePresence>
+          {strength === 5 && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="absolute -right-1 -top-6 text-[#10B77F]"
+            >
+              <ShieldCheck size={18} fill="currentColor" fillOpacity={0.2} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-          Password Strength
+          Security Level
         </span>
-        <span
-          className={`text-[10px] font-black uppercase tracking-widest ${strengthColors.text[strength]}`}
+        <motion.span
+          key={strength}
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-[10px] font-black uppercase tracking-[0.2em]"
+          style={{ color: getStrengthColor(strength) }}
         >
           {getStrengthText(strength)}
-        </span>
+        </motion.span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {/* Checklist Grid */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.05 } },
+        }}
+        className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+      >
         {requirements.map((req, index) => {
           const isMet = req.test(password);
           return (
-            <div
+            <motion.div
               key={index}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 ${
+              variants={{
+                hidden: { opacity: 0, x: -10 },
+                visible: { opacity: 1, x: 0 },
+              }}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-500 ${
                 isMet
-                  ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                  ? "bg-[#10B77F]/5 border-[#10B77F]/20 text-[#10B77F]"
                   : "bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400"
               }`}
             >
-              {isMet ? (
-                <Check size={12} strokeWidth={3} className="shrink-0" />
-              ) : (
-                <X size={12} strokeWidth={3} className="shrink-0 opacity-40" />
-              )}
-              <span className="text-[10px] font-bold leading-none">
+              <div
+                className={`transition-transform duration-500 ${isMet ? "scale-110" : "scale-100 opacity-40"}`}
+              >
+                {isMet ? (
+                  <Check size={12} strokeWidth={4} />
+                ) : (
+                  <X size={12} strokeWidth={4} />
+                )}
+              </div>
+              <span
+                className={`text-[10px] font-bold tracking-tight ${isMet ? "text-gray-900 dark:text-gray-100" : "text-gray-400"}`}
+              >
                 {req.label}
               </span>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
+};
+
+PasswordStrengthMeter.propTypes = {
+  password: PropTypes.string,
 };
 
 export default PasswordStrengthMeter;

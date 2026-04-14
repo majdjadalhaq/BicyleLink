@@ -1,9 +1,7 @@
+import PropTypes from "prop-types";
+
 /**
  * Reusable star rating display component.
- *
- * @param {object} props
- * @param {number} props.rating - Average rating value (0–5).
- * @param {number} [props.count] - Total number of reviews to display alongside stars.
  */
 const StarRating = ({ rating = 0, count }) => {
   const clampedRating = Math.min(5, Math.max(0, rating));
@@ -57,6 +55,11 @@ const StarRating = ({ rating = 0, count }) => {
       )}
     </div>
   );
+};
+
+StarRating.propTypes = {
+  rating: PropTypes.number,
+  count: PropTypes.number,
 };
 
 export default StarRating;

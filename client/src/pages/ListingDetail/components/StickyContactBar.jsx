@@ -37,7 +37,8 @@ const StickyContactBar = ({ listing, displayPrice, isOwner, user, id }) => {
 
 StickyContactBar.propTypes = {
   listing: PropTypes.object.isRequired,
-  displayPrice: PropTypes.string.isRequired,
+  displayPrice: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
   isOwner: PropTypes.bool.isRequired,
   user: PropTypes.object,
   id: PropTypes.string.isRequired,

@@ -5,7 +5,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { SocketProvider } from "./contexts/SocketProvider.jsx";
-import { NotificationProvider } from "./contexts/NotificationContext.jsx";
+import { NotificationSocketSync } from "./components/NotificationSocketSync";
+import { CustomCursor } from "./components/CustomCursor";
+import { SmoothScroll } from "./components/SmoothScroll";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { LoadingState } from "./components/ui";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -43,7 +45,9 @@ const App = () => {
       <AuthProvider>
         <ToastProvider>
           <SocketProvider>
-            <NotificationProvider>
+            <SmoothScroll>
+              <CustomCursor />
+              <NotificationSocketSync />
               <Nav />
 
               <div className="app-container">
@@ -140,7 +144,7 @@ const App = () => {
                   </ErrorBoundary>
                 </main>
               </div>
-            </NotificationProvider>
+            </SmoothScroll>
           </SocketProvider>
         </ToastProvider>
       </AuthProvider>
