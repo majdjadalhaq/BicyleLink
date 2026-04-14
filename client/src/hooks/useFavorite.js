@@ -8,7 +8,7 @@ import useToast from "./useToast";
  */
 export const useFavoriteIds = () => {
   const { user } = useAuth();
-  
+
   return useQuery({
     queryKey: ["favoriteIds"],
     queryFn: async () => {
@@ -28,7 +28,6 @@ export const useFavorite = (listingId) => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
-
   return useMutation({
     mutationFn: async () => {
       // The backend toggle endpoint handles both add/remove automatically
@@ -47,8 +46,8 @@ export const useFavorite = (listingId) => {
 
       // Optimistically update the global IDs list
       queryClient.setQueryData(["favoriteIds"], (old = []) => {
-        return isFavorited 
-          ? old.filter(id => id !== listingId)
+        return isFavorited
+          ? old.filter((id) => id !== listingId)
           : [...old, listingId];
       });
 
@@ -71,10 +70,10 @@ export const useFavorite = (listingId) => {
           ...oldData,
           pages: oldData.pages.map((page) => ({
             ...page,
-            result: page.result.map((listing) => 
-              listing._id === listingId 
-                ? { ...listing, isFavorited: !isFavorited } 
-                : listing
+            result: page.result.map((listing) =>
+              listing._id === listingId
+                ? { ...listing, isFavorited: !isFavorited }
+                : listing,
             ),
           })),
         };
@@ -86,7 +85,10 @@ export const useFavorite = (listingId) => {
     // 2. If the mutation fails, use the context returned from onMutate to roll back
     onError: (err, variables, context) => {
       if (context?.previousListing) {
-        queryClient.setQueryData(["listing", listingId], context.previousListing);
+        queryClient.setQueryData(
+          ["listing", listingId],
+          context.previousListing,
+        );
       }
       if (context?.previousIds) {
         queryClient.setQueryData(["favoriteIds"], context.previousIds);

@@ -34,12 +34,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
-      // Optional: window.location.href = "/login"; 
+      // Optional: window.location.href = "/login";
       // But usually handled by ProtectedRoute
     };
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
-    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    return () =>
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
   }, []);
 
   const login = useCallback((userData) => {

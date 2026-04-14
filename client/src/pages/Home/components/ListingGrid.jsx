@@ -18,30 +18,36 @@ const ListingGrid = ({
   const scrollTriggerRef = useRef(null);
 
   // Memoize variants to prevent re-calculation on grid re-renders
-  const containerVariants = useMemo(() => ({
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08, // Increased for smoother main-thread distribution
-        delayChildren: 0.1,
+  const containerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.08, // Increased for smoother main-thread distribution
+          delayChildren: 0.1,
+        },
       },
-    },
-  }), []);
+    }),
+    [],
+  );
 
-  const itemVariants = useMemo(() => ({
-    hidden: { opacity: 0, y: 20, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 180, // Lowered for easier physics resolution
-        damping: 25,
+  const itemVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 20, scale: 0.98 },
+      visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+          type: "spring",
+          stiffness: 180, // Lowered for easier physics resolution
+          damping: 25,
+        },
       },
-    },
-  }), []);
+    }),
+    [],
+  );
 
   useEffect(() => {
     if (!hasMore || isLoading) return;
@@ -89,7 +95,10 @@ const ListingGrid = ({
 
         {isLoading &&
           [...Array(gridCols || 4)].map((_, i) => (
-            <div key={`skeleton-${i}`} className="animate-in fade-in duration-500">
+            <div
+              key={`skeleton-${i}`}
+              className="animate-in fade-in duration-500"
+            >
               <ListingCardSkeleton />
             </div>
           ))}

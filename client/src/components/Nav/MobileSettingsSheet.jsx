@@ -1,6 +1,11 @@
 import { Link } from "react-router";
 import PropTypes from "prop-types";
-import { UserAvatarIcon, ProfileIcon, SettingsIcon, LogoutIcon } from "./NavIcons";
+import {
+  UserAvatarIcon,
+  ProfileIcon,
+  SettingsIcon,
+  LogoutIcon,
+} from "./NavIcons";
 import { Icons } from "./NavLinksIcons";
 
 const MobileSettingsSheet = ({ user, profileHref, onLogout, onClose }) => {

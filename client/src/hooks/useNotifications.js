@@ -60,15 +60,22 @@ export const useMarkAsRead = () => {
       });
 
       // Update unread count optimistically
-      queryClient.setQueryData(["notifications", "unread-count"], (prev) => Math.max((prev || 0) - 1, 0));
+      queryClient.setQueryData(["notifications", "unread-count"], (prev) =>
+        Math.max((prev || 0) - 1, 0),
+      );
 
       return { previousNotifications };
     },
     onError: (err, id, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications"], context.previousNotifications);
+        queryClient.setQueryData(
+          ["notifications"],
+          context.previousNotifications,
+        );
       }
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -102,7 +109,9 @@ export const useMarkAllAsRead = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
     },
   });
 };

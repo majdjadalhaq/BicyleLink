@@ -26,15 +26,15 @@ const PasswordStrengthMeter = ({ password }) => {
 
   const getStrengthColor = (s) => {
     if (s <= 2) return "oklch(65% 0.25 20)"; // Vivid Red
-    if (s <= 3) return "oklch(75% 0.2 60)";  // Amber
+    if (s <= 3) return "oklch(75% 0.2 60)"; // Amber
     if (s <= 4) return "oklch(75% 0.2 120)"; // Lime/Green
-    return "oklch(70% 0.25 160)";            // Elite Emerald
+    return "oklch(70% 0.25 160)"; // Elite Emerald
   };
 
   if (!password) return null;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-5 mb-8"
@@ -45,18 +45,18 @@ const PasswordStrengthMeter = ({ password }) => {
           <motion.div
             className="h-full rounded-full"
             initial={{ width: 0 }}
-            animate={{ 
+            animate={{
               width: `${(strength / 5) * 100}%`,
-              backgroundColor: getStrengthColor(strength)
+              backgroundColor: getStrengthColor(strength),
             }}
             transition={{ type: "spring", stiffness: 120, damping: 20 }}
           />
         </div>
-        
+
         {/* Animated Shield Marker */}
         <AnimatePresence>
           {strength === 5 && (
-            <motion.div 
+            <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
@@ -84,11 +84,11 @@ const PasswordStrengthMeter = ({ password }) => {
       </div>
 
       {/* Checklist Grid */}
-      <motion.div 
+      <motion.div
         initial="hidden"
         animate="visible"
         variants={{
-          visible: { transition: { staggerChildren: 0.05 } }
+          visible: { transition: { staggerChildren: 0.05 } },
         }}
         className="grid grid-cols-1 sm:grid-cols-2 gap-2"
       >
@@ -99,7 +99,7 @@ const PasswordStrengthMeter = ({ password }) => {
               key={index}
               variants={{
                 hidden: { opacity: 0, x: -10 },
-                visible: { opacity: 1, x: 0 }
+                visible: { opacity: 1, x: 0 },
               }}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-500 ${
                 isMet
@@ -107,10 +107,18 @@ const PasswordStrengthMeter = ({ password }) => {
                   : "bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400"
               }`}
             >
-              <div className={`transition-transform duration-500 ${isMet ? "scale-110" : "scale-100 opacity-40"}`}>
-                {isMet ? <Check size={12} strokeWidth={4} /> : <X size={12} strokeWidth={4} />}
+              <div
+                className={`transition-transform duration-500 ${isMet ? "scale-110" : "scale-100 opacity-40"}`}
+              >
+                {isMet ? (
+                  <Check size={12} strokeWidth={4} />
+                ) : (
+                  <X size={12} strokeWidth={4} />
+                )}
               </div>
-              <span className={`text-[10px] font-bold tracking-tight ${isMet ? "text-gray-900 dark:text-gray-100" : "text-gray-400"}`}>
+              <span
+                className={`text-[10px] font-bold tracking-tight ${isMet ? "text-gray-900 dark:text-gray-100" : "text-gray-400"}`}
+              >
                 {req.label}
               </span>
             </motion.div>

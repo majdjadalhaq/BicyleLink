@@ -15,8 +15,8 @@ const useApi = () => {
 
     try {
       // Ensure we don't double-prefix /api if it's already there
-      const cleanEndpoint = endpoint.startsWith("/api") 
-        ? endpoint.replace("/api", "") 
+      const cleanEndpoint = endpoint.startsWith("/api")
+        ? endpoint.replace("/api", "")
         : endpoint;
 
       const data = await apiClient(cleanEndpoint, options);

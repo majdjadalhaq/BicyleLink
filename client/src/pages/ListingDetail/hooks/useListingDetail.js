@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useAuth } from "../../../hooks/useAuth";
-import { 
-  useListing, 
-  useListingCandidates, 
+import {
+  useListing,
+  useListingCandidates,
   useUpdateListingStatus,
   useCheckReview,
   useSubmitReview,
-  useSubmitReport
+  useSubmitReport,
 } from "../../../hooks/useListing";
 import { useQueryClient } from "@tanstack/react-query";
 import useApi from "../../../hooks/useApi";
@@ -31,8 +31,13 @@ const useListingDetail = () => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // --- Data Fetching (TanStack Query) ---
-  const { data: listing, isLoading: loading, error: queryError } = useListing(id);
-  const { data: candidates = [], isLoading: isLoadingCandidates } = useListingCandidates(id, statusModalOpen);
+  const {
+    data: listing,
+    isLoading: loading,
+    error: queryError,
+  } = useListing(id);
+  const { data: candidates = [], isLoading: isLoadingCandidates } =
+    useListingCandidates(id, statusModalOpen);
   const { data: hasReviewed = false } = useCheckReview(id);
 
   // --- Mutations ---
@@ -41,7 +46,8 @@ const useListingDetail = () => {
   const submitReportMutation = useSubmitReport();
 
   const error = queryError?.message;
-  const isOwner = user && listing && user._id === (listing.ownerId?._id || listing.ownerId);
+  const isOwner =
+    user && listing && user._id === (listing.ownerId?._id || listing.ownerId);
   const isBuyer = user && listing && user._id === listing.buyerId;
   const canRate = isBuyer && listing?.status === "sold" && !hasReviewed;
   const canViewReviews = (listing?.ownerId?.reviewCount ?? 0) > 0;
@@ -50,11 +56,11 @@ const useListingDetail = () => {
   const viewTrackedRef = useRef(null);
 
   // --- Side Effects ---
-  
+
   // Track page view once per listing ID
   useEffect(() => {
     if (!listing || !id || viewTrackedRef.current === id) return;
-    
+
     const trackView = async () => {
       viewTrackedRef.current = id;
       if (!isOwner) {
@@ -93,13 +99,16 @@ const useListingDetail = () => {
   };
 
   const handleStatusUpdate = async (newStatus) => {
-    const buyerId = newStatus === "sold" && selectedBuyerId !== "other" ? selectedBuyerId : null;
-    
+    const buyerId =
+      newStatus === "sold" && selectedBuyerId !== "other"
+        ? selectedBuyerId
+        : null;
+
     updateStatusMutation.mutate(
       { status: newStatus, buyerId },
       {
         onSuccess: () => setStatusModalOpen(false),
-      }
+      },
     );
   };
 
@@ -112,7 +121,7 @@ const useListingDetail = () => {
           setReviewModalOpen(false);
           setReviewsListOpen(true);
         },
-      }
+      },
     );
   };
 
@@ -126,7 +135,7 @@ const useListingDetail = () => {
       { targetId: id, targetType: "Listing", reason },
       {
         onSuccess: () => setReportModalOpen(false),
-      }
+      },
     );
   };
 

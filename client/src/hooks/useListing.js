@@ -21,7 +21,9 @@ export const useListing = (id) => {
     // use it as initial data so the page loads instantly.
     initialData: () => {
       // Look through all 'listings' queries in the cache
-      const listingsData = queryClient.getQueriesData({ queryKey: ["listings"] });
+      const listingsData = queryClient.getQueriesData({
+        queryKey: ["listings"],
+      });
 
       for (const [key, data] of listingsData) {
         if (!data?.pages) continue;

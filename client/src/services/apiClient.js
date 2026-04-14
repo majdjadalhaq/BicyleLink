@@ -8,10 +8,10 @@ const BASE_URL = BACKEND_URL || "";
  */
 const apiClient = async (endpoint, options = {}) => {
   // Fix: Ensure we don't double-prefix /api/
-  const cleanEndpoint = endpoint.startsWith("/api") 
-    ? endpoint 
+  const cleanEndpoint = endpoint.startsWith("/api")
+    ? endpoint
     : `/api${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-    
+
   const url = `${BASE_URL}${cleanEndpoint}`;
 
   const defaultOptions = {
@@ -35,10 +35,10 @@ const apiClient = async (endpoint, options = {}) => {
         window.dispatchEvent(new CustomEvent("auth:unauthorized"));
       }
 
-      const errorMessage = 
-        data?.message || 
-        data?.msg || 
-        data?.errors?.[0]?.message || 
+      const errorMessage =
+        data?.message ||
+        data?.msg ||
+        data?.errors?.[0]?.message ||
         `Error: ${response.status} ${response.statusText}`;
 
       const error = new Error(errorMessage);
@@ -64,6 +64,6 @@ apiClient.patch = (e, b, o) => apiClient(e, { ...o, method: "PATCH", body: b });
 apiClient.delete = (e, o) => apiClient(e, { ...o, method: "DELETE" });
 
 // Restore compatibility for legacy hooks
-export const fetcher = apiClient; 
+export const fetcher = apiClient;
 export { apiClient };
 export default apiClient;

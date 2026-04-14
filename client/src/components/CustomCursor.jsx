@@ -7,7 +7,7 @@ import { motion, useSpring, useMotionValue } from "framer-motion";
  */
 export const CustomCursor = () => {
   const [cursorType, setCursorType] = useState("default");
-  
+
   // Use MotionValues for absolute performance - no React re-renders on mouse move
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
@@ -67,7 +67,7 @@ export const CustomCursor = () => {
       backgroundColor: "rgba(16, 183, 127, 0.05)",
       borderColor: "rgba(16, 183, 127, 0.3)",
       borderWidth: 1,
-    }
+    },
   };
 
   return (
@@ -84,7 +84,7 @@ export const CustomCursor = () => {
       transition={{ type: "spring", stiffness: 400, damping: 35 }}
     >
       {cursorType === "card" && (
-        <motion.span 
+        <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-[9px] font-black uppercase tracking-[0.2em] text-[#10B77F]"

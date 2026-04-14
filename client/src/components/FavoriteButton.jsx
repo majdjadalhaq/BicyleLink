@@ -5,7 +5,7 @@ import { useFavorite, useFavoriteIds } from "../hooks/useFavorite";
 const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
   const { user } = useAuth();
   const { data: favoriteIds = [] } = useFavoriteIds();
-  
+
   const isFav = favoriteIds.includes(listingId);
 
   const { mutate: toggleFavorite, isPending: loading } = useFavorite(listingId);
@@ -19,16 +19,22 @@ const FavoriteButton = ({ listingId, variant = "heart", onToggled }) => {
       e.preventDefault();
       e.stopPropagation();
     }
-    
-    toggleFavorite({ isFavorited: isFav }, {
-      onSuccess: () => {
-        onToggled?.();
-      }
-    });
+
+    toggleFavorite(
+      { isFavorited: isFav },
+      {
+        onSuccess: () => {
+          onToggled?.();
+        },
+      },
+    );
   };
 
   const colors = {
-    heart: variant === "heart" || variant === "icon" || variant === "action-overlay" ? "#ef4444" : "#10b981",
+    heart:
+      variant === "heart" || variant === "icon" || variant === "action-overlay"
+        ? "#ef4444"
+        : "#10b981",
   };
 
   if (variant === "button") {

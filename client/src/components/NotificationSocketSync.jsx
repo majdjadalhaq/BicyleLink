@@ -23,25 +23,33 @@ export const NotificationSocketSync = () => {
       queryClient.setQueryData(["notifications"], (prev) => {
         if (!prev) return [notification];
         // Prevent duplicates
-        if (prev.some(n => n._id === notification._id)) return prev;
+        if (prev.some((n) => n._id === notification._id)) return prev;
         return [notification, ...prev];
       });
 
       // 2. Increment unread count if applicable
       if (!notification.read) {
-        queryClient.setQueryData(["notifications", "unread-count"], (prev) => (prev || 0) + 1);
+        queryClient.setQueryData(
+          ["notifications", "unread-count"],
+          (prev) => (prev || 0) + 1,
+        );
       }
     };
 
     const handleSync = () => {
       // Invalidate queries to trigger a fresh fetch from the server
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.invalidateQueries({
+        queryKey: ["notifications", "unread-count"],
+      });
     };
 
     const handleNewMessage = (msg) => {
       if (msg && msg.receiverId === user._id) {
-        queryClient.setQueryData(["messages", "unread-total"], (prev) => (prev || 0) + 1);
+        queryClient.setQueryData(
+          ["messages", "unread-total"],
+          (prev) => (prev || 0) + 1,
+        );
       }
     };
 

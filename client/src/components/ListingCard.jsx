@@ -67,7 +67,16 @@ const CardCarousel = ({ images, title }) => {
             className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300 hover:bg-emerald-500"
             aria-label="Previous photo"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -76,7 +85,16 @@ const CardCarousel = ({ images, title }) => {
             className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all duration-300 hover:bg-emerald-500"
             aria-label="Next photo"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -107,7 +125,8 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const [pendingDelete, setPendingDelete] = useState(false);
   const deleteTimerRef = useRef(null);
 
-  const { data: candidates = [], isLoading: isLoadingCandidates } = useListingCandidates(_id, statusModalOpen);
+  const { data: candidates = [], isLoading: isLoadingCandidates } =
+    useListingCandidates(_id, statusModalOpen);
   const statusMutation = useUpdateListingStatus(_id);
   const { showToast } = useToast();
 
@@ -122,15 +141,18 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
   const displayPrice = listing.price?.$numberDecimal || listing.price;
 
   const handleStatusUpdate = (newStatus) => {
-    const buyerId = newStatus === "sold" && selectedBuyerId !== "other" ? selectedBuyerId : null;
+    const buyerId =
+      newStatus === "sold" && selectedBuyerId !== "other"
+        ? selectedBuyerId
+        : null;
     statusMutation.mutate(
       { status: newStatus, buyerId },
       {
         onSuccess: () => {
           setStatusModalOpen(false);
           onUpdated?.();
-        }
-      }
+        },
+      },
     );
   };
 
@@ -155,7 +177,9 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
           <CardCarousel images={images} title={title} />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#161616]">
-            <span className="text-xs text-gray-600 font-bold uppercase tracking-widest">No photos</span>
+            <span className="text-xs text-gray-600 font-bold uppercase tracking-widest">
+              No photos
+            </span>
           </div>
         )}
 
@@ -172,7 +196,14 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
           )}
           {listing.isFeatured && (
             <div className="px-3 py-1.5 rounded-full text-[10px] font-black text-white bg-amber-500/80 backdrop-blur-md uppercase tracking-widest flex items-center gap-1.5 border border-white/20 shadow-lg">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
               Featured
             </div>
           )}
@@ -201,8 +232,19 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
           </span>
           {location && (
             <div className="flex items-center gap-1 text-[11px] text-gray-400 font-bold uppercase tracking-wider truncate max-w-[120px]">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#10B77F] flex-shrink-0">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#10B77F] flex-shrink-0"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
               </svg>
               {location}
             </div>
@@ -213,12 +255,37 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
         <div className="flex items-center justify-between border-t border-gray-100 dark:border-white/5 pt-4 mt-auto">
           <div className="flex gap-4">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400">
-               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#10B77F]"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-               {listing.views || 0}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#10B77F]"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {listing.views || 0}
             </div>
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400">
-               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#10B77F]"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
-               {listing.inquiries || 0}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#10B77F]"
+              >
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+              </svg>
+              {listing.inquiries || 0}
             </div>
           </div>
           {listing.ownerId?.name && (
@@ -235,7 +302,19 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
               to={`/listings/${_id}/edit`}
               className="flex-1 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-[#10B77F] hover:bg-[#10B77F]/5 transition-all border border-transparent hover:border-[#10B77F]/20"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
             </Link>
             <button
               onClick={handleStatusClick}

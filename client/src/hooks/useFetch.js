@@ -12,7 +12,9 @@ const useFetch = (route, onReceived, onError) => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Strip /api if present for apiClient compatibility
-  const actualRoute = route.startsWith("/api") ? route.replace("/api", "") : route;
+  const actualRoute = route.startsWith("/api")
+    ? route.replace("/api", "")
+    : route;
 
   const cancelFetch = useCallback(() => {
     controllerRef.current?.abort();
@@ -29,7 +31,7 @@ const useFetch = (route, onReceived, onError) => {
 
       try {
         const data = await apiClient(actualRoute, { ...options, signal });
-        
+
         if (onReceived) onReceived(data);
         return data;
       } catch (err) {
@@ -37,7 +39,8 @@ const useFetch = (route, onReceived, onError) => {
         if (err.name !== "AbortError") {
           const errorMessage = err.message || "Fetch failed";
           setError(errorMessage);
-          if (onError) onError(err.data || { success: false, message: errorMessage });
+          if (onError)
+            onError(err.data || { success: false, message: errorMessage });
         }
       } finally {
         setIsLoading(false);
