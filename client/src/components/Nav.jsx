@@ -69,7 +69,7 @@ const UserAvatarIcon = () => (
 );
 
 const Nav = () => {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);

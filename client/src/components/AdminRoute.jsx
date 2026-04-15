@@ -2,9 +2,9 @@ import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 
 const AdminRoute = () => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="admin-loading">
         <div className="spinner"></div>
