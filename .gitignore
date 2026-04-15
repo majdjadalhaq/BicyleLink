@@ -59,3 +59,19 @@ server/*.log
 # Dev Only
 PROJECT_FULL_CODE.txt
 generate_snapshot.js
+
+# AI & Planning Artifacts
+.agent/
+.gemini/
+01-Raw/Logs/
+02-Wiki/
+*.json
+*-report.md
+pr-analysis.json
+agno-style-report.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json
+!.prettierrc
+!.eslintrc.json
