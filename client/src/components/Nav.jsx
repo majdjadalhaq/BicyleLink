@@ -34,9 +34,13 @@ const Nav = () => {
   useLayoutEffect(() => {
     if (prevPathname.current !== location.pathname) {
       prevPathname.current = location.pathname;
-      setIsNotifOpen(false);
-      setIsProfileOpen(false);
-      setIsMobileSettingsOpen(false);
+      // Wrap in setTimeout to avoid synchronous cascading renders warning
+      const timer = setTimeout(() => {
+        setIsNotifOpen(false);
+        setIsProfileOpen(false);
+        setIsMobileSettingsOpen(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [location.pathname]);
 

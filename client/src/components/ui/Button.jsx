@@ -1,4 +1,3 @@
-import React from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
