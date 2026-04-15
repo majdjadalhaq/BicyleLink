@@ -139,7 +139,7 @@ export const initSocket = (io) => {
         io.to(`user_${msg.receiverId}`).emit("receive_message", savedMessage);
 
         // --- INQUIRY TRACKING ---
-        // Robust check for valid listing ID to avoid crash
+        // Skip inquiry tracking if there is no valid listing ID
         if (msg.listingId && mongoose.Types.ObjectId.isValid(msg.listingId)) {
           const listing = await Listing.findById(msg.listingId);
           if (listing && listing.ownerId.toString() !== msg.senderId) {

@@ -68,7 +68,7 @@ userSchema.virtual("averageRating").get(function () {
   return (this.ratingSum / this.reviewCount).toFixed(1);
 });
 
-// Ensure virtuals are included in JSON output
+// Include virtuals (e.g. averageRating) when serializing to JSON/object
 userSchema.set("toJSON", { virtuals: true });
 userSchema.set("toObject", { virtuals: true });
 

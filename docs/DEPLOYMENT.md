@@ -1,109 +1,92 @@
-# BiCycleL Deployment Guide
+# Deployment Guide
 
 ## Environment Variables
 
-Copy `server/.env.example` to `server/.env` and fill in all values before deploying.
+Copy the example files before starting:
 
-### Required
+```bash
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+```
 
-| Variable | Description |
-|---|---|
-| `PORT` | Port the Express server listens on (Heroku sets this automatically) |
-| `MONGODB_URL` | MongoDB Atlas connection string |
-| `JWT_SECRET` | Strong random secret for signing JWTs |
-| `RESEND_API_KEY` | API key from resend.com for transactional email |
-| `RESEND_SENDER_EMAIL` | Verified sender address (e.g. `noreply@bicyclel.nl`) |
-| `RESEND_SENDER_NAME` | Display name for outgoing emails (e.g. `BiCycleL`) |
-| `CLIENT_URL` | Frontend origin, used in email links (e.g. `https://bicyclel.nl`) |
-| `NODE_ENV` | Set to `production` on Heroku |
+### Server (`server/.env`)
 
-### Optional but Recommended
+| Variable | Required | Description |
+|---|---|---|
+| `PORT` | Yes | Port the server listens on (Render sets this automatically) |
+| `MONGODB_URL` | Yes | MongoDB Atlas connection string |
+| `JWT_SECRET` | Yes | Secret for signing JWTs — min 32 characters |
+| `JWT_EXPIRES_IN` | No | Token lifetime (default: `7d`) |
+| `CLIENT_URL` | Yes | Frontend origin used in email links (e.g. `https://bicyclel.nl`) |
+| `NODE_ENV` | Yes | Set to `production` on the server |
+| `LOG_LEVEL` | No | Winston log level: `info`, `warn`, `error` (default: `info`) |
+| `RESEND_API_KEY` | Yes | API key from resend.com |
+| `RESEND_SENDER_EMAIL` | Yes | Verified sender address (e.g. `noreply@bicyclel.nl`) |
+| `RESEND_SENDER_NAME` | Yes | Display name for outgoing emails |
+| `RESEND_WEBHOOK_SECRET` | No | Signing secret for Resend webhooks |
+| `USE_RESEND` | No | Set to `true` to enable email sending (default: `false`) |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
+| `TEST_ADMIN_EMAIL` | No | Admin email seeded by Cypress |
+| `TEST_ADMIN_PASSWORD` | No | Admin password seeded by Cypress |
 
-| Variable | Description |
-|---|---|
-| `JWT_EXPIRES_IN` | Token expiry duration (default: `7d`) |
-| `LOG_LEVEL` | Winston log level — `info`, `warn`, `error` (default: `info`) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID (required if Google login is enabled) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `RESEND_WEBHOOK_SECRET` | Webhook signing secret from Resend dashboard |
+### Client (`client/.env`)
 
-### Test / Cypress Only
-
-| Variable | Description |
-|---|---|
-| `TEST_ADMIN_EMAIL` | Admin account email seeded by Cypress (default: `bicyclel2026@gmail.com`) |
-| `TEST_ADMIN_PASSWORD` | Admin account password seeded by Cypress |
-| `TEST_EMAIL` | Secondary test email address |
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_BACKEND_URL` | Yes | Backend API URL (e.g. `https://api.bicyclel.nl`) |
+| `VITE_CLOUDINARY_CLOUD_NAME` | Yes | Cloudinary cloud name for image uploads |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | Yes | Cloudinary unsigned upload preset |
+| `VITE_GOOGLE_CLIENT_ID` | No | Google OAuth client ID (same as server) |
 
 ---
 
-## Render Deployment (100% Free)
+## Production: Vercel + Render
 
-### 1. Create a New Web Service
-1. Connect your GitHub repository.
-2. Select the repository and set the following:
-   - **Environment**: `Node`
+The live site at [bicyclel.nl](https://bicyclel.nl) runs the React frontend on Vercel and the Express API on Render.
+
+### Backend (Render)
+
+1. Create a new **Web Service** and connect the GitHub repository.
+2. Set the build and start commands:
    - **Build Command**: `npm run heroku-postbuild`
    - **Start Command**: `cd server && npm start`
+3. Add the environment variables from the server section above.
+4. (Optional) Add a custom domain under **Settings → Custom Domains**.
 
-### 2. Config Vars
-Add the same environment variables as Heroku (except `PORT`):
-- `MONGODB_URL`
-- `JWT_SECRET`
-- `RESEND_API_KEY`
-- `NODE_ENV=production`
-- `VITE_GOOGLE_CLIENT_ID`
+### Frontend (Vercel)
 
-### 3. Custom Domain
-Add `bicyclel.nl` in **Settings → Custom Domains** and follow the DNS instructions provided by Render.
+1. Import the GitHub repository in Vercel.
+2. Set the **Root Directory** to `client`.
+3. Add the environment variables from the client section above.
+4. Set `VITE_BACKEND_URL` to the Render service URL.
+
+Vercel auto-deploys on every push to `main`. The frontend build command is `npm run build` and the output directory is `dist`.
 
 ---
 
-## Heroku Deployment
-
-### 1. Set config vars
-
-Either through the Heroku Dashboard (Settings → Config Vars) or via CLI:
+## Local Development
 
 ```bash
-heroku config:set MONGODB_URL="..." JWT_SECRET="..." RESEND_API_KEY="..." NODE_ENV=production
+# Install all dependencies
+npm install && npm run setup
+
+# Start both dev servers
+npm run dev
 ```
 
-### 2. Deploy
-
-Heroku runs `heroku-postbuild` automatically on push:
-
-```
-npm run setup && npm run build:client
-```
-
-This installs all dependencies and compiles the React app into `client/dist`, which Express serves as static files in production.
-
-### 3. Verify
-
-```bash
-heroku logs --tail
-heroku run node -e "console.log(process.env.NODE_ENV)"
-```
+This runs the Express server (default port 3000) and the Vite dev server (default port 5173) concurrently. Vite proxies `/api` and socket requests to the Express server.
 
 ---
 
 ## Pre-Deploy Checklist
 
 - [ ] All required environment variables are set
-- [ ] `npm run code-style-check` passes
+- [ ] `npm run code-style-check` passes with no errors
 - [ ] `npm run build:client` succeeds locally
 - [ ] `npm run test` passes for both client and server
-- [ ] No `.env` files or secrets committed to the repo
-- [ ] `npm audit` run in root, client, and server
-
----
-
-## Custom Domain (bicyclel.nl)
-
-1. Add the domain in Heroku: Settings → Domains
-2. Point a CNAME record at the Heroku DNS target shown in the dashboard
-3. SSL is provisioned automatically by Heroku for verified domains
+- [ ] No `.env` files committed to the repository
+- [ ] `npm audit` reviewed in root, client, and server
 
 ---
 

@@ -26,7 +26,7 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect socket to the origin — leverage Vite proxy in development, use origin in production
+    // In development the Vite proxy forwards socket requests; in production connect directly to the origin
     const socketUrl = window.location.origin;
     const s = io(socketUrl, {
       reconnection: true,

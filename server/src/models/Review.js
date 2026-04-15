@@ -33,7 +33,7 @@ const reviewSchema = new mongoose.Schema({
   },
 });
 
-// Ensure a user can only review a listing once
+// Unique per reviewer+listing pair — one review per purchase
 reviewSchema.index({ reviewerId: 1, listingId: 1 }, { unique: true });
 
 const Review = mongoose.model("Review", reviewSchema);

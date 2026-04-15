@@ -1,77 +1,73 @@
+# Dependencies
 node_modules
 
-# Don't push our production build
+# Production builds
 dist
+dist-ssr
 
-# Don't push our coverage files for jest
+# Test coverage
 coverage
 
-# MacOS creates these files
+# macOS metadata
 .DS_Store
 
-# Never push our environment variables
+# Environment variables — never commit secrets
 .env
 .env.*
 !.env.example
 
-# Cypress videos from our headless runs should not be pushed to github
-cypress/videos
-cypress/screenshots
-
-
 # Logs
-logs
 *.log
+logs
+combined.log
+error.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
-combined.log
-error.log
 
-# Build and Test Artifacts
-dist
-dist-ssr
-coverage
+# Cypress test output
 cypress/videos
 cypress/screenshots
-*.local
 
-# Editor directories and files
+# Local-only files
+*.local
+ABOUT_INTEGRATION.local
+
+# Editor configuration (keep shared VSCode settings, ignore personal overrides)
 .vscode/*
+!.vscode/settings.json
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Dev-only planning files
+DEV.md
+PR_PLAN.md
+PR_DETAILS.md
 CHECK_LATER.md
 DATABASE_SCHEMA.md
-PR_DETAILS.md
-PR_PLAN.md
 rules.md
-server/combined.log
-server/error.log
-server/*.log
-# Dev Only
-PROJECT_FULL_CODE.txt
 generate_snapshot.js
+PROJECT_FULL_CODE.txt
 
-# AI & Planning Artifacts
+# Analysis and report artifacts
+*-report.md
+*-quality.json
+agno-style-report.json
+pr-analysis.json
+
+# AI tooling directories
 .agent/
 .gemini/
-01-Raw/Logs/
+.claude/
+01-Raw/
 02-Wiki/
-*.json
-*-report.md
-pr-analysis.json
-agno-style-report.json
-!package.json
-!package-lock.json
-!tsconfig.json
-!components.json
-!.prettierrc
-!.eslintrc.json
+
+# Docs archive (internal only)
+docs/archive/
+docs/DB_API_OVERVIEW.md
