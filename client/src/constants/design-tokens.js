@@ -6,11 +6,11 @@
 export const SPACING = {
   BASE: 8,
   PX: {
-    XS: "4px",   // 0.5rem
-    SM: "8px",   // 1rem
-    MD: "16px",  // 2rem - The target padding for cards
-    LG: "24px",  // 3rem
-    XL: "32px",  // 4rem
+    XS: "4px", // 0.5rem
+    SM: "8px", // 1rem
+    MD: "16px", // 2rem - The target padding for cards
+    LG: "24px", // 3rem
+    XL: "32px", // 4rem
     XXL: "48px", // 6rem
     SECTION: "64px",
   },
@@ -40,7 +40,7 @@ export const DURATIONS = {
 };
 
 export const EASINGS = {
-  OUT: [0.21, 1.11, 0.81, 0.99], 
+  OUT: [0.21, 1.11, 0.81, 0.99],
   SMOOTH: [0.4, 0, 0.2, 1],
   ANTICIPATE: [0.45, 0, 0.55, 1],
 };

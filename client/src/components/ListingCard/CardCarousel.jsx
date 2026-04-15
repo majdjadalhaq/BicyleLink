@@ -23,7 +23,6 @@ const CardCarousel = ({ images, title }) => {
     e.target.onerror = null; // Prevent infinite loop
   };
 
-
   const prev = (e) => {
     e.preventDefault();
     e.stopPropagation();
