@@ -26,9 +26,8 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect socket to the origin with explicit reconnection backoff logic
-    const socketUrl =
-      import.meta.env.VITE_BACKEND_URL || window.location.origin;
+    // Connect socket to the origin — leverage Vite proxy in development, use origin in production
+    const socketUrl = window.location.origin;
     const s = io(socketUrl, {
       reconnection: true,
       reconnectionAttempts: Infinity,

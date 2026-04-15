@@ -60,13 +60,16 @@ server/*.log
 PROJECT_FULL_CODE.txt
 generate_snapshot.js
 
-# AI Agent artifacts — never commit these
+# AI & Planning Artifacts — never commit these
 .agent/
-02-Wiki/
+.gemini/
 01-Raw/
-pr-analysis.json
-client-quality.json
-client-review-report.md
-server-quality.json
-server-review-report.md
-agno-style-report.json
+02-Wiki/
+*.json
+*-report.md
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json
+!.prettierrc
+!.eslintrc.json
