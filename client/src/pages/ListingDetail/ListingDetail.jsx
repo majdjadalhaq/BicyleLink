@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Link } from "react-router";
 import { motion } from "framer-motion";
 import PropTypes from "prop-types";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
@@ -9,6 +8,9 @@ import SellerCard from "../../components/SellerCard/SellerCard";
 import MarkAsSoldModal from "../../components/MarkAsSoldModal";
 
 const LocationMap = lazy(() => import("../../components/Map/LocationMap"));
+
+import ListingErrorState from "./components/ListingErrorState";
+import ListingBreadcrumb from "./components/ListingBreadcrumb";
 
 // Subcomponents
 import ListingHeader from "./components/ListingHeader";
@@ -108,39 +110,7 @@ const ListingDetail = () => {
 
   if (loading) return <ListingDetailSkeleton />;
 
-  if (error || !listing)
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500"
-        >
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-        </motion.div>
-        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">
-          Listing Not Found
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
-          {error ||
-            "The bicycle you're looking for might have been sold, removed, or the link is broken."}
-        </p>
-        <Link to="/" className="btn-primary">
-          Back to Garage
-        </Link>
-      </div>
-    );
+  if (error || !listing) return <ListingErrorState error={error} />;
 
   const sellerData = {
     _id: listing.ownerId?._id,
@@ -154,28 +124,7 @@ const ListingDetail = () => {
   return (
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#121212] transition-colors duration-300 pb-[150px] md:pb-24 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-0 sm:px-6 pt-0 sm:pt-6">
-        {/* Breadcrumb */}
-        <div className="hidden md:block mb-8 px-1">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-emerald-500 transition-colors group"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform group-hover:-translate-x-1"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Back to Listings
-          </Link>
-        </div>
+        <ListingBreadcrumb />
 
         <motion.div
           variants={containerVariants}
