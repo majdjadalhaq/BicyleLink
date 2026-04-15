@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export const useListingGeocoding = (formData, setFormData, setFormError, setIsLocating, setRecenterTrigger) => {
+export const useListingGeocoding = (
+  formData,
+  setFormData,
+  setFormError,
+  setIsLocating,
+  setRecenterTrigger,
+) => {
   const skipGeocodeRef = useRef(false);
 
   // Debounced geocoding — fires 1.5s after user stops typing a location
@@ -75,26 +81,29 @@ export const useListingGeocoding = (formData, setFormData, setFormError, setIsLo
     );
   }, [setFormData, setFormError, setIsLocating, setRecenterTrigger]);
 
-  const handleMapLocationChange = useCallback(async (newCoords) => {
-    const [lng, lat] = newCoords;
-    setFormData((prev) => ({
-      ...prev,
-      coordinates: { type: "Point", coordinates: newCoords },
-    }));
+  const handleMapLocationChange = useCallback(
+    async (newCoords) => {
+      const [lng, lat] = newCoords;
+      setFormData((prev) => ({
+        ...prev,
+        coordinates: { type: "Point", coordinates: newCoords },
+      }));
 
-    try {
-      const res = await fetch(
-        `/api/utils/reverse-geocode?lat=${lat}&lon=${lng}`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        skipGeocodeRef.current = true;
-        setFormData((prev) => ({ ...prev, location: data.result }));
+      try {
+        const res = await fetch(
+          `/api/utils/reverse-geocode?lat=${lat}&lon=${lng}`,
+        );
+        const data = await res.json();
+        if (data.success) {
+          skipGeocodeRef.current = true;
+          setFormData((prev) => ({ ...prev, location: data.result }));
+        }
+      } catch (err) {
+        console.error("Reverse geocoding after drag failed", err);
       }
-    } catch (err) {
-      console.error("Reverse geocoding after drag failed", err);
-    }
-  }, [setFormData]);
+    },
+    [setFormData],
+  );
 
   return {
     handleUseMyLocation,

@@ -33,14 +33,18 @@ export const useReports = () => {
   // Mutation for updating status (resolve/dismiss)
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }) => {
-      const data = await apiClient.patch(`/api/admin/reports/${id}`, { status });
+      const data = await apiClient.patch(`/api/admin/reports/${id}`, {
+        status,
+      });
       return data;
     },
     onSuccess: (data, variables) => {
       if (data?.success) {
         // Optimistic cache update
         queryClient.setQueryData(queryKey, (old) =>
-          old.map((r) => (r._id === variables.id ? { ...r, status: data.report.status } : r)),
+          old.map((r) =>
+            r._id === variables.id ? { ...r, status: data.report.status } : r,
+          ),
         );
         showToast(`Report marked as ${variables.status}`, "success");
       } else {
@@ -60,7 +64,9 @@ export const useReports = () => {
     },
     onSuccess: (data, id) => {
       if (data?.success) {
-        queryClient.setQueryData(queryKey, (old) => old.filter((r) => r._id !== id));
+        queryClient.setQueryData(queryKey, (old) =>
+          old.filter((r) => r._id !== id),
+        );
         showToast("Report record purged", "success");
       } else {
         showToast(data?.message || "Failed to purge report", "error");

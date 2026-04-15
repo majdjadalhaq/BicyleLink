@@ -1,4 +1,3 @@
-
 const ProfileSetupHeader = () => {
   return (
     <div className="text-center mb-10">

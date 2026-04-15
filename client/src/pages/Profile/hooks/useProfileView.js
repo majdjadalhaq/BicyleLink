@@ -39,14 +39,21 @@ export const useProfileView = () => {
   const gridRef = useRef(null);
   const gridCols = useGridCols(gridRef);
 
-  const profileIdentifier = username || id || currentUser?.name || currentUser?._id;
+  const profileIdentifier =
+    username || id || currentUser?.name || currentUser?._id;
 
   // Use TanStack Query for best-in-class data fetching
-  const { data: profileData, isLoading, error } = useQuery({
+  const {
+    data: profileData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["profile", profileIdentifier],
     queryFn: async () => {
       if (!profileIdentifier) return null;
-      const response = await apiClient.get(`/users/${profileIdentifier}/profile`);
+      const response = await apiClient.get(
+        `/users/${profileIdentifier}/profile`,
+      );
       return response;
     },
     enabled: !!profileIdentifier,
@@ -68,7 +75,8 @@ export const useProfileView = () => {
   const isOwnProfile =
     currentUser &&
     profileData?.user &&
-    (currentUser._id === profileData.user._id || currentUser.id === profileData.user._id);
+    (currentUser._id === profileData.user._id ||
+      currentUser.id === profileData.user._id);
 
   return {
     profileData,

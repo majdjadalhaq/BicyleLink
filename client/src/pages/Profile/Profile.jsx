@@ -31,7 +31,10 @@ const Profile = () => {
   const [showCropper, setShowCropper] = useState(false);
 
   const countries = cscLoaded && Country ? Country.getAllCountries() : [];
-  const cities = cscLoaded && City && selectedCountryCode ? City.getCitiesOfCountry(selectedCountryCode) : [];
+  const cities =
+    cscLoaded && City && selectedCountryCode
+      ? City.getCitiesOfCountry(selectedCountryCode)
+      : [];
 
   const handleCountryChange = (value) => {
     const countryObj = countries.find((c) => c.isoCode === value);
@@ -40,7 +43,12 @@ const Profile = () => {
     setCity("");
   };
 
-  const { handleDetectLocation } = useProfileLocation(countries, handleCountryChange, setCity, setValidationError);
+  const { handleDetectLocation } = useProfileLocation(
+    countries,
+    handleCountryChange,
+    setCity,
+    setValidationError,
+  );
 
   const onSuccess = (data) => {
     if (data?.user) login(data.user);
@@ -48,11 +56,14 @@ const Profile = () => {
     setTimeout(() => setSuccessMessage(""), 5000);
   };
 
-  const { isLoading, error, performFetch } = useFetch("/users/profile", (data) => {
-    onSuccess(data);
-    setSyncStatus("synced");
-    setTimeout(() => setSyncStatus("idle"), 3000);
-  });
+  const { isLoading, error, performFetch } = useFetch(
+    "/users/profile",
+    (data) => {
+      onSuccess(data);
+      setSyncStatus("synced");
+      setTimeout(() => setSyncStatus("idle"), 3000);
+    },
+  );
 
   const validateForm = () => {
     if (!name) {
@@ -69,7 +80,13 @@ const Profile = () => {
     performFetch({
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, country, city, bio, avatarUrl: user?.avatarUrl }),
+      body: JSON.stringify({
+        name,
+        country,
+        city,
+        bio,
+        avatarUrl: user?.avatarUrl,
+      }),
     });
   };
 
@@ -98,7 +115,9 @@ const Profile = () => {
   };
 
   const handleCropComplete = (croppedBlob) => {
-    const croppedFile = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
+    const croppedFile = new File([croppedBlob], "avatar.jpg", {
+      type: "image/jpeg",
+    });
     setAvatarFile(croppedFile);
     setAvatarPreview(URL.createObjectURL(croppedBlob));
     setShowCropper(false);
@@ -133,19 +152,41 @@ const Profile = () => {
     });
   };
 
-  const countryOptions = countries.map((c) => ({ value: c.isoCode, label: c.name }));
+  const countryOptions = countries.map((c) => ({
+    value: c.isoCode,
+    label: c.name,
+  }));
   const cityOptions = cities.map((c) => ({ value: c.name, label: c.name }));
 
-  const joinedDate = user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null;
+  const joinedDate = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
-  if (!user) return <div className="max-w-lg mx-auto py-10 px-6 text-center text-gray-900 dark:text-white border border-gray-100 dark:border-white/5 rounded-2xl mt-12 bg-white dark:bg-[#1a1a1a]">Please login first</div>;
+  if (!user)
+    return (
+      <div className="max-w-lg mx-auto py-10 px-6 text-center text-gray-900 dark:text-white border border-gray-100 dark:border-white/5 rounded-2xl mt-12 bg-white dark:bg-[#1a1a1a]">
+        Please login first
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#121212] transition-colors duration-300">
-      {showCropper && <ImageCropper image={tempImage} onCropComplete={handleCropComplete} onCancel={handleCropCancel} />}
+      {showCropper && (
+        <ImageCropper
+          image={tempImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
       <div className="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Edit Profile</h1>
+          <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">
+            Edit Profile
+          </h1>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-2 font-medium flex items-center gap-2">
             Keep your information up to date
             <ProfileUpdateStatus syncStatus={syncStatus} />
@@ -153,8 +194,34 @@ const Profile = () => {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col lg:flex-row gap-8">
-            <ProfileEditSidebar user={user} avatarPreview={avatarPreview} handleFileChange={handleFileChange} joinedDate={joinedDate} bio={bio} isLoading={isLoading} isUploadingImage={isUploadingImage} />
-            <ProfileEditForm name={name} setName={setName} bio={bio} setBio={setBio} handleDetectLocation={handleDetectLocation} cscLoaded={cscLoaded} selectedCountryCode={selectedCountryCode} handleCountryChange={handleCountryChange} countryOptions={countryOptions} city={city} setCity={setCity} cityOptions={cityOptions} successMessage={successMessage} validationError={validationError} error={error} isLoading={isLoading} isUploadingImage={isUploadingImage} />
+            <ProfileEditSidebar
+              user={user}
+              avatarPreview={avatarPreview}
+              handleFileChange={handleFileChange}
+              joinedDate={joinedDate}
+              bio={bio}
+              isLoading={isLoading}
+              isUploadingImage={isUploadingImage}
+            />
+            <ProfileEditForm
+              name={name}
+              setName={setName}
+              bio={bio}
+              setBio={setBio}
+              handleDetectLocation={handleDetectLocation}
+              cscLoaded={cscLoaded}
+              selectedCountryCode={selectedCountryCode}
+              handleCountryChange={handleCountryChange}
+              countryOptions={countryOptions}
+              city={city}
+              setCity={setCity}
+              cityOptions={cityOptions}
+              successMessage={successMessage}
+              validationError={validationError}
+              error={error}
+              isLoading={isLoading}
+              isUploadingImage={isUploadingImage}
+            />
           </div>
         </form>
       </div>

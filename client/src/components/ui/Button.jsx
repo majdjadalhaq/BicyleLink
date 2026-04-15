@@ -68,7 +68,13 @@ const Button = ({
 Button.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
-  variant: PropTypes.oneOf(["primary", "secondary", "danger", "glass", "ghost"]),
+  variant: PropTypes.oneOf([
+    "primary",
+    "secondary",
+    "danger",
+    "glass",
+    "ghost",
+  ]),
   size: PropTypes.oneOf(["sm", "md", "lg"]),
   isLoading: PropTypes.bool,
   isDisabled: PropTypes.bool,

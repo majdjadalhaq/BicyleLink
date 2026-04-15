@@ -1,12 +1,7 @@
 import PropTypes from "prop-types";
 import NavItem from "./NavItem";
 
-const AccountSettingsSidebar = ({
-  user,
-  tabs,
-  activeTab,
-  setActiveTab,
-}) => {
+const AccountSettingsSidebar = ({ user, tabs, activeTab, setActiveTab }) => {
   return (
     <aside className="md:w-60 flex-shrink-0">
       {/* Profile Card */}
@@ -43,7 +38,7 @@ AccountSettingsSidebar.propTypes = {
       id: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
       icon: PropTypes.node.isRequired,
-    })
+    }),
   ).isRequired,
   activeTab: PropTypes.string.isRequired,
   setActiveTab: PropTypes.func.isRequired,

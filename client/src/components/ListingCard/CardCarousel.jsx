@@ -14,7 +14,11 @@ const CardCarousel = ({ images, title }) => {
       const baseUrl = BACKEND_URL || "";
       url = `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
     }
-    return optimiseCloudinaryUrl(url, { width: 600, height: 450, crop: "fill" });
+    return optimiseCloudinaryUrl(url, {
+      width: 600,
+      height: 450,
+      crop: "fill",
+    });
   });
 
   const handleImageError = (e) => {
@@ -64,7 +68,9 @@ const CardCarousel = ({ images, title }) => {
           loading="lazy"
           onError={handleImageError}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
-            i === idx ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+            i === idx
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-105 pointer-events-none"
           }`}
         />
       ))}

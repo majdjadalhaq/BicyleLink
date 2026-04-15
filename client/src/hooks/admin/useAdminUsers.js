@@ -73,7 +73,9 @@ export const useAdminUsers = () => {
   // Mutation for sending a warning
   const sendWarningMutation = useMutation({
     mutationFn: async ({ userId, message }) => {
-      const data = await apiClient.post(`/admin/users/${userId}/warn`, { message });
+      const data = await apiClient.post(`/admin/users/${userId}/warn`, {
+        message,
+      });
       return data;
     },
     onSuccess: (data) => {
@@ -88,7 +90,9 @@ export const useAdminUsers = () => {
 
   // Query for fetching warnings
   const fetchWarnings = async (userId) => {
-    const data = await apiClient.get(`/admin/users/${userId}/warnings?t=${Date.now()}`);
+    const data = await apiClient.get(
+      `/admin/users/${userId}/warnings?t=${Date.now()}`,
+    );
     if (data?.success) {
       return data.warnings || [];
     }

@@ -109,9 +109,7 @@ const FavoritesResults = ({
               ? "Clear Filters"
               : "Explore Marketplace"
           }
-          actionLink={
-            debouncedSearchTerm || activeFilterCount > 0 ? null : "/"
-          }
+          actionLink={debouncedSearchTerm || activeFilterCount > 0 ? null : "/"}
           onActionClick={
             debouncedSearchTerm || activeFilterCount > 0
               ? handleClearFilters

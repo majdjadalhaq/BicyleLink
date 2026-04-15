@@ -38,7 +38,9 @@ export const useAdminListings = () => {
     onSuccess: (data, id) => {
       if (data?.success) {
         queryClient.setQueryData(queryKey, (old) =>
-          old.map((l) => (l._id === id ? { ...l, isFeatured: data.listing.isFeatured } : l)),
+          old.map((l) =>
+            l._id === id ? { ...l, isFeatured: data.listing.isFeatured } : l,
+          ),
         );
         showToast(
           `Listing ${data.listing.isFeatured ? "boosted" : "unboosted"} successfully`,
@@ -59,7 +61,9 @@ export const useAdminListings = () => {
     },
     onSuccess: (data, id) => {
       if (data?.success) {
-        queryClient.setQueryData(queryKey, (old) => old.filter((l) => l._id !== id));
+        queryClient.setQueryData(queryKey, (old) =>
+          old.filter((l) => l._id !== id),
+        );
         showToast("Listing record purged successfully", "success");
       }
     },

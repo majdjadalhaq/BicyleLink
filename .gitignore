@@ -59,3 +59,14 @@ server/*.log
 # Dev Only
 PROJECT_FULL_CODE.txt
 generate_snapshot.js
+
+# AI Agent artifacts — never commit these
+.agent/
+02-Wiki/
+01-Raw/
+pr-analysis.json
+client-quality.json
+client-review-report.md
+server-quality.json
+server-review-report.md
+agno-style-report.json

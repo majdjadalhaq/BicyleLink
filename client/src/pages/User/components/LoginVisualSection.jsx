@@ -1,4 +1,3 @@
-
 const LoginVisualSection = () => {
   return (
     <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center p-20 overflow-hidden">
@@ -45,7 +44,8 @@ const LoginVisualSection = () => {
             ))}
           </div>
           <p className="text-sm font-bold text-white tracking-tight">
-            <span className="text-emerald-400">12.4k+</span> active riders <br />
+            <span className="text-emerald-400">12.4k+</span> active riders{" "}
+            <br />
             <span className="text-gray-400 text-xs font-medium uppercase tracking-widest">
               In your local sector
             </span>

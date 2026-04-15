@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import PropTypes from "prop-types";
 import { DURATIONS, EASINGS, STAGGER } from "../../../constants/animations";
 
-const ListingCard = lazy(() => import("../../../components/ListingCard/ListingCard"));
+const ListingCard = lazy(
+  () => import("../../../components/ListingCard/ListingCard"),
+);
 
 /**
  * Grid of user listings with motion entrance animations.

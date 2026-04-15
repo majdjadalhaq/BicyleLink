@@ -9,14 +9,8 @@ import ProfileReviews from "./components/ProfileReviews";
  * Modularized into separate UI concerns and a central logic hook.
  */
 const ProfileView = () => {
-  const {
-    profileData,
-    isLoading,
-    error,
-    isOwnProfile,
-    gridRef,
-    gridCols,
-  } = useProfileView();
+  const { profileData, isLoading, error, isOwnProfile, gridRef, gridCols } =
+    useProfileView();
 
   if (isLoading) {
     return (

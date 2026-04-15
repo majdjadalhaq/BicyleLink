@@ -1,7 +1,9 @@
 import { Suspense, lazy } from "react";
 import PropTypes from "prop-types";
 
-const HeroFilter = lazy(() => import("../../../components/HeroFilter/HeroFilter.jsx"));
+const HeroFilter = lazy(
+  () => import("../../../components/HeroFilter/HeroFilter.jsx"),
+);
 
 const HomeSidebar = ({
   activeFilterCount,

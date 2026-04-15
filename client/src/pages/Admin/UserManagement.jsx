@@ -53,7 +53,10 @@ const UserManagement = () => {
     if (!warningMessage.trim() || !selectedUserForWarning) return;
 
     try {
-      await sendWarning({ userId: selectedUserForWarning._id, message: warningMessage });
+      await sendWarning({
+        userId: selectedUserForWarning._id,
+        message: warningMessage,
+      });
       setSelectedUserForWarning(null);
       setWarningMessage("");
     } catch {
@@ -67,7 +70,7 @@ const UserManagement = () => {
     try {
       const data = await fetchWarnings(user._id);
       setSentWarnings(data);
-    } catch (err) {
+    } catch {
       showToast("Failed to load warning history.", "error");
     } finally {
       setIsLoadingWarnings(false);

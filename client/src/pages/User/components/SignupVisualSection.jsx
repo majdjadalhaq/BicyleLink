@@ -1,4 +1,3 @@
-
 const SignupVisualSection = () => {
   return (
     <div className="hidden lg:flex lg:w-5/12 relative flex-col justify-center p-16 overflow-hidden">
@@ -41,7 +40,10 @@ const SignupVisualSection = () => {
                   key={i}
                   className="w-10 h-10 rounded-full border-2 border-black bg-gray-800 flex items-center justify-center overflow-hidden"
                 >
-                  <img src={`https://i.pravatar.cc/100?u=sign${i}`} alt="user" />
+                  <img
+                    src={`https://i.pravatar.cc/100?u=sign${i}`}
+                    alt="user"
+                  />
                 </div>
               ))}
             </div>

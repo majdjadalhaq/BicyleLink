@@ -13,8 +13,6 @@ const GOOGLE_CLIENT_ID =
   getEnv("VITE_GOOGLE_CLIENT_ID") ||
   "placeholder-client-id.apps.googleusercontent.com";
 
-
-
 const CreateUser = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");

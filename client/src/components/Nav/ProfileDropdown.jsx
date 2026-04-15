@@ -1,6 +1,11 @@
 import PropTypes from "prop-types";
 import { Link } from "react-router";
-import { ProfileIcon, SettingsIcon, LogoutIcon, UserAvatarIcon } from "./NavIcons";
+import {
+  ProfileIcon,
+  SettingsIcon,
+  LogoutIcon,
+  UserAvatarIcon,
+} from "./NavIcons";
 import { Icons } from "./NavLinksIcons";
 
 const ProfileDropdown = ({
@@ -19,7 +24,11 @@ const ProfileDropdown = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         {user.avatarUrl ? (
-          <img src={user.avatarUrl} alt="profile" className="w-8 h-8 rounded-full object-cover" />
+          <img
+            src={user.avatarUrl}
+            alt="profile"
+            className="w-8 h-8 rounded-full object-cover"
+          />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
             <UserAvatarIcon />

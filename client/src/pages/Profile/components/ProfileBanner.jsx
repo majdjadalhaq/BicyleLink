@@ -5,7 +5,9 @@ import PropTypes from "prop-types";
  */
 const ProfileBanner = ({ listingsCount, soldCount, averageRating }) => {
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (

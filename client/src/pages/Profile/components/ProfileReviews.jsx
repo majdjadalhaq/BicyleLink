@@ -27,7 +27,7 @@ const ProfileReviews = ({ reviewsReceived, reviewsGiven }) => {
           </svg>
           Reviews ({reviewsReceived.length})
         </h2>
-        
+
         <div className="flex flex-col gap-4 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
           {reviewsReceived.length > 0 ? (
             reviewsReceived.map((review) => (

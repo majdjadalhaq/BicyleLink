@@ -19,31 +19,31 @@ import {
  */
 const ReportManagement = () => {
   const [statusFilter, setStatusFilter] = useState("pending");
-  const { 
-    reports, 
-    isLoading, 
-    error, 
-    refetch, 
-    updateStatus, 
-    deleteReport 
-  } = useReports();
+  const { reports, isLoading, error, refetch, updateStatus, deleteReport } =
+    useReports();
 
   const handleUpdateStatus = (id, status) => {
     updateStatus({ id, status });
   };
 
   const handleDeleteReport = (id) => {
-    if (window.confirm("Are you sure you want to permanently purge this report record?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to permanently purge this report record?",
+      )
+    ) {
       deleteReport(id);
     }
   };
 
   const filteredReports = reports.filter((r) =>
-    statusFilter === "all" ? true : r.status === statusFilter
+    statusFilter === "all" ? true : r.status === statusFilter,
   );
 
   if (isLoading) {
-    return <AdminLoadingState message="Scanning Platform Flags..." color="amber" />;
+    return (
+      <AdminLoadingState message="Scanning Platform Flags..." color="amber" />
+    );
   }
 
   if (error) {
@@ -158,19 +158,34 @@ const ReportManagement = () => {
                       <div className="flex flex-col items-center gap-2">
                         <AdminStatusBadge
                           label={report.targetType}
-                          variant={report.targetType === "Listing" ? "listing" : "profile"}
+                          variant={
+                            report.targetType === "Listing"
+                              ? "listing"
+                              : "profile"
+                          }
                           className="text-[9px] rounded-lg"
                         />
                         {report.target ? (
                           <Link
-                            to={report.targetType === "Listing" ? `/listings/${report.targetId}` : `/profile/${report.targetId}`}
+                            to={
+                              report.targetType === "Listing"
+                                ? `/listings/${report.targetId}`
+                                : `/profile/${report.targetId}`
+                            }
                             className="text-xs font-bold text-gray-900 dark:text-gray-200 hover:text-amber-500 transition-colors inline-flex items-center gap-1.5 truncate max-w-[140px]"
                           >
-                            {report.targetType === "Listing" ? report.target.title : report.target.name}
-                            <ExternalLinkIcon size={10} className="opacity-0 group-hover:opacity-100 transition-all" />
+                            {report.targetType === "Listing"
+                              ? report.target.title
+                              : report.target.name}
+                            <ExternalLinkIcon
+                              size={10}
+                              className="opacity-0 group-hover:opacity-100 transition-all"
+                            />
                           </Link>
                         ) : (
-                          <span className="text-xs italic text-gray-400 uppercase font-black tracking-widest opacity-50">Null Link</span>
+                          <span className="text-xs italic text-gray-400 uppercase font-black tracking-widest opacity-50">
+                            Null Link
+                          </span>
                         )}
                       </div>
                     </td>
@@ -182,7 +197,11 @@ const ReportManagement = () => {
                       </div>
                     </td>
                     <td className="px-5 py-6 text-center">
-                      <AdminStatusBadge label={report.status} variant={report.status} pulse={true} />
+                      <AdminStatusBadge
+                        label={report.status}
+                        variant={report.status}
+                        pulse={true}
+                      />
                     </td>
                     <td className="px-5 py-6 text-center text-xs font-bold text-gray-500">
                       {new Date(report.createdAt).toLocaleDateString()}
@@ -192,20 +211,32 @@ const ReportManagement = () => {
                         {report.status === "pending" && (
                           <>
                             <button
-                              onClick={() => handleUpdateStatus(report._id, "resolved")}
+                              onClick={() =>
+                                handleUpdateStatus(report._id, "resolved")
+                              }
                               className="relative flex items-center h-10 px-3 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-500/20 group/op"
                               title="Resolve Intelligence"
                             >
-                              <span className="flex-shrink-0"><ResolveIcon /></span>
-                              <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">Resolve</span>
+                              <span className="flex-shrink-0">
+                                <ResolveIcon />
+                              </span>
+                              <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                                Resolve
+                              </span>
                             </button>
                             <button
-                              onClick={() => handleUpdateStatus(report._id, "dismissed")}
+                              onClick={() =>
+                                handleUpdateStatus(report._id, "dismissed")
+                              }
                               className="relative flex items-center h-10 px-3 bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 group/op"
                               title="Dismiss Intelligence"
                             >
-                              <span className="flex-shrink-0"><DismissIcon /></span>
-                              <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">Dismiss</span>
+                              <span className="flex-shrink-0">
+                                <DismissIcon />
+                              </span>
+                              <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                                Dismiss
+                              </span>
                             </button>
                           </>
                         )}
@@ -214,8 +245,12 @@ const ReportManagement = () => {
                           className="relative flex items-center h-10 px-3 bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all duration-300 group/op"
                           title="Purge Record"
                         >
-                          <span className="flex-shrink-0"><DeleteIcon /></span>
-                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">Purge</span>
+                          <span className="flex-shrink-0">
+                            <DeleteIcon />
+                          </span>
+                          <span className="overflow-hidden max-w-0 group-hover/op:max-w-[100px] opacity-0 group-hover/op:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-bold ml-0 group-hover/op:ml-2">
+                            Purge
+                          </span>
                         </button>
                       </div>
                     </td>
@@ -229,33 +264,63 @@ const ReportManagement = () => {
         {/* Mobile Card View omitted for brevity in thought, but included here for completeness */}
         <div className="lg:hidden space-y-4">
           {filteredReports.map((report) => (
-            <div key={report._id} className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-[#2a2a2a] p-6 shadow-sm flex flex-col gap-6">
+            <div
+              key={report._id}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-[#2a2a2a] p-6 shadow-sm flex flex-col gap-6"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-xs">
                     {report.reporterId?.name?.charAt(0) || "U"}
                   </div>
                   <div>
-                    <p className="text-sm font-black text-gray-900 dark:text-white leading-none">{report.reporterId?.name || "Terminated Node"}</p>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase mt-1">Source Agent</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white leading-none">
+                      {report.reporterId?.name || "Terminated Node"}
+                    </p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase mt-1">
+                      Source Agent
+                    </p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
-                  report.status === "pending" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : 
-                  report.status === "resolved" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
-                  "bg-gray-100 dark:bg-white/5 text-gray-500 border-gray-200"
-                }`}>
+                <span
+                  className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
+                    report.status === "pending"
+                      ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      : report.status === "resolved"
+                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                        : "bg-gray-100 dark:bg-white/5 text-gray-500 border-gray-200"
+                  }`}
+                >
                   {report.status}
                 </span>
               </div>
               <div className="flex items-center gap-2 pt-2">
                 {report.status === "pending" && (
                   <>
-                    <button onClick={() => handleUpdateStatus(report._id, "resolved")} className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2"><ResolveIcon size={16} /><span>Resolve</span></button>
-                    <button onClick={() => handleUpdateStatus(report._id, "dismissed")} className="flex-1 py-4 bg-amber-500/10 text-amber-600 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-amber-500/20 flex items-center justify-center gap-2"><DismissIcon size={16} /><span>Dismiss</span></button>
+                    <button
+                      onClick={() => handleUpdateStatus(report._id, "resolved")}
+                      className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <ResolveIcon size={16} />
+                      <span>Resolve</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleUpdateStatus(report._id, "dismissed")
+                      }
+                      className="flex-1 py-4 bg-amber-500/10 text-amber-600 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-amber-500/20 flex items-center justify-center gap-2"
+                    >
+                      <DismissIcon size={16} />
+                      <span>Dismiss</span>
+                    </button>
                   </>
                 )}
-                <button onClick={() => handleDeleteReport(report._id)} className="w-14 h-14 bg-red-500/10 text-red-600 rounded-2xl flex items-center justify-center border border-red-500/20"><DeleteIcon /></button>
+                <button
+                  onClick={() => handleDeleteReport(report._id)}
+                  className="w-14 h-14 bg-red-500/10 text-red-600 rounded-2xl flex items-center justify-center border border-red-500/20"
+                >
+                  <DeleteIcon />
+                </button>
               </div>
             </div>
           ))}

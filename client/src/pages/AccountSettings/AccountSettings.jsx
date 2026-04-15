@@ -94,8 +94,8 @@ const AccountSettings = () => {
             {activeTab === "security" && <SecurityTab {...accountProps} />}
 
             {activeTab === "notifications" && (
-              <NotificationsTab 
-                user={user} 
+              <NotificationsTab
+                user={user}
                 handleSettingsChange={accountProps.handleSettingsChange}
                 isUpdatingSettings={accountProps.isUpdatingSettings}
               />
@@ -106,6 +106,5 @@ const AccountSettings = () => {
     </div>
   );
 };
-
 
 export default AccountSettings;

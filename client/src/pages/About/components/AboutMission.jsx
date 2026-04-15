@@ -36,14 +36,14 @@ const AboutMission = () => {
           A Garage for Everyone.
         </h2>
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-          Buying and selling bicycles on general platforms like Facebook or
-          eBay is messy and risky. Unlike those generic marketplaces,
-          BiCycleL is built{" "}
+          Buying and selling bicycles on general platforms like Facebook or eBay
+          is messy and risky. Unlike those generic marketplaces, BiCycleL is
+          built{" "}
           <strong className="text-gray-900 dark:text-white font-bold">
             only for bikes
           </strong>
-          , so you are always dealing with people who understand what they
-          are looking at.
+          , so you are always dealing with people who understand what they are
+          looking at.
         </p>
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
           We focused on creating a space where serious riders and casual

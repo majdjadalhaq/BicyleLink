@@ -33,9 +33,9 @@ const AboutTrustCTA = () => {
           Your Trust is Our Priority.
         </h2>
         <p className="max-w-xl mx-auto mb-10 opacity-90 text-base sm:text-lg leading-relaxed">
-          Our verified review system and private messaging platform ensure
-          that you can buy and sell with absolute confidence. Every feature
-          we build exists to protect the community.
+          Our verified review system and private messaging platform ensure that
+          you can buy and sell with absolute confidence. Every feature we build
+          exists to protect the community.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
           <Link

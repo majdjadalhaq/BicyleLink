@@ -67,10 +67,7 @@ const FilterContentArea = ({
             min={0}
             max={10000}
             step={50}
-            value={[
-              localFilters.minPrice || 0,
-              localFilters.maxPrice || 10000,
-            ]}
+            value={[localFilters.minPrice || 0, localFilters.maxPrice || 10000]}
             onChange={([min, max]) => {
               handleRangeChange("minPrice", min);
               handleRangeChange("maxPrice", max);

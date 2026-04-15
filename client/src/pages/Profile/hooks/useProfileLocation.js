@@ -1,6 +1,11 @@
 import { useCallback } from "react";
 
-export const useProfileLocation = (countries, handleCountryChange, setCity, setValidationError) => {
+export const useProfileLocation = (
+  countries,
+  handleCountryChange,
+  setCity,
+  setValidationError,
+) => {
   const handleDetectLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setValidationError("Geolocation is not supported by your browser");
