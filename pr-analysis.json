@@ -1,0 +1,444 @@
+{
+  "status": "analyzed",
+  "summary": {
+    "files_changed": 39,
+    "total_additions": 1865,
+    "total_deletions": 1209,
+    "complexity_score": 6,
+    "complexity_label": "Complex",
+    "commits": 20
+  },
+  "risks": {
+    "critical": [],
+    "high": [],
+    "medium": [
+      {
+        "name": "disable_eslint",
+        "severity": "medium",
+        "message": "ESLint rule disabled",
+        "file": "client/src/components/Nav.jsx",
+        "count": 1
+      }
+    ],
+    "low": []
+  },
+  "files": [
+    {
+      "path": "client/src/components/PasswordStrengthMeter.jsx",
+      "status": "modified",
+      "category": "critical",
+      "priority_weight": 5,
+      "additions": 97,
+      "deletions": 59,
+      "risks": []
+    },
+    {
+      "path": "client/src/contexts/AuthContext.jsx",
+      "status": "modified",
+      "category": "critical",
+      "priority_weight": 5,
+      "additions": 21,
+      "deletions": 15,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useApi.js",
+      "status": "modified",
+      "category": "high",
+      "priority_weight": 4,
+      "additions": 14,
+      "deletions": 11,
+      "risks": []
+    },
+    {
+      "path": "client/src/services/apiClient.js",
+      "status": "added",
+      "category": "high",
+      "priority_weight": 4,
+      "additions": 69,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/package-lock.json",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 97,
+      "deletions": 14,
+      "risks": []
+    },
+    {
+      "path": "client/package.json",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 5,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/App.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 7,
+      "deletions": 3,
+      "risks": []
+    },
+    {
+      "path": "client/src/AppWrapper.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 18,
+      "deletions": 1,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/CustomCursor.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 97,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/FavoriteButton.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 25,
+      "deletions": 51,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/ListingCard.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 105,
+      "deletions": 214,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/Nav.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 46,
+      "deletions": 328,
+      "risks": [
+        {
+          "name": "disable_eslint",
+          "severity": "medium",
+          "message": "ESLint rule disabled",
+          "file": "client/src/components/Nav.jsx",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "client/src/components/Nav/AdminMenu.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 64,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/Nav/MobileSettingsSheet.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 103,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/Nav/NavIcons.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 87,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/Nav/NavNotifications.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 12,
+      "deletions": 9,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/NotificationSocketSync.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 71,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/ReviewModal/ReviewModal.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 8,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/ReviewsList/ReviewsList.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 11,
+      "deletions": 1,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/SmoothScroll.jsx",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 56,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/StarRating/StarRating.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 7,
+      "deletions": 4,
+      "risks": []
+    },
+    {
+      "path": "client/src/components/ui/SkeletonLoaders.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 6,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useFavorite.js",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 105,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useFetch.js",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 25,
+      "deletions": 74,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useListing.js",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 176,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useListings.js",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 47,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useMessages.js",
+      "status": "added",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 22,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/hooks/useNotifications.js",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 116,
+      "deletions": 34,
+      "risks": []
+    },
+    {
+      "path": "client/src/index.css",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 22,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/Home/Home.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 24,
+      "deletions": 102,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/Home/components/ListingGrid.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 53,
+      "deletions": 53,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/ListingDetail/ListingDetail.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 99,
+      "deletions": 78,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/ListingDetail/components/ListingActions.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 8,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/ListingDetail/components/StickyContactBar.jsx",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 2,
+      "deletions": 1,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/ListingDetail/hooks/useListingDetail.js",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 67,
+      "deletions": 151,
+      "risks": []
+    },
+    {
+      "path": "package-lock.json",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 52,
+      "deletions": 2,
+      "risks": []
+    },
+    {
+      "path": "package.json",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 3,
+      "deletions": 0,
+      "risks": []
+    },
+    {
+      "path": "server/src/index.js",
+      "status": "modified",
+      "category": "medium",
+      "priority_weight": 2,
+      "additions": 0,
+      "deletions": 1,
+      "risks": []
+    },
+    {
+      "path": "client/src/pages/Home/__tests__/Home.test.js",
+      "status": "modified",
+      "category": "low",
+      "priority_weight": 1,
+      "additions": 18,
+      "deletions": 3,
+      "risks": []
+    }
+  ],
+  "commit_issues": [
+    {
+      "commit": "29d2bbe",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "29d2bbe",
+      "issue": "Commit message exceeds 72 characters"
+    },
+    {
+      "commit": "bb43672",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "bb43672",
+      "issue": "Commit message exceeds 72 characters"
+    },
+    {
+      "commit": "6f34a0c",
+      "issue": "Commit message exceeds 72 characters"
+    },
+    {
+      "commit": "597b847",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "00db4ae",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "aec9bf3",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "d7d10cb",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "52fb81f",
+      "issue": "Does not follow conventional commit format"
+    },
+    {
+      "commit": "588af77",
+      "issue": "Does not follow conventional commit format"
+    }
+  ],
+  "review_order": [
+    "client/src/components/PasswordStrengthMeter.jsx",
+    "client/src/contexts/AuthContext.jsx",
+    "client/src/hooks/useApi.js",
+    "client/src/services/apiClient.js",
+    "client/package-lock.json",
+    "client/package.json",
+    "client/src/App.jsx",
+    "client/src/AppWrapper.jsx",
+    "client/src/components/CustomCursor.jsx",
+    "client/src/components/FavoriteButton.jsx"
+  ]
+}
