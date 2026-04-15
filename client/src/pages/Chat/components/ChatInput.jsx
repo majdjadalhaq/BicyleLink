@@ -1,5 +1,8 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import PropTypes from "prop-types";
+import { Button } from "../../../components/ui";
+import { SPRING } from "../../../constants/design-tokens";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ChatInput = ({
   newMessage,
@@ -26,9 +29,10 @@ const ChatInput = ({
       className="flex items-center gap-2 px-3 py-3 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex-shrink-0"
     >
       <div className="relative">
-        <button
-          type="button"
-          className="btn-icon text-gray-400 hover:text-emerald-500 transition-colors"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-11 h-11 p-0 rounded-full"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           title="Attach Media"
         >
@@ -44,9 +48,16 @@ const ChatInput = ({
           >
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
           </svg>
-        </button>
-        {isMenuOpen && (
-          <div className="absolute bottom-12 left-0 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl shadow-lg py-1 min-w-[160px] animate-slideUp z-10">
+        </Button>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={SPRING.SNAPPY}
+              className="absolute bottom-14 left-0 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 rounded-2xl shadow-2xl py-2 min-w-[200px] z-[100] backdrop-blur-xl"
+            >
             <button
               type="button"
               className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors flex items-center gap-3"
@@ -90,8 +101,9 @@ const ChatInput = ({
               </svg>
               <span>Send Location</span>
             </button>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <input
@@ -120,13 +132,14 @@ const ChatInput = ({
         autoComplete="off"
         disabled={isUploading || isLocationLoading}
       />
-      <button
+      <Button
         type="submit"
-        className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        disabled={!newMessage.trim() || isUploading || isLocationLoading}
+        variant="primary"
+        size="md"
+        isDisabled={!newMessage.trim() || isUploading || isLocationLoading}
       >
         Send
-      </button>
+      </Button>
     </form>
   );
 };

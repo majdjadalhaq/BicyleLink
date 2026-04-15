@@ -14,7 +14,7 @@ export const useListing = (id) => {
     queryKey: ["listing", id],
     queryFn: async () => {
       const data = await apiClient(`/api/listings/${id}`);
-      return data.result;
+      return data?.result || null;
     },
     enabled: !!id,
     // Optimization: If the listing is already in the infinite query cache from the Home page,
