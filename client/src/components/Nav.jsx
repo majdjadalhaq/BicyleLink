@@ -295,6 +295,7 @@ const Nav = () => {
                         setIsMobileSettingsOpen(true);
                         setIsNotifOpen(false);
                       }}
+                      aria-label="Open user settings"
                       className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl transition-all"
                     >
                       {user.avatarUrl ? (
@@ -327,7 +328,9 @@ const Nav = () => {
                       <div className="relative group/profile" ref={settingsRef}>
                         <button
                           className="flex items-center justify-center w-10 h-10 rounded-full ring-2 ring-transparent transition-all hover:ring-[#10B77F]/20 group-hover/profile:ring-[#10B77F]/40 group-hover/profile:bg-[#10B77F]/10"
-                          aria-label="User menu"
+                          aria-label="Open account menu"
+                          aria-expanded={isProfileOpen}
+                          aria-haspopup="true"
                           onClick={() => setIsProfileOpen(!isProfileOpen)}
                         >
                           {user.avatarUrl ? (
@@ -345,6 +348,8 @@ const Nav = () => {
 
                         {/* Hover & Click Dropdown */}
                         <div
+                          role="menu"
+                          aria-label="Account menu"
                           className={`absolute right-0 top-full pt-2 transition-all duration-300 z-[120] ${
                             isProfileOpen
                               ? "opacity-100 translate-y-0 pointer-events-auto"
