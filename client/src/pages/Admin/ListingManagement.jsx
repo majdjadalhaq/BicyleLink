@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import useApi from "../../hooks/useApi";
+import { ConfirmModal } from "../../components/ui";
 import AdminLoadingState from "./components/AdminLoadingState";
 import AdminErrorState from "./components/AdminErrorState";
 import AdminStatusBadge from "./components/AdminStatusBadge";
@@ -18,6 +19,12 @@ const ListingManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
   const navigate = useNavigate();
   const { execute } = useApi();
 
@@ -59,24 +66,26 @@ const ListingManagement = () => {
     }
   };
 
-  const handleDeleteListing = async (id) => {
-    if (
-      !window.confirm(
+  const handleDeleteListing = (id) => {
+    setConfirmState({
+      isOpen: true,
+      title: "Delete listing",
+      message:
         "Are you sure you want to delete this listing? This action cannot be undone.",
-      )
-    )
-      return;
-
-    try {
-      const data = await execute(`/admin/listings/${id}`, {
-        method: "DELETE",
-      });
-      if (data.success) {
-        setListings((prev) => prev.filter((l) => l._id !== id));
-      }
-    } catch (err) {
-      console.error("Failed to delete listing", err);
-    }
+      onConfirm: async () => {
+        setConfirmState((s) => ({ ...s, isOpen: false }));
+        try {
+          const data = await execute(`/admin/listings/${id}`, {
+            method: "DELETE",
+          });
+          if (data.success) {
+            setListings((prev) => prev.filter((l) => l._id !== id));
+          }
+        } catch (err) {
+          console.error("Failed to delete listing", err);
+        }
+      },
+    });
   };
 
   const filteredListings = listings.filter(
@@ -445,6 +454,15 @@ const ListingManagement = () => {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={confirmState.onConfirm}
+        onClose={() => setConfirmState((s) => ({ ...s, isOpen: false }))}
+      />
     </div>
   );
 };

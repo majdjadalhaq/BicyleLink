@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { useToast } from "../../hooks/useToast";
 import useApi from "../../hooks/useApi";
+import { ConfirmModal } from "../../components/ui";
 import AdminLoadingState from "./components/AdminLoadingState";
 import AdminErrorState from "./components/AdminErrorState";
 import AdminPageHeader, { BackToAdminLink } from "./components/AdminPageHeader";
@@ -19,6 +20,12 @@ const ReportManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   const { showToast } = useToast();
   const { execute } = useApi();
@@ -68,29 +75,32 @@ const ReportManagement = () => {
       fetchReports();
     }
   };
-  const handleDeleteReport = async (id) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to permanently purge this report record?",
-      )
-    )
-      return;
-    try {
-      const data = await execute(`/api/admin/reports/${id}`, {
-        method: "DELETE",
-      });
-      if (data?.success) {
-        setReports((prev) => prev.filter((r) => r._id !== id));
-        showToast("Report record purged", "success");
-      } else {
-        showToast(
-          data?.message || data?.msg || "Failed to purge report",
-          "error",
-        );
-      }
-    } catch {
-      showToast("Error purging report record", "error");
-    }
+  const handleDeleteReport = (id) => {
+    setConfirmState({
+      isOpen: true,
+      title: "Purge report record",
+      message:
+        "Are you sure you want to permanently purge this report record? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmState((s) => ({ ...s, isOpen: false }));
+        try {
+          const data = await execute(`/api/admin/reports/${id}`, {
+            method: "DELETE",
+          });
+          if (data?.success) {
+            setReports((prev) => prev.filter((r) => r._id !== id));
+            showToast("Report record purged", "success");
+          } else {
+            showToast(
+              data?.message || data?.msg || "Failed to purge report",
+              "error",
+            );
+          }
+        } catch {
+          showToast("Error purging report record", "error");
+        }
+      },
+    });
   };
 
   const filteredReports = reports.filter((r) =>
@@ -442,6 +452,15 @@ const ReportManagement = () => {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="Purge"
+        variant="danger"
+        onConfirm={confirmState.onConfirm}
+        onClose={() => setConfirmState((s) => ({ ...s, isOpen: false }))}
+      />
     </div>
   );
 };

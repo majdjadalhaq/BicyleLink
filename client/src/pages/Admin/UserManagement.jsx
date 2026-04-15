@@ -8,6 +8,7 @@ import AdminErrorState from "./components/AdminErrorState";
 import AdminPageHeader, { BackToAdminLink } from "./components/AdminPageHeader";
 import WarningModal from "./components/WarningModal";
 import WarningHistoryModal from "./components/WarningHistoryModal";
+import { ConfirmModal } from "../../components/ui";
 import {
   BlockIcon,
   UnblockIcon,
@@ -32,6 +33,12 @@ const UserManagement = () => {
   const [viewingWarningsUser, setViewingWarningsUser] = useState(null);
   const [sentWarnings, setSentWarnings] = useState([]);
   const [isLoadingWarnings, setIsLoadingWarnings] = useState(false);
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   const { user: currentUser } = useAuth();
   const { showToast } = useToast();
@@ -76,25 +83,27 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleRole = async (userId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to change this user's admin privileges?",
-      )
-    ) {
-      try {
-        const res = await execute(`/api/admin/users/${userId}/role`, {
-          method: "PATCH",
-        });
-        if (res.success === false) throw new Error(res.message);
+  const handleToggleRole = (userId) => {
+    setConfirmState({
+      isOpen: true,
+      title: "Change admin privileges",
+      message: "Are you sure you want to change this user's admin privileges?",
+      onConfirm: async () => {
+        setConfirmState((s) => ({ ...s, isOpen: false }));
+        try {
+          const res = await execute(`/api/admin/users/${userId}/role`, {
+            method: "PATCH",
+          });
+          if (res.success === false) throw new Error(res.message);
 
-        setUsers(users.map((u) => (u._id === userId ? res.user : u)));
-        showToast("success", `User role updated to ${res.user.role}`);
-      } catch (err) {
-        console.error("Error toggling user role:", err);
-        showToast("error", err.message || "Failed to change user role");
-      }
-    }
+          setUsers(users.map((u) => (u._id === userId ? res.user : u)));
+          showToast("success", `User role updated to ${res.user.role}`);
+        } catch (err) {
+          console.error("Error toggling user role:", err);
+          showToast("error", err.message || "Failed to change user role");
+        }
+      },
+    });
   };
 
   const handleSendWarning = async (e) => {
@@ -475,6 +484,16 @@ const UserManagement = () => {
         warnings={sentWarnings}
         isLoading={isLoadingWarnings}
         onClose={() => setViewingWarningsUser(null)}
+      />
+
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="Confirm"
+        variant="warning"
+        onConfirm={confirmState.onConfirm}
+        onClose={() => setConfirmState((s) => ({ ...s, isOpen: false }))}
       />
     </div>
   );
