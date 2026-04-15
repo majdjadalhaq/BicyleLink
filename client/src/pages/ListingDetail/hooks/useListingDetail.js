@@ -29,6 +29,7 @@ const useListingDetail = () => {
   const [reviewsListOpen, setReviewsListOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
 
   // --- Data Fetching (TanStack Query) ---
   const {
@@ -179,6 +180,11 @@ const useListingDetail = () => {
     setProfileModalOpen,
     handleMessageSeller,
     displayPrice: listing ? formatPrice(listing.price) : "",
+    navigate,
+    reviewsRefreshTrigger,
+    setReviewsRefreshTrigger,
+    setHasReviewed: () =>
+      queryClient.invalidateQueries({ queryKey: ["has_reviewed", id] }),
   };
 };
 
