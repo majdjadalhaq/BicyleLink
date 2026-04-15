@@ -1,12 +1,13 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import BicycleLoading from "./ui/BicycleLoading";
 
 const ProtectedRoute = () => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or a proper spinner component
+    return <BicycleLoading message="Loading..." />;
   }
 
   if (!user) {
