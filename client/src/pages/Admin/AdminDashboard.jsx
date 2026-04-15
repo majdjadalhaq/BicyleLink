@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import StatCard from "../../components/Admin/StatCard";
 import ActivityGraph from "../../components/Admin/ActivityGraph";
+import { useAdminDashboard } from "../../hooks/admin/useAdminDashboard";
 import {
   WarnIcon,
   PromoteIcon,
@@ -10,32 +10,9 @@ import {
 } from "./components/AdminIcons";
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: stats, isLoading, error } = useAdminDashboard();
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch("/api/admin/stats");
-        const data = await response.json();
-
-        if (data.success) {
-          setStats(data.stats);
-        } else {
-          setError(data.msg || "Failed to load admin stats");
-        }
-      } catch {
-        setError("Error connecting to server");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
         <div className="relative">
@@ -72,7 +49,7 @@ const AdminDashboard = () => {
           Connection Interrupted
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-          {error}
+          {error?.message || error}
         </p>
         <button
           onClick={() => window.location.reload()}
