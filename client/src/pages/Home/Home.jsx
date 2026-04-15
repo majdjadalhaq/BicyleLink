@@ -50,6 +50,7 @@ const Home = () => {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
+  const [sort, setSort] = useState("");
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -80,6 +81,7 @@ const Home = () => {
     if (filters.lat) params.set("lat", filters.lat);
     if (filters.lng) params.set("lng", filters.lng);
     if (filters.radius) params.set("radius", filters.radius);
+    if (sort) params.set("sort", sort);
     return params.toString();
   };
 
@@ -96,6 +98,7 @@ const Home = () => {
     filters.lat,
     filters.lng,
     filters.radius,
+    sort,
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -171,8 +174,14 @@ const Home = () => {
   const handleClearFilters = useCallback(() => {
     setFilters({});
     setSearchTerm("");
+    setSort("");
     setPage(1);
   }, []);
+
+  const handleSortChange = (e) => {
+    setSort(e.target.value);
+    setPage(1);
+  };
 
   const activeFilterCount = Object.keys(filters).filter((key) => {
     if (["lat", "lng", "radius"].includes(key)) return false;
@@ -311,7 +320,7 @@ const Home = () => {
 
             {/* Results Title Area */}
             <div className="mb-6 mt-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
                     {debouncedSearchTerm
@@ -326,6 +335,20 @@ const Home = () => {
                       : "Finding the perfect bikes for you..."}
                   </p>
                 </div>
+                <label className="flex-shrink-0 flex items-center gap-2">
+                  <span className="sr-only">Sort by</span>
+                  <select
+                    value={sort}
+                    onChange={handleSortChange}
+                    aria-label="Sort listings"
+                    className="h-9 px-3 pr-8 text-xs font-bold bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] rounded-xl text-gray-700 dark:text-gray-300 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                  >
+                    <option value="">Newest</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="year_desc">Newest Model Year</option>
+                  </select>
+                </label>
               </div>
             </div>
 
