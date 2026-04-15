@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { uploadToCloudinary } from "../../../utils/cloudinary";
+import { useListingGeocoding } from "./useListingGeocoding";
 
 const MAX_IMAGES = 5;
 const MAX_FILE_SIZE_MB = 5;
@@ -7,7 +8,6 @@ const TOTAL_STEPS = 3;
 
 export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
   const [step, setStep] = useState(1);
-
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -26,12 +26,19 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
   const [isLocating, setIsLocating] = useState(false);
   const [formError, setFormError] = useState("");
   const [recenterTrigger, setRecenterTrigger] = useState(0);
-  const skipGeocodeRef = useRef(false);
 
   const [expandedSections, setExpandedSections] = useState({
     category: true,
     condition: true,
   });
+
+  const { handleUseMyLocation, handleMapLocationChange } = useListingGeocoding(
+    formData,
+    setFormData,
+    setFormError,
+    setIsLocating,
+    setRecenterTrigger,
+  );
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -58,34 +65,6 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
     }
   }, [initialValues]);
 
-  // Debounced geocoding — fires 1.5s after user stops typing a location
-  useEffect(() => {
-    if (!formData.location || formData.location.length <= 2) return;
-
-    const timer = setTimeout(async () => {
-      if (skipGeocodeRef.current) {
-        skipGeocodeRef.current = false;
-        return;
-      }
-
-      try {
-        const res = await fetch(
-          `/api/utils/geocode?q=${encodeURIComponent(formData.location)}`,
-        );
-        const data = await res.json();
-        if (data.success) {
-          setFormData((prev) => ({ ...prev, coordinates: data.result }));
-          setRecenterTrigger((prev) => prev + 1);
-        }
-      } catch (err) {
-        console.error("Geocoding preview failed", err);
-      }
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [formData.location]);
-
-  // Clean up object URLs
   useEffect(() => {
     return () => {
       newFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
@@ -96,84 +75,15 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const handleUseMyLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setFormError("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        const { latitude, longitude } = coords;
-        try {
-          const res = await fetch(
-            `/api/utils/reverse-geocode?lat=${latitude}&lon=${longitude}`,
-          );
-          const data = await res.json();
-          if (data.success) {
-            skipGeocodeRef.current = true;
-            setFormData((prev) => ({
-              ...prev,
-              location: data.result,
-              coordinates: {
-                type: "Point",
-                coordinates: [longitude, latitude],
-              },
-            }));
-            setRecenterTrigger((prev) => prev + 1);
-          }
-        } catch (err) {
-          console.error("Reverse geocoding failed", err);
-          setFormError("Could not resolve your location address.");
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (err) => {
-        console.error(err);
-        setIsLocating(false);
-        setFormError(
-          "Could not detect your location. Check browser permissions.",
-        );
-      },
-      { timeout: 10000 },
-    );
-  }, []);
-
-  const handleMapLocationChange = useCallback(async (newCoords) => {
-    const [lng, lat] = newCoords;
-    setFormData((prev) => ({
-      ...prev,
-      coordinates: { type: "Point", coordinates: newCoords },
-    }));
-
-    try {
-      const res = await fetch(
-        `/api/utils/reverse-geocode?lat=${lat}&lon=${lng}`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        skipGeocodeRef.current = true;
-        setFormData((prev) => ({ ...prev, location: data.result }));
-      }
-    } catch (err) {
-      console.error("Reverse geocoding after drag failed", err);
-    }
-  }, []);
-
   const handleFileChange = useCallback(
     (e) => {
       const files = Array.from(e.target.files);
-
       if (existingImages.length + newFiles.length + files.length > MAX_IMAGES) {
         setFormError(`You can only have a maximum of ${MAX_IMAGES} images.`);
         return;
       }
-
       let errorMsg = "";
       const validFiles = [];
-
       files.forEach((file) => {
         if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
           errorMsg = `"${file.name}" is too large. Max ${MAX_FILE_SIZE_MB}MB allowed.`;
@@ -181,12 +91,10 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
           validFiles.push({ file, previewUrl: URL.createObjectURL(file) });
         }
       });
-
       if (errorMsg) {
         setFormError(errorMsg);
         return;
       }
-
       setFormError("");
       setNewFiles((prev) => [...prev, ...validFiles]);
       e.target.value = "";
@@ -229,9 +137,7 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
   const handleNext = useCallback(
     (e) => {
       if (e) e.preventDefault();
-      if (validateStep()) {
-        setStep((prev) => prev + 1);
-      }
+      if (validateStep()) setStep((prev) => prev + 1);
     },
     [validateStep],
   );
@@ -239,9 +145,7 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
   const jumpToStep = useCallback(
     (e, targetStep) => {
       if (e) e.preventDefault();
-      if (targetStep < step || validateStep()) {
-        setStep(targetStep);
-      }
+      if (targetStep < step || validateStep()) setStep(targetStep);
     },
     [step, validateStep],
   );
@@ -254,25 +158,20 @@ export const useListingForm = ({ initialValues, onSubmit, isEditMode }) => {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-
     if (step < TOTAL_STEPS) {
       handleNext();
       return;
     }
-
     if (!validateStep()) return;
-
     if (existingImages.length === 0 && newFiles.length === 0) {
       setFormError("Please upload at least one image.");
       return;
     }
-
     setIsUploading(true);
     try {
       const uploadedUrls = await Promise.all(
         newFiles.map((item) => uploadToCloudinary(item.file)),
       );
-
       await onSubmit({
         ...formData,
         price: Number(formData.price),

@@ -6,3 +6,4 @@ export { default as BackLink } from "./BackLink";
 export { default as ToggleSwitch } from "./ToggleSwitch";
 export { default as ConfirmModal } from "./ConfirmModal";
 export { default as ThemeToggle } from "./ThemeToggle";
+export { default as Button } from "./Button";
