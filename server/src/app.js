@@ -68,6 +68,7 @@ app.use(
           "https://api.cloudinary.com",
           "https://nominatim.openstreetmap.org",
           "https://accounts.google.com/gsi/",
+          "https://accounts.google.com",
           "https://oauth2.googleapis.com",
           "https://www.googleapis.com",
           "https://c54b.hyf.dev",
@@ -78,6 +79,7 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     crossOriginEmbedderPolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   }),
 );
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
