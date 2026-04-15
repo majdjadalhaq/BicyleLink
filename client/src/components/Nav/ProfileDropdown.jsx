@@ -21,6 +21,9 @@ const ProfileDropdown = ({
     <div className="relative group/profile" ref={settingsRef}>
       <button
         className="flex items-center justify-center w-10 h-10 rounded-full ring-2 ring-transparent transition-all hover:ring-[#10B77F]/20 group-hover/profile:bg-[#10B77F]/10"
+        aria-label="Open account menu"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
         onClick={() => setIsOpen(!isOpen)}
       >
         {user.avatarUrl ? (
@@ -36,6 +39,8 @@ const ProfileDropdown = ({
         )}
       </button>
       <div
+        role="menu"
+        aria-label="Account menu"
         className={`absolute right-0 top-full pt-2 transition-all duration-300 z-[120] ${
           isOpen
             ? "opacity-100 translate-y-0 pointer-events-auto"

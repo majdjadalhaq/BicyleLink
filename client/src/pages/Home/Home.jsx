@@ -40,6 +40,7 @@ const Home = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
+  const [sort, setSort] = useState("");
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -58,6 +59,7 @@ const Home = () => {
   } = useListings({
     ...filters,
     search: debouncedSearchTerm,
+    sort,
   });
 
   const listings = useMemo(
@@ -86,7 +88,12 @@ const Home = () => {
   const handleClearFilters = useCallback(() => {
     setFilters({});
     setSearchTerm("");
+    setSort("");
   }, []);
+
+  const handleSortChange = (e) => {
+    setSort(e.target.value);
+  };
 
   const activeFilterCount = Object.keys(filters).filter((key) => {
     if (["lat", "lng", "radius"].includes(key)) return false;
@@ -124,7 +131,7 @@ const Home = () => {
           <div className="flex-1 min-w-0">
             {/* Results Title Area */}
             <div className="mb-6 mt-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
                     {debouncedSearchTerm
@@ -139,6 +146,20 @@ const Home = () => {
                       : "Finding the perfect bikes for you..."}
                   </p>
                 </div>
+                <label className="flex-shrink-0 flex items-center gap-2">
+                  <span className="sr-only">Sort by</span>
+                  <select
+                    value={sort}
+                    onChange={handleSortChange}
+                    aria-label="Sort listings"
+                    className="h-9 px-3 pr-8 text-xs font-bold bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] rounded-xl text-gray-700 dark:text-gray-300 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                  >
+                    <option value="">Newest</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="year_desc">Newest Model Year</option>
+                  </select>
+                </label>
               </div>
             </div>
 

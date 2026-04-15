@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useReports } from "../../hooks/admin/useReports";
+import { ConfirmModal } from "../../components/ui";
 import AdminLoadingState from "./components/AdminLoadingState";
 import AdminErrorState from "./components/AdminErrorState";
 import AdminPageHeader, { BackToAdminLink } from "./components/AdminPageHeader";
@@ -19,6 +20,12 @@ import {
  */
 const ReportManagement = () => {
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
   const { reports, isLoading, error, refetch, updateStatus, deleteReport } =
     useReports();
 
@@ -27,13 +34,16 @@ const ReportManagement = () => {
   };
 
   const handleDeleteReport = (id) => {
-    if (
-      window.confirm(
-        "Are you sure you want to permanently purge this report record?",
-      )
-    ) {
-      deleteReport(id);
-    }
+    setConfirmState({
+      isOpen: true,
+      title: "Purge report record",
+      message:
+        "Are you sure you want to permanently purge this report record? This action cannot be undone.",
+      onConfirm: () => {
+        setConfirmState((s) => ({ ...s, isOpen: false }));
+        deleteReport(id);
+      },
+    });
   };
 
   const filteredReports = reports.filter((r) =>
@@ -326,6 +336,15 @@ const ReportManagement = () => {
           ))}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="Purge"
+        variant="danger"
+        onConfirm={confirmState.onConfirm}
+        onClose={() => setConfirmState((s) => ({ ...s, isOpen: false }))}
+      />
     </div>
   );
 };

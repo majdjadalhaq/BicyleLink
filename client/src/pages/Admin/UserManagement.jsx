@@ -10,6 +10,7 @@ import WarningHistoryModal from "./components/WarningHistoryModal";
 import UserDesktopTable from "./components/UserDesktopTable";
 import UserMobileCards from "./components/UserMobileCards";
 import UserEmptyState from "./components/UserEmptyState";
+import { ConfirmModal } from "../../components/ui";
 
 const UserManagement = () => {
   const {
@@ -35,17 +36,25 @@ const UserManagement = () => {
   const [viewingWarningsUser, setViewingWarningsUser] = useState(null);
   const [sentWarnings, setSentWarnings] = useState([]);
   const [isLoadingWarnings, setIsLoadingWarnings] = useState(false);
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   const handleToggleBlock = (userId) => toggleBlock(userId);
 
   const handleToggleRole = (userId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to change this user's admin privileges?",
-      )
-    ) {
-      toggleRole(userId);
-    }
+    setConfirmState({
+      isOpen: true,
+      title: "Change admin privileges",
+      message: "Are you sure you want to change this user's admin privileges?",
+      onConfirm: () => {
+        setConfirmState((s) => ({ ...s, isOpen: false }));
+        toggleRole(userId);
+      },
+    });
   };
 
   const handleSendWarning = async (e) => {
@@ -135,6 +144,16 @@ const UserManagement = () => {
         warnings={sentWarnings}
         isLoading={isLoadingWarnings}
         onClose={() => setViewingWarningsUser(null)}
+      />
+
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel="Confirm"
+        variant="warning"
+        onConfirm={confirmState.onConfirm}
+        onClose={() => setConfirmState((s) => ({ ...s, isOpen: false }))}
       />
     </div>
   );

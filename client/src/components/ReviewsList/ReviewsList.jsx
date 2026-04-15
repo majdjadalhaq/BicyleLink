@@ -4,6 +4,7 @@ import useFetch from "../../hooks/useFetch";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import { ConfirmModal } from "../ui";
 
 const ReviewsList = ({
   userId,
@@ -20,6 +21,7 @@ const ReviewsList = ({
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const { execute: executeApi } = useApi();
 
@@ -76,8 +78,13 @@ const ReviewsList = ({
     }
   };
 
-  const handleDeleteClick = async (reviewId) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) return;
+  const handleDeleteClick = (reviewId) => {
+    setDeleteConfirmId(reviewId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const reviewId = deleteConfirmId;
+    setDeleteConfirmId(null);
 
     const data = await executeApi(`/api/reviews/${reviewId}`, {
       method: "DELETE",
@@ -267,6 +274,15 @@ const ReviewsList = ({
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={deleteConfirmId !== null}
+        title="Delete review"
+        message="Are you sure you want to delete this review? This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onClose={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 };

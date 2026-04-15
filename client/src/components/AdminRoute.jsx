@@ -1,15 +1,12 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import BicycleLoading from "./ui/BicycleLoading";
 
 const AdminRoute = () => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="admin-loading">
-        <div className="spinner"></div>
-      </div>
-    );
+  if (isLoading) {
+    return <BicycleLoading message="Loading admin..." />;
   }
 
   // Check if they are logged in AND have the admin role

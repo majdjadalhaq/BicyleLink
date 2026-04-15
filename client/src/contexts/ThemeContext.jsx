@@ -4,9 +4,10 @@ import PropTypes from "prop-types";
 const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "dark",
-  );
+  const [theme, setTheme] = useState(() => {
+    const stored = localStorage.getItem("theme");
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  });
 
   useEffect(() => {
     document.body.classList.remove("theme-light", "theme-dark", "dark");

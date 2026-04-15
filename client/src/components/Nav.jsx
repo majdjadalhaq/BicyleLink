@@ -16,7 +16,7 @@ import AdminMenu from "./Nav/AdminMenu";
 import ProfileDropdown from "./Nav/ProfileDropdown";
 
 const Nav = () => {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
@@ -130,6 +130,7 @@ const Nav = () => {
                         setIsMobileSettingsOpen(true);
                         setIsNotifOpen(false);
                       }}
+                      aria-label="Open user settings"
                       className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl transition-all"
                     >
                       {user.avatarUrl ? (

@@ -33,6 +33,7 @@ export const useListings = (filters = {}) => {
       if (filters.lat) params.set("lat", filters.lat);
       if (filters.lng) params.set("lng", filters.lng);
       if (filters.radius) params.set("radius", filters.radius);
+      if (filters.sort) params.set("sort", filters.sort);
 
       return fetcher(`/listings?${params.toString()}`);
     },

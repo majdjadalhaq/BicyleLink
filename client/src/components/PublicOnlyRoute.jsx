@@ -1,11 +1,12 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import BicycleLoading from "./ui/BicycleLoading";
 
 const PublicOnlyRoute = () => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="loading-fallback">Loading...</div>;
+    return <BicycleLoading message="Loading..." />;
   }
 
   if (user) {
