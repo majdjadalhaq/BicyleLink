@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
-import ListingCard from "../../../components/ListingCard.jsx";
+import ListingCard from "../../../components/ListingCard/ListingCard.jsx";
 import { ListingCardSkeleton } from "../../../components/ui/SkeletonLoaders.jsx";
 
 /**

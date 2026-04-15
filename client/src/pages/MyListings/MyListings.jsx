@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import useFetch from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
-import ListingCard from "../../components/ListingCard";
+import ListingCard from "../../components/ListingCard/ListingCard";
 import { LoadingState } from "../../components/ui";
 import EmptyState from "../../components/ui/EmptyState/EmptyState";
 import { motion } from "framer-motion";
