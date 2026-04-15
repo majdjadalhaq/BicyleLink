@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const ReportModal = ({
   isOpen,
@@ -9,6 +9,7 @@ const ReportModal = ({
 }) => {
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -16,8 +17,44 @@ const ReportModal = ({
         setReason("");
         setCustomReason("");
       }, 0);
+      return;
     }
-  }, [isOpen]);
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusable = Array.from(
+      dialog.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    first?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -38,13 +75,15 @@ const ReportModal = ({
   };
 
   return (
-    <div className="overlay-backdrop" onClick={onClose}>
+    <div className="overlay-backdrop" onClick={onClose} aria-hidden="true">
       <div className="flex items-center justify-center min-h-screen p-4">
         <div
+          ref={dialogRef}
           className="overlay-panel w-full max-w-md p-6 sm:p-8 relative"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="report-modal-title"
         >
           <button
             className="absolute top-4 right-4 btn-icon text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
@@ -66,7 +105,10 @@ const ReportModal = ({
             </svg>
           </button>
 
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+          <h2
+            id="report-modal-title"
+            className="text-xl font-bold text-gray-900 dark:text-white mb-1"
+          >
             Report Listing
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
