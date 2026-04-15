@@ -12,12 +12,7 @@ const ListingCardBadges = ({ status, isFeatured, condition }) => {
       )}
       {isFeatured && (
         <div className="px-3 py-1.5 rounded-full text-[10px] font-black text-white bg-amber-500/80 backdrop-blur-md uppercase tracking-widest flex items-center gap-1.5 border border-white/20 shadow-lg">
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
           Featured

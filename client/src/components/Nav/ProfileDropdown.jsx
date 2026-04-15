@@ -20,11 +20,7 @@ const ProfileDropdown = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt="profile"
-            className="w-8 h-8 rounded-full object-cover"
-          />
+          <img src={user.avatarUrl} alt="profile" className="w-8 h-8 rounded-full object-cover" />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400">
             <UserAvatarIcon />
@@ -32,7 +28,11 @@ const ProfileDropdown = ({
         )}
       </button>
       <div
-        className={`absolute right-0 top-full pt-2 transition-all duration-300 z-[120] ${isOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-2 pointer-events-none group-hover/profile:opacity-100 group-hover/profile:translate-y-0 group-hover/profile:pointer-events-auto"}`}
+        className={`absolute right-0 top-full pt-2 transition-all duration-300 z-[120] ${
+          isOpen
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-2 pointer-events-none group-hover/profile:opacity-100 group-hover/profile:translate-y-0 group-hover/profile:pointer-events-auto"
+        }`}
       >
         <div className="w-64 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl py-2 overflow-hidden backdrop-blur-xl">
           <div className="px-4 py-3 mb-1 border-b border-gray-100 dark:border-white/5">
@@ -84,7 +84,8 @@ const ProfileDropdown = ({
             to="/about"
             className="flex items-center gap-3 px-4 py-2.5 mx-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#10B77F] hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors"
           >
-            {Icons.about(16)}About BiCycleL
+            {Icons.about(16)}
+            About BiCycleL
           </Link>
           <div className="my-1.5 mx-3 border-t border-gray-100 dark:border-white/5" />
           <button

@@ -19,7 +19,8 @@ const CardCarousel = ({ images, title }) => {
 
   const handleImageError = (e) => {
     // Fallback to a nice bike placeholder if the image fails to load
-    e.target.src = "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=600&h=450&auto=format&fit=crop";
+    e.target.src =
+      "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=600&h=450&auto=format&fit=crop";
     e.target.onerror = null; // Prevent infinite loop
   };
 
@@ -62,7 +63,9 @@ const CardCarousel = ({ images, title }) => {
           alt={`${title} — photo ${i + 1}`}
           loading="lazy"
           onError={handleImageError}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${i === idx ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
+            i === idx ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+          }`}
         />
       ))}
 
@@ -108,7 +111,9 @@ const CardCarousel = ({ images, title }) => {
             {imageUrls.map((_, i) => (
               <div
                 key={i}
-                className={`transition-all duration-500 rounded-full h-1 ${i === idx ? "w-4 bg-white" : "w-1 bg-white/40"}`}
+                className={`transition-all duration-500 rounded-full h-1 ${
+                  i === idx ? "w-4 bg-white" : "w-1 bg-white/40"
+                }`}
               />
             ))}
           </div>
