@@ -140,7 +140,7 @@ const Home = () => {
                         ? "Filtered Results"
                         : "Featured Bikes"}
                   </h2>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium tracking-wide">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">
                     {listings.length > 0
                       ? `Showing ${listings.length} bike${listings.length !== 1 ? "s" : ""} currently available`
                       : "Finding the perfect bikes for you..."}

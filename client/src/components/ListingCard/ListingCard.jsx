@@ -181,7 +181,7 @@ const ListingCard = ({ listing, isOwnerView = false, onUpdated }) => {
           </div>
         )}
 
-        <Link to={`/listings/${_id}`} className="absolute inset-0 z-10" />
+        <Link to={`/listings/${_id}`} className="absolute inset-0 z-10" aria-label={`View ${title}`} />
       </div>
 
       {isOwnerView && (
