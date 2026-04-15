@@ -1,11 +1,14 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import PropTypes from "prop-types";
 
-const HeroFilter = lazy(
-  () => import("../../../components/HeroFilter/HeroFilter.jsx"),
-);
+const HeroFilter = lazy(() => import("../../../components/HeroFilter/HeroFilter.jsx"));
 
-const HomeSidebar = ({ activeFilterCount, handleClearFilters, filters, handleApplyFilters }) => {
+const HomeSidebar = ({
+  activeFilterCount,
+  handleClearFilters,
+  filters,
+  handleApplyFilters,
+}) => {
   return (
     <aside className="hidden md:block w-64 lg:w-72 flex-shrink-0">
       <div className="sticky top-[80px]">

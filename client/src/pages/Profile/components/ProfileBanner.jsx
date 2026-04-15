@@ -5,9 +5,7 @@ import PropTypes from "prop-types";
  */
 const ProfileBanner = ({ listingsCount, soldCount, averageRating }) => {
   const scrollTo = (id) => {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -38,7 +36,7 @@ const ProfileBanner = ({ listingsCount, soldCount, averageRating }) => {
               Listings
             </span>
           </button>
-          
+
           <div className="flex flex-col items-center px-2 border-r border-white/5">
             <span className="text-2xl font-black text-white leading-none">
               {soldCount}
@@ -81,6 +79,5 @@ ProfileBanner.propTypes = {
   soldCount: PropTypes.number,
   averageRating: PropTypes.number,
 };
-
 
 export default ProfileBanner;

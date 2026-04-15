@@ -2,13 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../useToast";
 import { apiClient } from "../../services/apiClient";
 
-<<<<<<< HEAD
-export const useAdminListings = () => {
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const queryKey = ["admin-listings"];
-
-=======
 /**
  * Hook for managing marketplace listings from the admin console.
  */
@@ -19,8 +12,12 @@ export const useAdminListings = () => {
   const queryKey = ["admin-listings"];
 
   // Fetch all listings for admin view
->>>>>>> 317c58d (fix/build: include missing admin hooks and components)
-  const { data: listings = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: listings = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey,
     queryFn: async () => {
       const data = await apiClient.get("/admin/listings");
@@ -32,10 +29,7 @@ export const useAdminListings = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-<<<<<<< HEAD
-=======
   // Mutation for toggling featured status
->>>>>>> 317c58d (fix/build: include missing admin hooks and components)
   const toggleFeaturedMutation = useMutation({
     mutationFn: async (id) => {
       const data = await apiClient.patch(`/admin/listings/${id}/featured`);
@@ -44,18 +38,12 @@ export const useAdminListings = () => {
     onSuccess: (data, id) => {
       if (data?.success) {
         queryClient.setQueryData(queryKey, (old) =>
-          old.map((l) =>
-            l._id === id ? { ...l, isFeatured: data.listing.isFeatured } : l
-          )
+          old.map((l) => (l._id === id ? { ...l, isFeatured: data.listing.isFeatured } : l)),
         );
-<<<<<<< HEAD
-        showToast(`Listing updated successfully`, "success");
-=======
         showToast(
           `Listing ${data.listing.isFeatured ? "boosted" : "unboosted"} successfully`,
-          "success"
+          "success",
         );
->>>>>>> 317c58d (fix/build: include missing admin hooks and components)
       }
     },
     onError: () => {
@@ -63,10 +51,7 @@ export const useAdminListings = () => {
     },
   });
 
-<<<<<<< HEAD
-=======
   // Mutation for deleting a listing
->>>>>>> 317c58d (fix/build: include missing admin hooks and components)
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       const data = await apiClient.delete(`/admin/listings/${id}`);
