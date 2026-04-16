@@ -110,6 +110,14 @@ const ChatInput = ({
           setNewMessage(e.target.value);
           onTyping();
         }}
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            if (newMessage.trim() && !isUploading && !isLocationLoading) {
+              onSend(newMessage);
+            }
+          }
+        }}
         placeholder={
           isUploading
             ? "Uploading image..."

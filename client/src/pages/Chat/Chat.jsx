@@ -22,6 +22,7 @@ const Chat = () => {
     newMessage,
     setNewMessage,
     listing,
+    otherUserName,
     isLoadingHistory,
     isOtherTyping,
     isOnline,
@@ -42,6 +43,7 @@ const Chat = () => {
     setSelectedImageUrl,
     isAdminWarning,
     handleEditMessage,
+    handleDeleteMessage,
   } = useChat(listingId, user, receiverId, roomParam);
 
   if (!user) {
@@ -63,6 +65,7 @@ const Chat = () => {
         onBack={() => navigate("/inbox")}
         listing={listing}
         isOnline={isOnline}
+        otherUserName={otherUserName}
       />
 
       <MessageList
@@ -77,6 +80,7 @@ const Chat = () => {
         isOtherTyping={isOtherTyping}
         isAdminWarning={isAdminWarning}
         onEdit={handleEditMessage}
+        onDelete={handleDeleteMessage}
       />
 
       {isUploading && (
