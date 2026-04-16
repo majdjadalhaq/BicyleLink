@@ -7,6 +7,74 @@ Sellers list bikes, buyers browse and chat in real time, and after a sale comple
 
 ---
 
+## Screenshots
+
+### Desktop
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/01-home.png" alt="Home — browse and search listings" /></td>
+    <td><img src="docs/screenshots/11-home-light.png" alt="Home — light mode" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Marketplace — dark mode</em></td>
+    <td align="center"><em>Marketplace — light mode</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/03-listing-detail.png" alt="Listing detail with map and seller info" /></td>
+    <td><img src="docs/screenshots/06-chat.png" alt="Real-time chat between buyer and seller" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Listing detail — photo carousel, specs, map</em></td>
+    <td align="center"><em>Real-time messaging</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/07-profile.png" alt="Seller profile with listings and reviews" /></td>
+    <td><img src="docs/screenshots/04-login.png" alt="Login page with Google OAuth" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Seller profile — listings and reviews</em></td>
+    <td align="center"><em>Login — local auth and Google OAuth</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/10-create-listing.png" alt="Multi-step create listing form" /></td>
+    <td><img src="docs/screenshots/08-admin-dashboard.png" alt="Admin dashboard with platform stats" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Create listing — multi-step form</em></td>
+    <td align="center"><em>Admin dashboard — platform stats</em></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/09-admin-users.png" alt="Admin user management table" /></td>
+    <td><img src="docs/screenshots/12-admin-reports.png" alt="Admin report management" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Admin — user management</em></td>
+    <td align="center"><em>Admin — report queue</em></td>
+  </tr>
+</table>
+
+### Mobile
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/m-01-home.png" alt="Home on mobile" width="220" /></td>
+    <td><img src="docs/screenshots/m-03-listing-detail.png" alt="Listing detail on mobile" width="220" /></td>
+    <td><img src="docs/screenshots/m-06-chat.png" alt="Chat on mobile" width="220" /></td>
+    <td><img src="docs/screenshots/m-07-profile.png" alt="Profile on mobile" width="220" /></td>
+    <td><img src="docs/screenshots/m-08-admin-dashboard.png" alt="Admin dashboard on mobile" width="220" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Home</em></td>
+    <td align="center"><em>Listing detail</em></td>
+    <td align="center"><em>Chat</em></td>
+    <td align="center"><em>Profile</em></td>
+    <td align="center"><em>Admin</em></td>
+  </tr>
+</table>
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
