@@ -8,6 +8,7 @@ import {
   markRoomUnread,
   deleteConversation,
   editMessage,
+  deleteMessage,
   markAllRead,
 } from "../controllers/message.js";
 
@@ -19,6 +20,7 @@ messageRouter.post("/archive/:room", authenticate, archiveRoom);
 messageRouter.post("/unread/:room", authenticate, markRoomUnread);
 messageRouter.delete("/:room", authenticate, deleteConversation);
 messageRouter.put("/:messageId", authenticate, editMessage);
+messageRouter.delete("/:messageId/message", authenticate, deleteMessage);
 messageRouter.post("/read-all", authenticate, markAllRead);
 messageRouter.get("/:room", authenticate, getMessagesByRoom);
 

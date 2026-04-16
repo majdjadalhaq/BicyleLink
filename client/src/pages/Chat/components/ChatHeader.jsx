@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-const ChatHeader = ({ onBack, listing, isOnline }) => {
+const ChatHeader = ({ onBack, listing, isOnline, otherUserName }) => {
   let displayPrice = listing?.price;
   if (listing?.price && typeof listing.price === "object") {
     if (listing.price.$numberDecimal) {
@@ -9,6 +9,9 @@ const ChatHeader = ({ onBack, listing, isOnline }) => {
       displayPrice = listing.price.value;
     }
   }
+
+  const title = otherUserName || listing?.title || "Chat";
+  const subtitle = otherUserName && listing?.title ? listing.title : null;
 
   return (
     <header className="flex items-center gap-3 px-4 py-3 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex-shrink-0">
@@ -33,12 +36,18 @@ const ChatHeader = ({ onBack, listing, isOnline }) => {
       </button>
       <div className="flex-1 min-w-0">
         <h2 className="text-base font-bold text-gray-900 dark:text-white truncate flex items-center gap-2">
-          {listing?.title || "Chat"}
+          {title}
           <span
             className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" : "bg-gray-400"}`}
-          ></span>
+          />
         </h2>
-        {displayPrice && (
+        {subtitle && (
+          <span className="text-xs text-gray-400 dark:text-gray-500 truncate block">
+            {subtitle}
+            {displayPrice && ` · €${displayPrice}`}
+          </span>
+        )}
+        {!subtitle && displayPrice && (
           <span className="text-sm font-semibold text-emerald-500">
             €{displayPrice}
           </span>
@@ -52,6 +61,7 @@ ChatHeader.propTypes = {
   onBack: PropTypes.func.isRequired,
   listing: PropTypes.object,
   isOnline: PropTypes.bool.isRequired,
+  otherUserName: PropTypes.string,
 };
 
 export default ChatHeader;

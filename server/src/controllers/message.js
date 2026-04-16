@@ -415,6 +415,35 @@ export const editMessage = async (req, res) => {
     res.status(500).json({ success: false, msg: "Unable to edit message" });
   }
 };
+export const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findOne({ _id: messageId, senderId: userId });
+    if (!message) {
+      return res
+        .status(404)
+        .json({ success: false, msg: "Message not found or unauthorized" });
+    }
+
+    message.isDeleted = true;
+    message.content = "";
+    await message.save();
+
+    // Broadcast deletion to the room in real time
+    const io = getIO();
+    if (io) {
+      io.to(message.room).emit("message_deleted", messageId);
+    }
+
+    res.status(200).json({ success: true, result: message });
+  } catch (error) {
+    logError(error);
+    res.status(500).json({ success: false, msg: "Unable to delete message" });
+  }
+};
+
 export const markAllRead = async (req, res) => {
   try {
     const userId = req.user._id;
