@@ -29,17 +29,17 @@ This project was developed as part of the HackYourFuture curriculum using Agile 
 
 | Home (Dark) | Listing Detail | Brand Filter |
 |---|---|---|
-| ![Home dark](docs/screenshots/01-home-dark.png) | ![Listing detail](docs/screenshots/04-listing-detail.png) | ![Filters](docs/screenshots/03-filters-brand.png) |
+| ![Home dark](docs/screenshots/01-home-dark.jpg) | ![Listing detail](docs/screenshots/04-listing-detail.jpg) | ![Filters](docs/screenshots/03-filters-brand.jpg) |
 
 | Profile | Real-time Chat | Create Listing |
 |---|---|---|
-| ![Profile](docs/screenshots/07-profile.png) | ![Chat](docs/screenshots/08-chat.png) | ![Create listing](docs/screenshots/09-create-listing.png) |
+| ![Profile](docs/screenshots/07-profile.jpg) | ![Chat](docs/screenshots/08-chat.jpg) | ![Create listing](docs/screenshots/09-create-listing.jpg) |
 
 ### Mobile
 
 | Home | Listing Detail | Profile | Chat |
 |---|---|---|---|
-| ![Mobile home](docs/screenshots/m01-home.png) | ![Mobile listing](docs/screenshots/m02-listing-detail.png) | ![Mobile profile](docs/screenshots/m03-profile.png) | ![Mobile chat](docs/screenshots/m04-chat.png) |
+| ![Mobile home](docs/screenshots/m01-home.jpg) | ![Mobile listing](docs/screenshots/m02-listing-detail.jpg) | ![Mobile profile](docs/screenshots/m03-profile.jpg) | ![Mobile chat](docs/screenshots/m04-chat.jpg) |
 
 ## Project Setup
 
