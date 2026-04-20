@@ -104,6 +104,13 @@ const ListingImageCarousel = ({ images = [], title = "Listing", status }) => {
           </button>
         )}
 
+        {/* Image counter badge */}
+        {displayImages.length > 1 && (
+          <div className="absolute top-3 right-3 z-[3] px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-bold tabular-nums pointer-events-none">
+            {activeIndex + 1} / {displayImages.length}
+          </div>
+        )}
+
         {status === "sold" && (
           <div className="absolute inset-0 z-[10] flex items-center justify-center p-6 pointer-events-none">
             <div className="absolute inset-0 bg-red-600/20 dark:bg-red-500/20 backdrop-blur-sm" />

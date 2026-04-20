@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import ReviewModal from "../../components/ReviewModal/ReviewModal";
@@ -17,6 +17,7 @@ import ListingSpecs from "./components/ListingSpecs";
 import StickyContactBar from "./components/StickyContactBar";
 import { ListingDetailSkeleton } from "../../components/ui/SkeletonLoaders";
 import ReportModal from "../../components/ReportModal/ReportModal";
+import { useListings } from "../../hooks/useListings";
 
 // Hooks
 import useListingDetail from "./hooks/useListingDetail";
@@ -32,6 +33,101 @@ const FadeIn = ({ children, delay = 0, className = "" }) => (
     {children}
   </motion.div>
 );
+
+/* ─── Similar listings strip ─────────────────────────────────── */
+const SimilarListings = ({ category, currentId }) => {
+  const { data } = useListings({ category: category ? [category] : [] });
+  const similar = (data?.pages?.flatMap((p) => p.result) || [])
+    .filter((l) => l._id !== currentId)
+    .slice(0, 4);
+
+  if (!similar.length) return null;
+
+  const ListingCardLazy = lazy(() => import("../../components/ListingCard"));
+
+  return (
+    <div className="mt-14">
+      <h2 className="text-xl font-black text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-emerald-500"
+        >
+          <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+          <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+          <path d="M15 6H9c-1.5 0-3 1-3 3l.5 3.5" />
+          <path d="M15 6c1.5 0 3 1 3 3l-.5 3.5" />
+        </svg>
+        Similar Bikes
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <Suspense
+          fallback={[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-48 bg-gray-100 dark:bg-white/5 rounded-2xl animate-pulse"
+            />
+          ))}
+        >
+          {similar.map((l) => (
+            <ListingCardLazy key={l._id} listing={l} />
+          ))}
+        </Suspense>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Share button ───────────────────────────────────────────── */
+const ShareButton = () => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ url });
+        return;
+      } catch {
+        // User cancelled — fall through to clipboard
+      }
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      className="inline-flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl transition-all"
+      title="Share this listing"
+    >
+      {copied ? (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Copied!
+        </>
+      ) : (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          Share
+        </>
+      )}
+    </button>
+  );
+};
 
 const ListingDetail = () => {
   const {
@@ -312,6 +408,14 @@ const ListingDetail = () => {
           isSubmitting={isSubmittingReport}
           targetTitle={listing.title}
         />
+
+        {/* Share button — desktop */}
+        <div className="hidden md:flex justify-end mt-6">
+          <ShareButton />
+        </div>
+
+        {/* Similar listings */}
+        <SimilarListings category={listing.category} currentId={id} />
 
         {/* Sticky Mobile Bar */}
         <StickyContactBar
