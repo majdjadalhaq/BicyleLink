@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { io } from "socket.io-client";
+import { useSocket } from "../../../hooks/useSocket";
 import { uploadToCloudinary } from "../../../utils/cloudinary";
 
 const useChat = (listingId, user, receiverId, roomParam) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [listing, setListing] = useState(null);
+  const [otherUserName, setOtherUserName] = useState("");
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
@@ -19,7 +20,8 @@ const useChat = (listingId, user, receiverId, roomParam) => {
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const socketRef = useRef(null);
+  // Use the global socket from SocketProvider — no second connection created here
+  const socket = useSocket();
   const typingTimeoutRef = useRef(null);
   const sellerId = receiverId?._id || receiverId;
 
@@ -29,7 +31,7 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     ? roomParam || `admin-warning-${user?._id}`
     : `${listingId}_${[user?._id, sellerId].sort().join("_")}`;
 
-  // Fetch History and Listing
+  // Fetch message history and listing data
   useEffect(() => {
     if (!room || !user) return;
 
@@ -49,69 +51,113 @@ const useChat = (listingId, user, receiverId, roomParam) => {
           "https://placehold.co/400x400/6a1b9a/ffffff?text=System+Notice",
         ],
       });
+      setOtherUserName("System");
     } else {
       fetch(`/api/listings/${listingId}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.success) setListing(data.result);
+          if (data.success) {
+            setListing(data.result);
+            // Derive other user's name from the listing's seller info
+            const seller = data.result?.sellerId;
+            if (seller && (seller._id || seller) !== user._id) {
+              setOtherUserName(seller.name || "");
+            }
+          }
         })
         .catch((err) => console.error("Failed to load listing:", err));
+
+      // If the current user is the seller, fetch the buyer/receiver profile
+      if (sellerId && sellerId !== user._id) {
+        fetch(`/api/users/${sellerId}/profile`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.user?.name) {
+              setOtherUserName((prev) => prev || data.user.name);
+            }
+          })
+          .catch(() => {});
+      }
     }
-  }, [room, user, listingId, isAdminWarning]);
+  }, [room, user, listingId, isAdminWarning, sellerId]);
 
-  // Socket
+  // Attach socket event listeners to the global socket
   useEffect(() => {
-    if (!user) return;
+    if (!socket || !user || !room) return;
 
-    socketRef.current = io(window.location.origin);
-    socketRef.current.emit("join_room", { room, userId: user._id });
-    socketRef.current.emit("check_online_status", sellerId);
+    socket.emit("join_room", { room, userId: user._id });
+    socket.emit("check_online_status", sellerId);
 
-    socketRef.current.on("receive_message", (message) => {
+    const onReceiveMessage = (message) => {
       if (message.room === room) {
         setMessages((prev) => [...prev, message]);
       }
-    });
+    };
 
-    socketRef.current.on("typing_status", (data) => {
+    const onTypingStatus = (data) => {
       if (data.userId !== user._id && data.room === room) {
         setIsOtherTyping(data.isTyping);
       }
-    });
+    };
 
-    socketRef.current.on("user_status_change", (data) => {
+    const onUserStatusChange = (data) => {
       if (data.userId === sellerId) setIsOnline(data.status === "online");
-    });
+    };
 
-    socketRef.current.on("online_status_result", (data) => {
+    const onOnlineStatusResult = (data) => {
       if (data.userId === sellerId) setIsOnline(data.isOnline);
-    });
+    };
 
-    socketRef.current.on("message_updated", (updatedMessage) => {
+    const onMessageUpdated = (updatedMessage) => {
       if (updatedMessage.room === room) {
         setMessages((prev) =>
           prev.map((m) => (m._id === updatedMessage._id ? updatedMessage : m)),
         );
       }
-    });
+    };
+
+    const onMessageDeleted = (deletedId) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === deletedId ? { ...m, isDeleted: true, content: "" } : m,
+        ),
+      );
+    };
+
+    socket.on("receive_message", onReceiveMessage);
+    socket.on("typing_status", onTypingStatus);
+    socket.on("user_status_change", onUserStatusChange);
+    socket.on("online_status_result", onOnlineStatusResult);
+    socket.on("message_updated", onMessageUpdated);
+    socket.on("message_deleted", onMessageDeleted);
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      // Remove listeners only — do NOT disconnect the global socket
+      socket.off("receive_message", onReceiveMessage);
+      socket.off("typing_status", onTypingStatus);
+      socket.off("user_status_change", onUserStatusChange);
+      socket.off("online_status_result", onOnlineStatusResult);
+      socket.off("message_updated", onMessageUpdated);
+      socket.off("message_deleted", onMessageDeleted);
     };
-  }, [room, user, sellerId]);
+  }, [socket, room, user, sellerId]);
 
   const handleTyping = useCallback(() => {
-    if (!socketRef.current || !user || !room) return;
-    socketRef.current.emit("typing", { room, userId: user._id });
+    if (!socket || !user || !room) return;
+    socket.emit("typing", { room, userId: user._id });
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      socketRef.current.emit("stop_typing", { room, userId: user._id });
+      socket.emit("stop_typing", { room, userId: user._id });
     }, 3000);
-  }, [user, room]);
+  }, [socket, user, room]);
 
   const handleSendMessage = useCallback(
     (content, extras = {}) => {
-      if (!user || (!content.trim() && !extras.mediaUrl && !extras.location))
+      if (
+        !socket ||
+        !user ||
+        (!content.trim() && !extras.mediaUrl && !extras.location)
+      )
         return;
 
       const messageData = {
@@ -123,12 +169,12 @@ const useChat = (listingId, user, receiverId, roomParam) => {
         ...extras,
       };
 
-      socketRef.current.emit("send_message", messageData);
-      socketRef.current.emit("stop_typing", { room, userId: user._id });
+      socket.emit("send_message", messageData);
+      socket.emit("stop_typing", { room, userId: user._id });
       setNewMessage("");
       setIsMenuOpen(false);
     },
-    [user, room, sellerId, listingId],
+    [socket, user, room, sellerId, listingId],
   );
 
   const handleScroll = useCallback(() => {
@@ -185,11 +231,29 @@ const useChat = (listingId, user, receiverId, roomParam) => {
         setMessages((prev) =>
           prev.map((m) => (m._id === messageId ? data.result : m)),
         );
-        // Emit socket event for real-time update
-        socketRef.current.emit("edit_message", data.result);
+        socket?.emit("edit_message", data.result);
       }
     } catch (err) {
       console.error("Failed to edit message:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}/message`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._id === messageId ? { ...m, isDeleted: true, content: "" } : m,
+          ),
+        );
+        socket?.emit("delete_message", { messageId, room });
+      }
+    } catch (err) {
+      console.error("Failed to delete message:", err);
     }
   };
 
@@ -238,6 +302,7 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     newMessage,
     setNewMessage,
     listing,
+    otherUserName,
     isLoadingHistory,
     isOtherTyping,
     isOnline,
@@ -258,6 +323,7 @@ const useChat = (listingId, user, receiverId, roomParam) => {
     setSelectedImageUrl,
     isAdminWarning,
     handleEditMessage,
+    handleDeleteMessage,
   };
 };
 

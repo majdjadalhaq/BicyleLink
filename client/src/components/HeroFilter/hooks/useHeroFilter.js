@@ -29,6 +29,7 @@ export const useHeroFilter = ({ filters, onApply, idPrefix = "" }) => {
   const [expandedSections, setExpandedSections] = useState({
     category: false,
     condition: false,
+    brand: false,
     price: false,
     year: false,
   });
@@ -40,6 +41,7 @@ export const useHeroFilter = ({ filters, onApply, idPrefix = "" }) => {
       return {
         category: false,
         condition: false,
+        brand: false,
         price: false,
         year: false,
         [section]: !isCurrentlyExpanded,

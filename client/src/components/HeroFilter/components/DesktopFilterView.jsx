@@ -3,7 +3,11 @@ import FilterSectionTitle from "../sections/FilterSectionTitle";
 import FilterChips from "../FilterChips";
 import DualRangeSlider from "../../ui/DualRangeSlider";
 import CitySearchInput from "../CitySearchInput";
-import { CATEGORY_OPTIONS, CONDITION_OPTIONS } from "../../../utils/constants";
+import {
+  BRAND_OPTIONS,
+  CATEGORY_OPTIONS,
+  CONDITION_OPTIONS,
+} from "../../../utils/constants";
 
 const DesktopFilterView = ({
   uniquePrefix,
@@ -68,6 +72,25 @@ const DesktopFilterView = ({
                   </div>
                 )}
               </div>
+
+              <div className="flex flex-col gap-4">
+                <FilterSectionTitle
+                  title="Brand"
+                  name="brand"
+                  expandedSections={expandedSections}
+                  toggleSection={toggleSection}
+                />
+                {expandedSections.brand && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <FilterChips
+                      title=""
+                      options={BRAND_OPTIONS}
+                      selected={localFilters.brand}
+                      onToggle={(val) => handleChipToggle("brand", val)}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -80,7 +103,7 @@ const DesktopFilterView = ({
               className={`p-5 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${
                 expandedSections.price ||
                 localFilters.minPrice > 0 ||
-                localFilters.maxPrice < 10000
+                localFilters.maxPrice < 50000
                   ? "bg-emerald-800 dark:bg-emerald-600 border-emerald-800 dark:border-emerald-600 text-white shadow-glow"
                   : "bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-emerald-500 hover:text-emerald-500"
               }`}
@@ -140,11 +163,11 @@ const DesktopFilterView = ({
                 <DualRangeSlider
                   label="Price Range"
                   min={0}
-                  max={10000}
+                  max={50000}
                   step={50}
                   value={[
                     localFilters.minPrice || 0,
-                    localFilters.maxPrice || 10000,
+                    localFilters.maxPrice || 50000,
                   ]}
                   onChange={([min, max]) => {
                     handleRangeChange("minPrice", min);

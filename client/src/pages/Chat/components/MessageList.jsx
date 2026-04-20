@@ -14,6 +14,7 @@ const MessageList = ({
   isOtherTyping,
   isAdminWarning,
   onEdit,
+  onDelete,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -64,6 +65,7 @@ const MessageList = ({
             copyFeedback={copyFeedback}
             isAdminWarning={isAdminWarning}
             onEdit={onEdit}
+            onDelete={onDelete}
           />
         ))
       )}
@@ -103,6 +105,7 @@ MessageList.propTypes = {
   isOtherTyping: PropTypes.bool.isRequired,
   isAdminWarning: PropTypes.bool,
   onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
 };
 
 export default MessageList;

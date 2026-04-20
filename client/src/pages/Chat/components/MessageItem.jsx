@@ -9,6 +9,7 @@ const MessageItem = ({
   copyFeedback,
   isAdminWarning,
   onEdit,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(msg.content || "");
@@ -24,6 +25,7 @@ const MessageItem = ({
     setEditContent(msg.content);
     setIsEditing(false);
   };
+
   const isSender = (msg.senderId._id || msg.senderId) === user._id;
   const senderName = msg.senderId.name || "User";
 
@@ -59,6 +61,31 @@ const MessageItem = ({
       </div>
     );
   }
+
+  // Deleted message — show tombstone
+  if (msg.isDeleted) {
+    return (
+      <div
+        className={`flex flex-col max-w-[75%] ${isSender ? "ml-auto items-end" : "mr-auto items-start"}`}
+      >
+        <div className="rounded-2xl px-4 py-2.5 text-sm italic text-gray-400 dark:text-gray-500 border border-dashed border-gray-300 dark:border-gray-700">
+          This message was deleted.
+        </div>
+        <div className="text-[10px] mt-1 text-gray-400">
+          {new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  const canEdit =
+    isSender &&
+    !isEditing &&
+    msg.content !== "[Image]" &&
+    !msg.content?.startsWith("[Location:");
 
   return (
     <div
@@ -214,30 +241,49 @@ const MessageItem = ({
       <div
         className={`text-[10px] mt-1 flex items-center gap-2 ${isSender ? "text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
       >
-        {isSender &&
-          !isEditing &&
-          msg.content !== "[Image]" &&
-          !msg.content?.startsWith("[Location:") && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="hover:text-emerald-500 transition-colors"
-              title="Edit message"
+        {canEdit && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="hover:text-emerald-500 transition-colors"
+            title="Edit message"
+          >
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-          )}
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+        )}
+        {isSender && !isEditing && onDelete && (
+          <button
+            onClick={() => onDelete(msg._id)}
+            className="hover:text-red-400 transition-colors"
+            title="Delete message"
+          >
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </button>
+        )}
         {new Date(msg.createdAt).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -255,6 +301,7 @@ MessageItem.propTypes = {
   copyFeedback: PropTypes.string,
   isAdminWarning: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
 };
 
 export default MessageItem;
