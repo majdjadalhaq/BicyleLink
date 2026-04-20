@@ -77,6 +77,7 @@ const Home = () => {
 
     if (filters.condition?.length)
       params.set("condition", filters.condition.join(","));
+    if (filters.brand?.length) params.set("brand", filters.brand.join(","));
     if (filters.location) params.set("location", filters.location);
     if (filters.lat) params.set("lat", filters.lat);
     if (filters.lng) params.set("lng", filters.lng);
@@ -90,6 +91,7 @@ const Home = () => {
     debouncedSearchTerm,
     filters.category,
     filters.condition,
+    filters.brand,
     filters.minPrice,
     filters.maxPrice,
     filters.minYear,
