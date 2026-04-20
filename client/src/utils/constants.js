@@ -19,6 +19,19 @@ export const CONDITION_OPTIONS = [
   { value: "poor", label: "Poor" },
 ];
 
+export const BRAND_OPTIONS = [
+  { value: "Specialized", label: "Specialized" },
+  { value: "Canyon", label: "Canyon" },
+  { value: "Giant", label: "Giant" },
+  { value: "Trek", label: "Trek" },
+  { value: "Cannondale", label: "Cannondale" },
+  { value: "Bianchi", label: "Bianchi" },
+  { value: "VanMoof", label: "VanMoof" },
+  { value: "Brompton", label: "Brompton" },
+  { value: "Santa Cruz", label: "Santa Cruz" },
+  { value: "Scott", label: "Scott" },
+];
+
 export const LISTING_STATUS = {
   ACTIVE: "active",
   SOLD: "sold",
