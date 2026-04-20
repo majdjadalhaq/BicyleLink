@@ -153,7 +153,11 @@ const useChat = (listingId, user, receiverId, roomParam) => {
 
   const handleSendMessage = useCallback(
     (content, extras = {}) => {
-      if (!socket || !user || (!content.trim() && !extras.mediaUrl && !extras.location))
+      if (
+        !socket ||
+        !user ||
+        (!content.trim() && !extras.mediaUrl && !extras.location)
+      )
         return;
 
       const messageData = {
