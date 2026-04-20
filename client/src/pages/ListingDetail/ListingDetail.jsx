@@ -204,11 +204,63 @@ const ListingDetail = () => {
   }, []);
 
   useEffect(() => {
-    if (listing?.title) {
-      document.title = `${listing.title} | BiCycleL`;
-    }
+    if (!listing?.title) return;
+
+    const setMeta = (property, content, isName = false) => {
+      const attr = isName ? "name" : "property";
+      let el = document.querySelector(`meta[${attr}="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    const title = `${listing.title} | BiCycleL`;
+    const description = listing.description
+      ? listing.description.slice(0, 160)
+      : `${listing.title} — €${listing.price?.toLocaleString()} on BiCycleL`;
+    const image = listing.images?.[0] || "/favicon.png";
+    const url = window.location.href;
+
+    document.title = title;
+    setMeta("og:title", title);
+    setMeta("og:description", description);
+    setMeta("og:image", image);
+    setMeta("og:url", url);
+    setMeta("og:type", "product");
+    setMeta("twitter:title", title, true);
+    setMeta("twitter:description", description, true);
+    setMeta("twitter:image", image, true);
+    setMeta("description", description, true);
+
     return () => {
       document.title = "BiCycleL | Premium marketplace for used bikes";
+      setMeta("og:title", "BiCycleL - Premium Second-Hand Bike Marketplace");
+      setMeta(
+        "og:description",
+        "BiCycleL - The premium community-driven marketplace for high-quality second-hand bikes in the Netherlands.",
+      );
+      setMeta("og:image", "/favicon.png");
+      setMeta("og:url", "https://bicyle-link.vercel.app");
+      setMeta("og:type", "website");
+      setMeta(
+        "twitter:title",
+        "BiCycleL - Premium Second-Hand Bike Marketplace",
+        true,
+      );
+      setMeta(
+        "twitter:description",
+        "BiCycleL - The premium community-driven marketplace for high-quality second-hand bikes in the Netherlands.",
+        true,
+      );
+      setMeta("twitter:image", "/favicon.png", true);
+      setMeta(
+        "description",
+        "BiCycleL - The premium community-driven marketplace for high-quality second-hand bikes in the Netherlands. Find your perfect ride today!",
+        true,
+      );
     };
   }, [listing]);
 
