@@ -47,20 +47,37 @@ export const useListingGeocoding = (
       async ({ coords }) => {
         const { latitude, longitude } = coords;
         try {
-          const data = await apiClient.get(
-            `/utils/reverse-geocode?lat=${latitude}&lon=${longitude}`,
+          // Call Nominatim directly from the browser — avoids Render shared-IP
+          // rate limits that block server-proxied geocoding requests.
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
+            { headers: { "User-Agent": "BiCycleL/1.0 (hyf-project)" } },
           );
-          if (data.success) {
+          if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+          const data = await res.json();
+
+          const addr = data?.address;
+          const city =
+            addr?.city || addr?.town || addr?.village || addr?.suburb;
+          const country = addr?.country;
+          const locationStr =
+            city && country
+              ? `${city}, ${country}`
+              : data?.display_name?.split(",").slice(0, 2).join(",").trim();
+
+          if (locationStr) {
             skipGeocodeRef.current = true;
             setFormData((prev) => ({
               ...prev,
-              location: data.result,
+              location: locationStr,
               coordinates: {
                 type: "Point",
                 coordinates: [longitude, latitude],
               },
             }));
             setRecenterTrigger((prev) => prev + 1);
+          } else {
+            setFormError("Could not resolve your location address.");
           }
         } catch (err) {
           console.error("Reverse geocoding failed", err);
@@ -95,15 +112,27 @@ export const useListingGeocoding = (
         clearTimeout(reverseGeocodeDebounceRef.current);
       }
 
-      // Debounce reverse geocoding for map drag
+      // Debounce reverse geocoding for map drag — call Nominatim directly
+      // from the browser to avoid Render shared-IP rate limits.
       reverseGeocodeDebounceRef.current = setTimeout(async () => {
         try {
-          const data = await apiClient.get(
-            `/utils/reverse-geocode?lat=${lat}&lon=${lng}`,
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
+            { headers: { "User-Agent": "BiCycleL/1.0 (hyf-project)" } },
           );
-          if (data.success) {
+          if (!res.ok) return;
+          const data = await res.json();
+          const addr = data?.address;
+          const city =
+            addr?.city || addr?.town || addr?.village || addr?.suburb;
+          const country = addr?.country;
+          const locationStr =
+            city && country
+              ? `${city}, ${country}`
+              : data?.display_name?.split(",").slice(0, 2).join(",").trim();
+          if (locationStr) {
             skipGeocodeRef.current = true;
-            setFormData((prev) => ({ ...prev, location: data.result }));
+            setFormData((prev) => ({ ...prev, location: locationStr }));
           }
         } catch (err) {
           console.error("Reverse geocoding after drag failed:", err);
