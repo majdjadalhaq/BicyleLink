@@ -24,6 +24,63 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
+  const { execute } = useApi();
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const selectableIds = users
+      .filter((u) => u._id !== currentUser._id)
+      .map((u) => u._id);
+    if (selectedIds.size === selectableIds.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableIds));
+    }
+  };
+
+  const handleBulkBlock = async (block) => {
+    const ids = [...selectedIds];
+    setIsBulkProcessing(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) =>
+          execute(`/api/admin/users/${id}/block`, { method: "PATCH" }),
+        ),
+      );
+      const updated = results
+        .map((r, i) => ({ result: r, id: ids[i] }))
+        .filter(
+          ({ result }) => result.status === "fulfilled" && result.value?.user,
+        )
+        .map(({ result }) => result.value.user);
+      setUsers((prev) =>
+        prev.map((u) => updated.find((u2) => u2._id === u._id) || u),
+      );
+      setSelectedIds(new Set());
+      showToast(
+        "success",
+        `${updated.length} user(s) ${block ? "blocked" : "unblocked"}`,
+      );
+    } catch {
+      showToast("error", "Bulk action failed");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   // Warning Modal State
   const [selectedUserForWarning, setSelectedUserForWarning] = useState(null);
   const [warningMessage, setWarningMessage] = useState("");
@@ -39,10 +96,6 @@ const UserManagement = () => {
     message: "",
     onConfirm: null,
   });
-
-  const { user: currentUser } = useAuth();
-  const { showToast } = useToast();
-  const { execute } = useApi();
 
   useEffect(() => {
     fetchUsers();
@@ -182,12 +235,58 @@ const UserManagement = () => {
         <BackToAdminLink label="← Back to Terminal" color="emerald" />
       </AdminPageHeader>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-4 px-6 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+            {selectedIds.size} user{selectedIds.size > 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleBulkBlock(true)}
+              disabled={isBulkProcessing}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-40"
+            >
+              <BlockIcon size={14} />
+              Block Selected
+            </button>
+            <button
+              onClick={() => handleBulkBlock(false)}
+              disabled={isBulkProcessing}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-40"
+            >
+              <UnblockIcon size={14} />
+              Unblock Selected
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-black uppercase tracking-widest transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         {/* Desktop Table View */}
         <div className="hidden lg:block bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-100 dark:border-[#2a2a2a] overflow-hidden shadow-2xl relative">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/50 dark:bg-black/20 text-gray-400 dark:text-gray-500 text-[10px] uppercase font-black tracking-[0.2em] border-b border-gray-100 dark:border-white/5">
+                <th className="px-6 py-5 w-12">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded accent-emerald-500 cursor-pointer"
+                    checked={
+                      selectedIds.size > 0 &&
+                      selectedIds.size ===
+                        users.filter((u) => u._id !== currentUser._id).length
+                    }
+                    onChange={toggleSelectAll}
+                    title="Select all"
+                  />
+                </th>
                 <th className="px-8 py-5 w-72">User</th>
                 <th className="px-8 py-5 w-64">Email</th>
                 <th className="px-8 py-5 w-32 text-center">Role</th>
@@ -201,8 +300,17 @@ const UserManagement = () => {
                   key={user._id}
                   className={`transition-all hover:bg-gray-50 dark:hover:bg-white/[0.02] group ${
                     user.isBlocked ? "opacity-60 saturate-50" : ""
-                  }`}
+                  } ${selectedIds.has(user._id) ? "bg-emerald-50/50 dark:bg-emerald-500/5" : ""}`}
                 >
+                  <td className="px-6 py-6">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded accent-emerald-500 cursor-pointer disabled:opacity-30"
+                      checked={selectedIds.has(user._id)}
+                      onChange={() => toggleSelect(user._id)}
+                      disabled={user._id === currentUser._id}
+                    />
+                  </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <div className="relative">
@@ -348,8 +456,16 @@ const UserManagement = () => {
               key={user._id}
               className={`bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-[#2a2a2a] p-6 shadow-sm relative overflow-hidden transition-all hover:shadow-xl ${
                 user.isBlocked ? "opacity-60 saturate-50" : ""
-              }`}
+              } ${selectedIds.has(user._id) ? "ring-2 ring-emerald-500/40" : ""}`}
             >
+              {user._id !== currentUser._id && (
+                <input
+                  type="checkbox"
+                  className="absolute top-4 right-4 w-4 h-4 rounded accent-emerald-500 cursor-pointer"
+                  checked={selectedIds.has(user._id)}
+                  onChange={() => toggleSelect(user._id)}
+                />
+              )}
               <div className="flex items-start justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="relative">
