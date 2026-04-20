@@ -1,121 +1,93 @@
-# BiCycleL Database Schema
+# BiCycleL Database Structure
 
-MongoDB with Mongoose 9 as the ODM. All models are in `server/src/models/`.
+The BiCycleL platform utilizes MongoDB with Mongoose as the Object Data Mapper (ODM). All database models are defined in `server/src/models/`.
 
----
+## Core Collections
 
-## users
+### users
 
-| Field | Type | Notes |
-|---|---|---|
-| `name` | String | Unique display name, required |
-| `email` | String | Unique, required |
-| `password` | String | bcrypt hash — absent for Google OAuth accounts |
-| `role` | String | `"user"` (default) or `"admin"` |
-| `isVerified` | Boolean | Set to true after email verification |
-| `isBlocked` | Boolean | Set by admin to suspend an account |
-| `agreedToTerms` | Boolean | Required on registration |
-| `authProvider` | String | `"local"` or `"google"` |
-| `avatarUrl` | String | Cloudinary URL |
-| `city` / `country` | String | Profile location |
-| `bio` | String | Optional profile description |
-| `ratingSum` | Number | Running total of all received review ratings |
-| `reviewCount` | Number | Total number of reviews received |
-| `notificationSettings` | Object | Booleans for `messages`, `reviews`, `favorites`, `marketing` |
-| `lockoutUntil` | Date | Temporary lockout after repeated failed logins |
-| `failedLoginAttempts` | Number | Counter for lockout logic |
+Stores user credentials, profile information, and account status.
 
-**Indexes**: unique on `email`, unique on `name`.
+| Field                    | Type    | Description                                                   |
+| ------------------------ | ------- | ------------------------------------------------------------- |
+| **name**                 | String  | Unique display name (required)                                |
+| **email**                | String  | Unique primary identifier (required)                          |
+| **password**             | String  | Hashed password for local authentication                      |
+| **role**                 | String  | User permissions: `user` or `admin`                           |
+| **isVerified**           | Boolean | Status of email verification                                  |
+| **avatarUrl**            | String  | URL to Cloudinary hosted profile image                        |
+| **city / country**       | String  | User location metadata                                        |
+| **notificationSettings** | Object  | Booleans for: `messages`, `reviews`, `favorites`, `marketing` |
+| **authProvider**         | String  | Identity source: `local` or `google`                          |
+| **ratingSum**            | Number  | Total points from received reviews                            |
+| **reviewCount**          | Number  | Total number of received reviews                              |
+| **lockoutUntil**         | Date    | Security: temporary suspension after failed attempts          |
 
----
+### listings
 
-## listings
+Stores bike marketplace items and their transaction status.
 
-| Field | Type | Notes |
-|---|---|---|
-| `title` | String | Required |
-| `description` | String | Required |
-| `images` | [String] | Up to 5 Cloudinary URLs |
-| `price` | Decimal128 | High-precision currency value |
-| `status` | String | `"active"` (default), `"sold"`, `"cancelled"` |
-| `ownerId` | ObjectId | Ref: `users` |
-| `buyerId` | ObjectId | Ref: `users` — set when marked as sold, locked after assignment |
-| `brand` | String | Bike brand for filtering |
-| `category` | String | Bike type (road, mountain, city, etc.) |
-| `condition` | String | e.g. new, like new, good, fair |
-| `location` | String | City/area label |
-| `coordinates` | GeoJSON Point | `{ type: "Point", coordinates: [lng, lat] }` for map display |
-| `views` | Number | Incremented on each listing page visit |
-| `inquiries` | Number | Count of unique users who messaged about this listing |
-| `isFeatured` | Boolean | Set by admin — featured listings appear at top |
+| Field                      | Type       | Description                                       |
+| -------------------------- | ---------- | ------------------------------------------------- |
+| **title / description**    | String     | Multi-language supported marketing text           |
+| **images**                 | [String]   | Array of up to 5 Cloudinary image URLs            |
+| **price**                  | Decimal128 | High-precision currency handling                  |
+| **status**                 | String     | Lifecycle: `active`, `sold`, `cancelled`          |
+| **ownerId**                | ObjectId   | Reference to the `users` collection               |
+| **buyerId**                | ObjectId   | Reference to the `users` collection (set on sale) |
+| **location / coordinates** | Point      | GeoJSON for map-based distance filtering          |
+| **brand / category**       | String     | Specs for parameterized search                    |
+| **inquiries**              | Number     | Unique inquiry counter for seller dashboards      |
 
-**Indexes**: compound on `ownerId + status`; `2dsphere` on `coordinates` for geo queries.
+### messages
 
----
+Stores real-time chat data between users.
 
-## messages
+| Field          | Type     | Description                                  |
+| -------------- | -------- | -------------------------------------------- |
+| **room**       | String   | Unique identifier for a chat conversation    |
+| **senderId**   | ObjectId | Reference to the message author              |
+| **receiverId** | ObjectId | Reference to the message recipient           |
+| **listingId**  | ObjectId | The specific bike listing being discussed    |
+| **content**    | String   | The message payload                          |
+| **mediaType**  | String   | Content type: `text`, `image`, or `location` |
+| **read**       | Boolean  | Status for the recipient                     |
+| **isDeleted**  | Boolean  | Soft-delete flag; content cleared, record retained for UI consistency |
 
-| Field | Type | Notes |
-|---|---|---|
-| `room` | String | Format: `{listingId}_{userId1}_{userId2}` — required |
-| `senderId` | ObjectId | Ref: `users` |
-| `receiverId` | ObjectId | Ref: `users` |
-| `listingId` | ObjectId | Ref: `listings` — used by the candidates query for Mark as Sold |
-| `content` | String | Required |
-| `mediaType` | String | `"text"`, `"image"`, or `"location"` |
-| `mediaUrl` | String | Cloudinary URL for image messages |
-| `location` | Object | `{ lat, lng, address }` for location messages |
-| `read` | Boolean | Whether the recipient has read this message |
-| `isEdited` | Boolean | Whether the message body has been changed after sending |
+### notifications
 
-**Indexes**: `{ listingId, senderId }` for candidates query; `{ room, createdAt: -1 }` for paginated history.
+Stores system and user-triggered notifications for the notification bell.
 
----
+| Field            | Type     | Description                                       |
+| ---------------- | -------- | ------------------------------------------------- |
+| **recipientId**  | ObjectId | Reference to the user receiving the alert         |
+| **senderId**     | ObjectId | Reference to the user triggering the alert        |
+| **listingId**    | ObjectId | Optional reference to a related listing           |
+| **type**         | String   | Event type: `message`, `favorite`, `review`, etc. |
+| **title / body** | String   | Content displayed in the notification dropdown    |
+| **link**         | String   | Internal route for deep linking                   |
+| **read**         | Boolean  | Read/unread status (syncs via WebSockets)         |
 
-## notifications
+### reviews
 
-| Field | Type | Notes |
-|---|---|---|
-| `recipientId` | ObjectId | Ref: `users` |
-| `senderId` | ObjectId | Ref: `users` |
-| `listingId` | ObjectId | Optional ref: `listings` |
-| `type` | String | `message`, `review`, `review_permission`, `favorite`, `listing_sold` |
-| `title` | String | Short heading shown in notification dropdown |
-| `body` | String | Full notification text |
-| `link` | String | Internal route for deep linking (e.g. `/listings/:id`) |
-| `read` | Boolean | Toggled via REST API and synced in real time over Socket.IO |
+Stores transaction-based feedback.
 
-**Index**: `{ recipientId, read }` for fast unread count queries.
+| Field          | Type     | Description                                |
+| -------------- | -------- | ------------------------------------------ |
+| **reviewerId** | ObjectId | Reference to the user giving the rating    |
+| **targetId**   | ObjectId | Reference to the user receiving the rating |
+| **listingId**  | ObjectId | Reference to the completed transaction     |
+| **rating**     | Number   | Integer value between 1 and 5              |
+| **comment**    | String   | Textual feedback                           |
 
----
+## Performance Indexing
 
-## reviews
+To ensure high performance under load, we have implemented the following core indexes:
 
-| Field | Type | Notes |
-|---|---|---|
-| `reviewerId` | ObjectId | Ref: `users` — the buyer |
-| `targetId` | ObjectId | Ref: `users` — the seller |
-| `listingId` | ObjectId | Ref: `listings` — the completed transaction |
-| `rating` | Number | Integer 1–5 |
-| `comment` | String | Optional, max 500 characters |
-| `createdAt` | Date | Auto-set |
-
-**Index**: unique compound on `{ reviewerId, listingId }` — enforces one review per transaction at the database level.
-
----
-
-## reports
-
-| Field | Type | Notes |
-|---|---|---|
-| `reporterId` | ObjectId | Ref: `users` |
-| `targetId` | ObjectId | The reported listing or user |
-| `targetType` | String | `"Listing"` or `"User"` |
-| `reason` | String | Required |
-| `status` | String | `"pending"`, `"reviewed"`, `"dismissed"` |
-| `createdAt` | Date | Auto-set |
-
----
+- **Users**: Unique indexes on `email` and `name`.
+- **Listings**: compound index on `ownerId` and `status`; 2dsphere index on `coordinates`.
+- **Messages**: Index on `room` and `createdAt` for historical retrieval.
+- **Notifications**: Index on `recipientId` and `read` for real-time count updates.
 
 ## Related Documentation
 
