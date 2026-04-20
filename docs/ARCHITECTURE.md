@@ -48,9 +48,9 @@ The backend is a Node.js Express server designed for scalability and security.
 
 ## Deployment Strategy
 
-- **Production Build**: The React application is compiled into static assets and served by the Express server in production.
-- **Hosting**: Deployed on Heroku with automatic builds triggered by Git pushes.
-- **Infrastructure**: Uses MongoDB Atlas for managed database state and Cloudinary for optimized media delivery.
+- **Frontend**: React SPA compiled to static assets and deployed on **Vercel**. Auto-deploys on push to `main`.
+- **Backend**: Express API + Socket.IO server deployed on **Render**. Auto-deploys on push to `main`.
+- **Infrastructure**: MongoDB Atlas for managed database state, Cloudinary for optimized media delivery, and Nominatim (called directly from the browser) for reverse geocoding to avoid datacenter IP blocks.
 
 ---
 

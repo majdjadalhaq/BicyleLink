@@ -14,10 +14,32 @@ This project was developed as part of the HackYourFuture curriculum using Agile 
 
 ## Features
 
-- **Real-time Communication**: Integrated chat system powered by Socket.IO with JWT authentication.
-- **Advanced Search**: Location-based filtering, text-based keyword scoring, and interactive UI controls.
-- **Security**: Implementation of NoSQL injection protection, rate limiting, and secure RESTful middleware.
-- **Responsive Design**: Optimized for both mobile and desktop experiences using a unified navigation system.
+- **Real-time Chat**: Socket.IO powered messaging with JWT auth, per-conversation partner name in header, message soft-delete, and Cmd+Enter shortcut.
+- **Advanced Search & Filters**: Category, condition, price range, model year, brand, and location-based filtering with distance radius. Brand filter covers 10 major manufacturers.
+- **Listing Detail**: Multi-image carousel with `1 / N` counter badge, similar bikes strip (same category), share button (Web Share API + clipboard fallback), and dynamic OG/Twitter meta tags per listing.
+- **Sold Listings**: Dedicated "See Similar Bikes" CTA on sold listing pages for non-owners.
+- **Profile Pages**: Dynamic gradient banner, stats (listings/sold/rating), All/Active/Sold listing tabs, Message and Share buttons.
+- **Security**: NoSQL injection protection, global rate limiting, and secure RESTful middleware with httpOnly JWT cookies.
+- **Responsive Design**: Unified navigation system optimized for both mobile and desktop with bottom tab bar on mobile.
+- **Admin Panel**: User management with bulk block/unblock actions, listing moderation, and platform-wide analytics.
+
+## Screenshots
+
+### Desktop
+
+| Home (Dark) | Listing Detail | Brand Filter |
+|---|---|---|
+| ![Home dark](docs/screenshots/01-home-dark.png) | ![Listing detail](docs/screenshots/04-listing-detail.png) | ![Filters](docs/screenshots/03-filters-brand.png) |
+
+| Profile | Real-time Chat | Create Listing |
+|---|---|---|
+| ![Profile](docs/screenshots/07-profile.png) | ![Chat](docs/screenshots/08-chat.png) | ![Create listing](docs/screenshots/09-create-listing.png) |
+
+### Mobile
+
+| Home | Listing Detail | Profile | Chat |
+|---|---|---|---|
+| ![Mobile home](docs/screenshots/m01-home.png) | ![Mobile listing](docs/screenshots/m02-listing-detail.png) | ![Mobile profile](docs/screenshots/m03-profile.png) | ![Mobile chat](docs/screenshots/m04-chat.png) |
 
 ## Project Setup
 
@@ -55,12 +77,12 @@ Comprehensive documentation is available in the `docs` directory:
 
 ## Tech Stack
 
-- **Frontend**: React, Vite, Tailwind CSS
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB, Mongoose
-- **Real-time**: Socket.IO
+- **Frontend**: React 19, Vite 7, Tailwind CSS 3, TanStack Query v5
+- **Backend**: Node.js 20, Express.js 5
+- **Database**: MongoDB Atlas, Mongoose 9
+- **Real-time**: Socket.IO 4
 - **Testing**: Jest, Cypress
 
 ## Deployment
 
-The application is configured for deployment on platforms like Heroku. For detailed instructions, please refer to the [Deployment Guide](docs/DEPLOYMENT.md).
+The frontend is deployed on **Vercel** and the backend is deployed on **Render**. Both services auto-deploy on pushes to the `main` branch. For detailed instructions, please refer to the [Deployment Guide](docs/DEPLOYMENT.md).

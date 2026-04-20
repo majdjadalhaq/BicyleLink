@@ -32,12 +32,13 @@ The BiCycleL platform provides a RESTful API for client-server communication. Al
 
 ## Real-time Messaging
 
-| Endpoint                 | Method | Description                      | Access  |
-| ------------------------ | ------ | -------------------------------- | ------- |
-| `/messages/inbox`        | GET    | Retrieve conversation list       | Private |
-| `/messages/:room`        | GET    | Retrieve chat history for a room | Private |
-| `/messages/unread-total` | GET    | Global unread message count      | Private |
-| `/messages/read-all`     | POST   | Mark all messages as read        | Private |
+| Endpoint                          | Method | Description                           | Access  |
+| --------------------------------- | ------ | ------------------------------------- | ------- |
+| `/messages/inbox`                 | GET    | Retrieve conversation list            | Private |
+| `/messages/:room`                 | GET    | Retrieve chat history for a room      | Private |
+| `/messages/unread-total`          | GET    | Global unread message count           | Private |
+| `/messages/read-all`              | POST   | Mark all messages as read             | Private |
+| `/messages/:messageId/message`    | DELETE | Soft-delete a message (sets `isDeleted`, clears content, emits socket event) | Owner |
 
 ## Notifications
 

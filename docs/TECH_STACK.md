@@ -16,8 +16,8 @@ A comprehensive overview of the technologies, libraries, and infrastructure powe
 - **State Management**: React Context API
 - **Routing**: React Router v7
 - **Styling**: Tailwind CSS v3
-- **Data Fetching**: Native Fetch API with custom `useApi` abstraction
-- **Maps & Location**: Leaflet, React Leaflet, OpenStreetMap
+- **Data Fetching**: Native Fetch API with custom `useApi` abstraction + TanStack Query v5 for server state
+- **Maps & Location**: Leaflet, React Leaflet, OpenStreetMap (Nominatim called directly from browser)
 - **Utilities**: Date-fns, Lodash, Clsx, Tailwind-merge
 - **Media**: React-easy-crop, Recharts, @react-oauth/google
 
@@ -38,11 +38,12 @@ A comprehensive overview of the technologies, libraries, and infrastructure powe
 
 ## Infrastructure
 
-- **Cloud Hosting**: Heroku (PaaS)
+- **Frontend Hosting**: Vercel (auto-deploy from `main`)
+- **Backend Hosting**: Render (auto-deploy from `main`)
 - **Database Hosting**: MongoDB Atlas (DBaaS)
 - **Media Storage**: Cloudinary
 - **Email Service**: Resend
-- **Geocoding**: Nominatim (OpenStreetMap)
+- **Geocoding**: Nominatim (OpenStreetMap, called client-side to avoid datacenter IP restrictions)
 
 ## Related Documentation
 
