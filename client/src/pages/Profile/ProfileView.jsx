@@ -69,9 +69,7 @@ const getBannerGradient = (name = "") => {
     "from-gray-900 via-emerald-900 to-green-900",
     "from-stone-900 via-slate-800 to-cyan-900",
   ];
-  const hash = name
-    .split("")
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const hash = name.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return palettes[hash % palettes.length];
 };
 
@@ -128,14 +126,14 @@ const ProfileView = () => {
     (currentUser._id === user._id || currentUser.id === user._id);
 
   const soldCount = listings?.filter((l) => l.status === "sold")?.length || 0;
-  const activeCount =
-    listings?.filter((l) => l.status !== "sold")?.length || 0;
+  const activeCount = listings?.filter((l) => l.status !== "sold")?.length || 0;
 
-  const filteredListings = listings?.filter((l) => {
-    if (listingTab === "active") return l.status !== "sold";
-    if (listingTab === "sold") return l.status === "sold";
-    return true;
-  }) || [];
+  const filteredListings =
+    listings?.filter((l) => {
+      if (listingTab === "active") return l.status !== "sold";
+      if (listingTab === "sold") return l.status === "sold";
+      return true;
+    }) || [];
 
   const gradient = getBannerGradient(user.name);
 
@@ -146,7 +144,8 @@ const ProfileView = () => {
         className={`w-full h-48 sm:h-64 relative overflow-hidden bg-gradient-to-br ${gradient} border-b border-[#10B77F]/20`}
       >
         {/* Subtle mesh overlay */}
-        <div className="absolute inset-0 opacity-30"
+        <div
+          className="absolute inset-0 opacity-30"
           style={{
             backgroundImage:
               "radial-gradient(circle at 20% 80%, rgba(16,183,127,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(16,183,127,0.1) 0%, transparent 50%)",
@@ -273,7 +272,14 @@ const ProfileView = () => {
                         strokeLinejoin="round"
                         className="text-emerald-500"
                       >
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                        />
                         <line x1="16" y1="2" x2="16" y2="6" />
                         <line x1="8" y1="2" x2="8" y2="6" />
                         <line x1="3" y1="10" x2="21" y2="10" />
