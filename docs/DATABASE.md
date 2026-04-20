@@ -52,6 +52,7 @@ Stores real-time chat data between users.
 | **content**    | String   | The message payload                          |
 | **mediaType**  | String   | Content type: `text`, `image`, or `location` |
 | **read**       | Boolean  | Status for the recipient                     |
+| **isDeleted**  | Boolean  | Soft-delete flag; content cleared, record retained for UI consistency |
 
 ### notifications
 
